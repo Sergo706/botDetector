@@ -9,7 +9,7 @@ const combinedIps: string[] = [
   ];
 
   const lastCheck: string[] = [
-    ...ipAddresses.googleips.flatMap(e => e.prefixes.map(p => p.ipv4Prefix || p.ipv6Prefix!)),
+    ...ipAddresses.googleips.flatMap(e => e.prefixes.map(p => p.ipv4Prefix ?? p.ipv6Prefix)),
     ...ipAddresses.apple.flatMap(e => e.prefixes.map(p => p.ipv4Prefix)),
     ...ipAddresses.ahrefs.flatMap(e => e.prefixes.map(p => p.ipv4Prefix)),
     ...ipAddresses.commonCrawler,
