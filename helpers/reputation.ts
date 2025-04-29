@@ -1,8 +1,8 @@
 import { settings } from "../settings.js";
-import { pool } from "../../../config/dbConnection.js";
+import { pool } from "../config/dbConnection.js";
 import type { RowDataPacket } from 'mysql2';
 import { updateScore } from "../db/updateVisitorScore.js";
-import { sendLog } from "../../../utils/telegramLogger.js";
+import { sendLog } from "../utils/telegramLogger.js";
 import { reputationCache } from "./cache/reputationCache.js";
 
 

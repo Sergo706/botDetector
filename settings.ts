@@ -74,7 +74,7 @@ export interface Settings {
     };
     checksTimeRateControl: {
       checkEveryReqest: boolean;
-      checkEvery: number; // time in miliseconds for the cookie
+      checkEvery: number; 
     }
     checks: {
       enableIpChecks: boolean;
@@ -125,11 +125,10 @@ export interface Settings {
     banUnlistedBots: true,
     checksTimeRateControl: {
       checkEveryReqest: false,
-      checkEvery: 1000 * 60 * 60 * 1, // time in miliseconds for the cookie
+      checkEvery: 1000 * 60 * 60 * 1, // time in miliseconds for the cookie 1hr
     },
     penalties: {
       ipInvalid: 10,
-
       behaviorTooFast: {
         behaviorPenalty: 8,
         behavioural_window: 60_000, //ms
@@ -146,8 +145,8 @@ export interface Settings {
         originHeaderMissmatch: 3,
 
         acceptHeader: {
-          ommitedAcceptHeader: 3, // */*
-          shortAcceptHeader: 4, // < 10
+          ommitedAcceptHeader: 3,
+          shortAcceptHeader: 4,
           acceptIsNULL: 3,
         },
 
@@ -204,7 +203,7 @@ export interface Settings {
       localeMismatch: 4,
       tzMismatch: 3,
       tlsCheckFailed: 6,
-      metaUaCheckFailed: 0,  // meta-UA internal
+      metaUaCheckFailed: 0, 
       badGoodbot: 10,
     },
   
@@ -246,7 +245,29 @@ export let settings: Settings = { ...defaultSettings };
 
 
 export function botDetectorSettings(newSettings: Partial<Settings>) {
-  settings = { ...settings, ...newSettings };
+  settings = mergeDeep(settings, newSettings);
+}
+
+
+function isObject(item: any): item is Record<string, any> {
+  return item && typeof item === 'object' && !Array.isArray(item);
+}
+
+
+function mergeDeep<T>(target: T, source: Partial<T>): T {
+  const output = { ...target } as any;
+  if (isObject(target) && isObject(source)) {
+    Object.keys(source).forEach(key => {
+      const sourceVal = (source as any)[key];
+      const targetVal = (target as any)[key];
+      if (isObject(sourceVal) && isObject(targetVal)) {
+        output[key] = mergeDeep(targetVal, sourceVal);
+      } else {
+        output[key] = sourceVal;
+      }
+    });
+  }
+  return output;
 }
 
 export function addBannedCountries(newCountries: string | string[]) {
@@ -259,6 +280,7 @@ export function addBannedCountries(newCountries: string | string[]) {
     ...newCountries,
   ];
 }
+
 export function updateScores(newScore: number) { 
  for (const [penaltyName, penaltyValue] of Object.entries(settings.penalties)) {
   penaltyName: newScore;

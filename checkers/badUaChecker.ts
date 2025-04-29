@@ -1,4 +1,4 @@
-import pool from '../../../config/dbConnection.js';
+import pool from '../config/dbConnection.js';
 
 let patterns: { rx: RegExp; severity: string }[] = [];
 

@@ -1,6 +1,6 @@
 // // banIp.ts
 import { spawn } from 'child_process';
-import { sendLog } from '../../../utils/telegramLogger.js';
+import { sendLog } from '../utils/telegramLogger.js';
 import type { BannedInfo } from '../types/checkersTypes.js';
 
 const UFW = '/usr/sbin/ufw';

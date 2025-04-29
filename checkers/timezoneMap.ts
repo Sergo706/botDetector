@@ -74,7 +74,7 @@ if (trCountry !== 'unknown' && timezone && timezone !== 'unknown') {
   const validTzs = (timezoneMap[trCountry]).map(z => z.toLowerCase());
 
   if (!validTzs.includes(timezone)) {
-    return score += 3;
+    return score += settings.penalties.timezoneUnknown;
   }
 }
     return score

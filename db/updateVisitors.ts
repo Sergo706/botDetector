@@ -1,5 +1,5 @@
-import { pool } from '../../../config/dbConnection.js';
-import { sendLog } from '../../../utils/telegramLogger.js';
+import { pool } from '../config/dbConnection.js';
+import { sendLog } from '../utils/telegramLogger.js';
 import { userValidation } from '../types/fingerPrint.js';
 
 export async function updateVisitor(u: userValidation) {

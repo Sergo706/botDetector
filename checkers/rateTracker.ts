@@ -1,4 +1,4 @@
-import pool from '../../../config/dbConnection.js';
+import pool from '../config/dbConnection.js';
 import { RowDataPacket } from 'mysql2';
 import { settings } from '../settings.js';
 import { rateCache } from '../helpers/cache/rateLimitarCache.js';

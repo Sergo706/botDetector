@@ -1,5 +1,5 @@
-import { pool } from '../../../config/dbConnection.js';
-import { sendLog } from '../../../utils/telegramLogger.js';
+import { pool } from '../config/dbConnection.js';
+import { sendLog } from '../utils/telegramLogger.js';
 import type { BannedInfo } from '../types/checkersTypes.js';
 
 export async function updateBannedIP(

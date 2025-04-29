@@ -1,5 +1,5 @@
-import { pool } from '../../../config/dbConnection.js';
-import { sendLog } from '../../../utils/telegramLogger.js';
+import { pool } from '../config/dbConnection.js';
+import { sendLog } from '../utils/telegramLogger.js';
 
 export async function updateScore( score: number, cookie: string) {
    const params = [ score, cookie ].map(v => v === undefined ? null : v);
