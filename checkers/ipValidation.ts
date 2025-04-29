@@ -1,7 +1,5 @@
 import { isIP } from 'node:net';
 
-
-
 export async function validateIp(ipAddress: string): Promise<boolean> {
     const isValid = isIP(ipAddress) !== 0;
     if (!isValid) {

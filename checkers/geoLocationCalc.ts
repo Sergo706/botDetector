@@ -26,22 +26,22 @@ if (country !== 'unknown') {
   reasons.push('COUNTRY_UNKNOWN');
 }
 
-if (!region || region === 'unknown' || regionName === 'unknown') {
+if (region === 'unknown' || regionName === 'unknown') {
     score += settings.penalties.regionUnknown;
     reasons.push('REGION_UNKNOWN');
   }
   
-  if (!lat || lat === 'unknown' || !lon || lon === 'unknown') {
+  if (lat === 'unknown' || lon === 'unknown') {
     score += settings.penalties.latLonUnknown;
     reasons.push('LAT_LON_UNKNOWN');
   }
 
-  if (district === 'unknown' || district === '') {
+  if (district === 'unknown') {
     score += settings.penalties.districtUnknown; // Not always returns
     reasons.push('DISTRICT_UNKNOWN');
   }
   
-  if (city === 'unknown' || city === '') {
+  if (city === 'unknown') {
     score += settings.penalties.cityUnknown; // Not always returns
     reasons.push('CITY_UNKNOWN');
   }

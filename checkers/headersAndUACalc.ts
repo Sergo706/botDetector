@@ -11,6 +11,7 @@ export function calculateUaAndHeaderScore(req: Request):
 { score: number, reasons: BanReasonCode[] } {
     const reasons: BanReasonCode[] = [];
     let score = 0;
+    console.log('[DEBUG]starting calculateUaAndHeaderScore');
 
     const uaString = req.get("User-Agent") || "";
     const uaLower = uaString.toLowerCase();

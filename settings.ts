@@ -8,7 +8,9 @@ export interface Settings {
 
     banScore: number;
     maxScore: number
-
+    proxy: boolean;
+    restoredReputaionPoints: number;
+    banUnlistedBots: boolean;
     penalties: {
       ipInvalid: number;
 
@@ -70,7 +72,10 @@ export interface Settings {
       metaUaCheckFailed: number;
       badGoodbot: number;
     };
-  
+    checksTimeRateControl: {
+      checkEveryReqest: boolean;
+      checkEvery: number; // time in miliseconds for the cookie
+    }
     checks: {
       enableIpChecks: boolean;
       enableGoodBotsChecks: boolean;
@@ -115,6 +120,13 @@ export interface Settings {
   export const defaultSettings: Settings = {
     banScore: 10,
     maxScore: 30,
+    proxy: true,
+    restoredReputaionPoints: 1,
+    banUnlistedBots: true,
+    checksTimeRateControl: {
+      checkEveryReqest: false,
+      checkEvery: 1000 * 60 * 60 * 1, // time in miliseconds for the cookie
+    },
     penalties: {
       ipInvalid: 10,
 
@@ -207,7 +219,7 @@ export interface Settings {
       enableLocaleMapsCheck: true,
       enableTimeZoneMapper: true
     },
-
+    
 
     storage: {
         type: 'sqlite',
@@ -235,4 +247,21 @@ export let settings: Settings = { ...defaultSettings };
 
 export function botDetectorSettings(newSettings: Partial<Settings>) {
   settings = { ...settings, ...newSettings };
+}
+
+export function addBannedCountries(newCountries: string | string[]) {
+  if (!Array.isArray(newCountries)) {
+    newCountries = [newCountries];
+  }
+ 
+  settings.penalties.bannedCountries = [
+    ...settings.penalties.bannedCountries,
+    ...newCountries,
+  ];
+}
+export function updateScores(newScore: number) { 
+ for (const [penaltyName, penaltyValue] of Object.entries(settings.penalties)) {
+  penaltyName: newScore;
+
+ }
 }

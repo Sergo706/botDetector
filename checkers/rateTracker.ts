@@ -1,9 +1,10 @@
 import pool from '../../../config/dbConnection.js';
 import { RowDataPacket } from 'mysql2';
 import { settings } from '../settings.js';
+import { rateCache } from '../helpers/cache/rateLimitarCache.js';
 
 interface VisitorRow extends RowDataPacket {
-  first_seen: Date;
+  last_seen: Date;
   request_count: number;
 }
 
@@ -12,38 +13,49 @@ const BEHAVIOURAL_WINDOW    = settings.penalties.behaviorTooFast.behavioural_win
 const BEHAVIOURAL_PENALTY   = settings.penalties.behaviorTooFast.behaviorPenalty;     
 
 
-export async function behaviouralDbScore(cookie: string): Promise<number> {
-  try { 
-  // 1) Read existing first_seen and request_count
-  const [rows] = await pool.execute<VisitorRow[]>(
-    `SELECT first_seen, request_count
-    FROM visitors
-      WHERE canary_id = ?
-      LIMIT 1;`,
-    [cookie]
-  );
-  const visitor = rows[0];
-  
-  if (!visitor) return 0;
-  
-  // 2) Increment our count and update last_seen
-  const newCount = visitor.request_count + 1;
-  await pool.execute(
-    `UPDATE visitors
-        SET request_count = ?, last_seen = NOW()
-      WHERE canary_id = ?`,
-    [newCount, cookie]
-  );
 
-  // 3) Decide whether they’ve fired too fast
-  const age = Date.now() - visitor.first_seen.getTime();
-  if (newCount > BEHAVIOURAL_THRESHOLD && age <= BEHAVIOURAL_WINDOW) {
-    return BEHAVIOURAL_PENALTY;
-  } 
-  } catch(err) {
-    console.error('[ERROR] behaviouralDbScore failed:', err);
-    throw err; //
+  export async function behaviouralDbScore(cookie: string): Promise<number> {
+    let score: number = 0;
+
+    const cached = rateCache.get(cookie);
+    
+    if (cached) {
+      console.log('[CACHE HIT] behaviouralDbScore');
+      const ageSinceLastSeen = Date.now() - cached.timestamp;
+        if (cached.request_count > BEHAVIOURAL_THRESHOLD && ageSinceLastSeen <= BEHAVIOURAL_WINDOW) {
+          return cached.score;
+        }
+    } else {  console.log('[CACHE MISS or EXPIRED] behaviouralDbScore');}
+   
+    try {
+      const [rows] = await pool.execute<VisitorRow[]>(
+        `SELECT last_seen, request_count
+         FROM visitors
+         WHERE canary_id = ?
+         LIMIT 1;`,
+        [cookie]
+      );
+      const visitor = rows[0];
+  
+      if (!visitor) return score;
+  
+
+      const ageSinceLastSeen = Date.now() - visitor.last_seen.getTime();
+      if (visitor.request_count > BEHAVIOURAL_THRESHOLD && ageSinceLastSeen <= BEHAVIOURAL_WINDOW) {
+        score = BEHAVIOURAL_PENALTY;
+      }
+      rateCache.set(cookie, {
+        score,
+        timestamp: Date.now(),
+        request_count: visitor.request_count,
+      });
+
+    } catch (err) {
+      console.error('[ERROR] behaviouralDbScore failed:', err);
+      throw err;
+    }
+  
+    return score;
   }
 
-  return 0;
-}
+

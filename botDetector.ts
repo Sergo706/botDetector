@@ -4,9 +4,9 @@ import { mapCountry } from './checkers/acceptLangMap.js';
 import { timeZoneMapper } from './checkers/timezoneMap.js';
 import { behaviouralDbScore } from './checkers/rateTracker.js';
 import { validateIp } from './checkers/ipValidation.js';
-import { banIp } from './helpers/banIP.js';
-import { updateBannedIP } from './updateBanned.js';
-import { updateScore } from './updateVisitorScore.js';
+import { banIp } from './penalties/banIP.js';
+import { updateBannedIP } from './db/updateBanned.js';
+import { updateScore } from './db/updateVisitorScore.js';
 import type { ParsedUAResult } from './types/UAparserTypes.js';
 import type { GeoResponse } from './types/geoTypes.js';
 import { BanReasonCode } from './types/checkersTypes.js';
@@ -17,6 +17,8 @@ import { settings } from './settings.js';
 import { calculateGeoLocation } from './checkers/geoLocationCalc.js';
 import { calculateProxyIspAndCookie } from './checkers/proxyISPAndCookieCalc.js';
 import { norm } from './helpers/normalize.js'
+import { processChecks } from './helpers/processChecks.js';
+import { updateIsBot } from './db/updateIsBot.js';
 
 const BAN_THRESHOLD = settings.banScore;
 const MAX_SCORE = settings.maxScore;
@@ -72,111 +74,121 @@ export async function uaAndGeoBotDetector(req: Request, ipAddress: string, userA
   };
 
 
+const cheapChecks: Array<() => Promise<{ score: number; reasons?: BanReasonCode[] }>> = [];
 const checks: Array<() => Promise<{ score: number; reasons?: BanReasonCode[] }>> = [];
 
+
+
 if (settings.checks.enableIpChecks) {
-  checks.push(() => 
-    validateIp(ipAddress)
-      .then(isValid => ({
-        score: isValid ? 0 : BAN_THRESHOLD,
+    cheapChecks.push(async function ipCheck() {
+      const isValid = await validateIp(ipAddress);
+      return {
+        score:   isValid ? 0 : BAN_THRESHOLD,
         reasons: isValid ? [] : ['INVALID_IP' as BanReasonCode]
-      }))
-  );
-}
+      };
+    });
+  }
 
-if (settings.checks.enableGoodBotsChecks) {
-  checks.push(() => 
-    validateGoodBots(data.browserType, data.browser, ipAddress)
-      .then(({ score, isBadBot, isGoodBot }) => { 
-        if (isBadBot) throw new BadBotDetected();
-        if (isGoodBot) throw new GoodBotDetected();
-        return { score, reasons: [] };
-      })
-  );
-}
+  if (settings.checks.enableGoodBotsChecks) {
+    cheapChecks.push(async function goodBotCheck() {
+      const { score, isBadBot, isGoodBot } =
+        await validateGoodBots(data.browserType, data.browser, ipAddress);
+      if (isBadBot) throw new BadBotDetected();
+      if (isGoodBot) throw new GoodBotDetected();
+      return { score, reasons: [] };
+    });
+  }
 
-if (settings.checks.enableBehaviorRateCheck) {
-  checks.push(() => 
-    behaviouralDbScore(cookie)
-      .then(score => ({ score, reasons: score ? ['BEHAVIOR_TOO_FAST'] : [] }))
-  );
-}
+  if (settings.checks.enableBrowserAndDeviceChecks) {
+    cheapChecks.push(async function browserDetailsAndDeviceCheck() {
+      return calculateBrowserDetailsAndDevice(
+        data.browserType,
+        data.browser,
+        data.os,
+        data.device,
+        data.deviceVendor,
+        data.browserVersion,
+        data.deviceModel
+      );
+    });
+  }
+  
+  if (settings.checks.enableTimeZoneMapper) {
+    cheapChecks.push(async function timeZoneMapperCheck() {
+      const score = timeZoneMapper(data.country, data.timezone);
+      return { score, reasons: score ? ['TZ_MISMATCH'] : [] };
+    });
+  }
+  
 
-if (settings.checks.enableProxyIspCookiesChecks) {
-  checks.push(() =>
-    Promise.resolve(calculateProxyIspAndCookie(cookie, data.proxy, data.hosting, data.isp, data.org, data.as))
-  );
-}
+  if (settings.checks.enableLocaleMapsCheck) {
+    cheapChecks.push(async function localeMapCheck() {
+      const score = mapCountry(
+        req.get('Accept-Language') || '',
+        data.country,
+        data.countryCode
+      );
+      return { score, reasons: score ? ['LOCALE_MISMATCH'] : [] };
+    });
+  }
+
+
+  if (settings.checks.enableBehaviorRateCheck) {
+    checks.push(async function behaviouralDbScoreCheck() {
+      const score = await behaviouralDbScore(cookie);
+      return { score, reasons: score ? ['BEHAVIOR_TOO_FAST'] : [] };
+    });
+  }
+
+  if (settings.checks.enableProxyIspCookiesChecks) {
+    checks.push(async function proxyIspCookieCheck() {
+      return calculateProxyIspAndCookie(
+        cookie,
+        data.proxy,
+        data.hosting,
+        data.isp,
+        data.org,
+        data.as
+      );
+    });
+  }
+
 
 if (settings.checks.enableUaAndHeaderChecks) {
-  checks.push(() =>
-    Promise.resolve(calculateUaAndHeaderScore(req))
-  );
+  checks.push(async function uaHeaderScoreCheck() {
+    return calculateUaAndHeaderScore(req);
+  });
 }
 
-if (settings.checks.enableBrowserAndDeviceChecks) {
-  checks.push(() =>
-    Promise.resolve(calculateBrowserDetailsAndDevice(
-      data.browserType,
-      data.browser,
-      data.os,
-      data.device,
-      data.deviceVendor,
-      data.browserVersion,
-      data.deviceModel
-    ))
-  );
-}
 
 if (settings.checks.enableGeoChecks) {
-  checks.push(() =>
-    Promise.resolve(calculateGeoLocation(
-      data.country,
-      data.region,
-      data.regionName,
-      data.lat,
-      data.lon,
-      data.district,
-      data.city,
-      data.timezone
-    ))
-  );
-}
-
-if (settings.checks.enableLocaleMapsCheck) {
-  checks.push(() => {
-    const score = mapCountry(req.get('Accept-Language') || '', data.country, data.countryCode);
-    return Promise.resolve({ score, reasons: score > 0 ? ['LOCALE_MISMATCH'] : [] });
-  });
-}
-
-if (settings.checks.enableTimeZoneMapper) {
-  checks.push(() => {
-    const score = timeZoneMapper(data.country, data.timezone);
-    return Promise.resolve({ score, reasons: score > 0 ? ['TZ_MISMATCH'] : [] });
-  });
-}
+    checks.push(async function geoLocationCheck() {
+      return calculateGeoLocation(
+        data.country,
+        data.region,
+        data.regionName,
+        data.lat,
+        data.lon,
+        data.district,
+        data.city,
+        data.timezone
+      );
+    });
+  }
 
   try {
-    let cs = 0
-    for (const runCheck of checks) {
-      const { score, reasons: rs = [] } = await runCheck();
-      console.log(
-        `Check #${cs++} →`,
-        runCheck,
-        'score=', score,
-        'reasons=', rs
-      );
-      
-      botScore += score;
-      rs.forEach(r => reasons.push(r));
-      if (botScore >= BAN_THRESHOLD) break;
+    botScore = await processChecks(cheapChecks, botScore, reasons,'cheapPhase');
+
+    if (botScore < BAN_THRESHOLD) {
+      botScore = await processChecks(checks, botScore, reasons,'heavyPhase');
     }
   } catch (error) {
     if (error instanceof BadBotDetected) {
       await Promise.all([
         banIp(ipAddress, { score: BAN_THRESHOLD, reasons: Array.from(reasons) }),
-        updateBannedIP(cookie, ipAddress, data.country, uaString, { score: BAN_THRESHOLD, reasons: Array.from(reasons) })
+        updateBannedIP(cookie, ipAddress, data.country, uaString, { score: BAN_THRESHOLD, reasons: Array.from
+        (reasons) }),
+        updateIsBot(true, cookie)
       ]);
       return true;
     }
@@ -191,12 +203,13 @@ if (settings.checks.enableTimeZoneMapper) {
     console.log(`[DEBUG] Starting Ban for ${ipAddress} ${userAgent}`),
     await Promise.all([
       banIp(ipAddress, { score: botScore, reasons: Array.from(reasons) }),
-      updateBannedIP(cookie, ipAddress, data.country, uaString, { score: botScore, reasons: Array.from(reasons) })
+      updateBannedIP(cookie, ipAddress, data.country, uaString, { score: botScore, reasons: Array.from(reasons) }),
+      updateIsBot(true, cookie)
     ]);
     return true;
   }
 
-  await updateScore(botScore, cookie);
+  updateScore(botScore, cookie);
   return false;
 }
 

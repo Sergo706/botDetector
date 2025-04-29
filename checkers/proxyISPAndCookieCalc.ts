@@ -33,7 +33,7 @@ if (proxy) {
     reasons.push('ISP_UNKNOWN');
   }
 
-  if (!org || org === 'unknown' || !as ||  as === 'unknown') {
+  if (org === 'unknown' ||  as === 'unknown') {
     score += settings.penalties.orgUnknown;
     reasons.push('ORG_UNKNOWN');
   }
