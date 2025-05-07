@@ -124,7 +124,7 @@ export interface Settings {
     restoredReputaionPoints: 1,
     banUnlistedBots: true,
     checksTimeRateControl: {
-      checkEveryReqest: false,
+      checkEveryReqest: true,
       checkEvery: 1000 * 60 * 60 * 1, // time in miliseconds for the cookie 1hr
     },
     penalties: {

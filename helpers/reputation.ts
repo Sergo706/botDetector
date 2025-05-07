@@ -31,6 +31,7 @@ export async function userReputaion(cookie: string): Promise<void> {
           score: newReputation
         });
       }
+      console.info(`[REPUTATION.TS]: Updated Score from cache to DB cookie: ${cookie} NEW SCORE: ${newReputation}`)
     }
     return; 
   }
@@ -46,22 +47,31 @@ suspicos_activity_score
 
 const [rows] = await pool.execute<VisitorRow[]>(VisitorQuery,[cookie])
 const visitor = rows[0];
+
+if (!visitor || visitor === undefined)  {
+  console.warn(`[REPUTATION.TS] no visitor record for canary_id=${cookie}`);
+  return;
+}
+
 const isBot = visitor.is_bot === 0 ? false : true;
 let reputation = visitor.suspicos_activity_score;
+
+
+if (isBot) return;
 
 reputationCache.set(cookie, {
     isBot:  isBot,
     score: reputation
 });
 
-if (!visitor) return;
-if (isBot) return;
+
 
 
 if (!isBot && reputation > 0 && reputation < botScore) {
   const newReputation = Math.max(0, reputation - settings.restoredReputaionPoints); 
   if (newReputation !== reputation) { 
     await updateScore(newReputation, cookie)
+    console.info('[REPUTATION.TS]: Update Score for cookie', cookie, 'New Score:', newReputation)
     reputationCache.set(cookie, {
       isBot: isBot,
       score: newReputation

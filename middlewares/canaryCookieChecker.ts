@@ -15,13 +15,13 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
     let canary = req.cookies?.canary_id || null;
     const ua = req.get("User-Agent") || "";
     const ip = req.ip;
-    console.log(`[DEBUG] Validator entered for ${req.method} ${req.originalUrl}`);
-    console.log(`[DEBUG] Incoming cookies:`, req.cookies);
+    console.info(`[DEBUG] Validator entered for ${req.method} ${req.originalUrl}`);
+    console.info(`[DEBUG] Incoming cookies:`, req.cookies);
 
     if (canary) {
-      const hit = visitorCache.get(canary);
-      if (hit && hit.expires > Date.now()) {
-        if (hit.banned) {
+      const cached = visitorCache.get(canary);
+      if (cached) {
+        if (cached.banned) {
           res.sendStatus(403);
           return; 
         } 
@@ -32,7 +32,7 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
     }
     
   if (!canary) {
-    console.log(`[DEBUG] No canary_id cookie found. Generating a new one.`);
+    console.info(`[DEBUG] No canary_id cookie found. Generating a new one.`);
     const cookieValue = randomBytes(32).toString('hex');
     canary = cookieValue;
     
@@ -45,7 +45,7 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
     })
     req.cookies = req.cookies || {};
     req.cookies.canary_id = canary;
-    console.log(`[DEBUG] New canary_id cookie set:`, cookieValue);
+    console.info(`[DEBUG] New canary_id cookie set:`, cookieValue);
   }
 
   const [geo] = await Promise.all([ getdata(ip!) ]);
@@ -83,13 +83,12 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
       os: parsedUA.os,
       activity_score: '0',
     };
-    updateVisitor(userValidation);
+  await updateVisitor(userValidation);
  
   const isBot = await uaAndGeoBotDetector(req, ip!, ua, geo, parsedUA);
   
   visitorCache.set(canary, {
     banned:  isBot,
-    expires: Date.now() + settings.checksTimeRateControl.checkEvery
   });
 
   if (isBot) {
