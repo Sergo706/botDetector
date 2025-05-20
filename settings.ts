@@ -10,6 +10,56 @@ export interface Settings {
     maxScore: number
     proxy: boolean;
     restoredReputaionPoints: number;
+/**
+ * setNewComputedScore
+ * -------------------
+ * Controls how the bot-detector and the reputation-healer cooperate.
+ *
+ * true  ▸ **Live snapshot mode**  
+ *        – Every request:
+ *          1. Bot-detector recalculates a fresh `botScore`  
+ *          2. Row in **visitors** is overwritten with that score  
+ *          3. Cache is refreshed with the same value  
+ *          4. Reputation-healer subtracts `restoredReputationPoints`
+ *             (if the visitor isn’t banned) and writes the lower score back
+ *             to DB & cache.
+ *        – Net effect: score oscillates  
+ *          `computed → healed → computed → healed …`  
+ *          Useful when you want the latest risk snapshot visible in the DB
+ *          after every page view.
+ *
+ * false ▸ **Snapshot-then-heal mode**  
+ *        – First request for this canary:  
+ *          detector writes the computed score (e.g. 8) to DB & cache.  
+ *        – Subsequent requests while the cache entry lives:  
+ *          detector skips the overwrite → healer slowly counts the
+ *          score down (`–restoredReputationPoints` per hit) and commits
+ *          the lower value.  
+ *        – When the cache expires (TTL) or the visitor clears cookies,
+ *          a fresh snapshot is taken and the cycle restarts.
+ *        – Net effect: score only **decreases** until a new snapshot is taken.
+ *
+ * Example
+ * -------
+ *   banScore = 10, restoredReputationPoints = 1
+ *   R = reqeast
+ *   Flag = true
+ *   ───────────
+ *   R1: detector 8 ➜ DB 8 ➜ healer 7
+ *   R2: detector 8 ➜ DB 8 ➜ healer 7
+ *
+ *   Flag = false
+ *   ────────────
+ *   R1: detector 8 ➜ DB 8, cache 8
+ *   R2: detector (skip) ➜ healer 7 ➜ DB 7, cache 7
+ *   R3: detector (skip) ➜ healer 6 ➜ DB 6, cache 6
+ *
+ * Choose **true** when you always want the latest computed risk stored.  
+ * Choose **false** when you prefer a single snapshot that only decays until
+ * the cache is refreshed.
+ */
+
+    setNewComputedScore: boolean;
     banUnlistedBots: boolean;
     penalties: {
       ipInvalid: number;
@@ -122,10 +172,11 @@ export interface Settings {
     maxScore: 30,
     proxy: true,
     restoredReputaionPoints: 1,
+    setNewComputedScore: false,
     banUnlistedBots: true,
     checksTimeRateControl: {
       checkEveryReqest: true,
-      checkEvery: 1000 * 60 * 60 * 1, // time in miliseconds for the cookie 1hr
+      checkEvery: 1000 * 60, // time in miliseconds for the cookie 1hr
     },
     penalties: {
       ipInvalid: 10,

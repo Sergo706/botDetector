@@ -16,22 +16,28 @@ export async function userReputaion(cookie: string): Promise<void> {
 
   const cached = reputationCache.get(cookie);
     if (cached) {
+      console.info(
+        `[REPUTATION] CACHE HIT cookie=${cookie} score=${cached.score} →  (botScore=${botScore})`);
+      
       if(cached.isBot) {
         return;
       }
    
     if (!cached.isBot && cached.score > 0 && cached.score < botScore) {
+      console.info(
+        `[REPUTATION] updating cache score cookie=${cookie} score=${cached.score} →  (botScore=${botScore})`);
       const newReputation = Math.max(0, cached.score - settings.restoredReputaionPoints); 
 
       if (newReputation !== cached.score) {
         await updateScore(newReputation, cookie);
-        
+        console.info(
+          `[REPUTATION] updating cache score to DB cookie=${cookie} score=${cached.score} →  (botScore=${botScore})`);
         reputationCache.set(cookie, {
           isBot: cached.isBot,
           score: newReputation
         });
       }
-      console.info(`[REPUTATION.TS]: Updated Score from cache to DB cookie: ${cookie} NEW SCORE: ${newReputation}`)
+      console.info(`[REPUTATION.TS]: finished Updating Score from cache to DB cookie: ${cookie} NEW SCORE: ${newReputation}`)
     }
     return; 
   }
@@ -54,20 +60,30 @@ if (!visitor || visitor === undefined)  {
 }
 
 const isBot = visitor.is_bot === 0 ? false : true;
-let reputation = visitor.suspicos_activity_score;
+let reputation = Number(visitor.suspicos_activity_score);
 
 
 if (isBot) return;
 
+if (!settings.setNewComputedScore) { 
 reputationCache.set(cookie, {
     isBot:  isBot,
     score: reputation
 });
-
-
+}
+console.table({
+  label: '[REP-GATE]',
+  isBot: isBot,
+  score: reputation,
+  'score>0': reputation > 0,
+  'score<ban': reputation < botScore,
+  healPts: settings.restoredReputaionPoints
+});
 
 
 if (!isBot && reputation > 0 && reputation < botScore) {
+  console.info(
+    `[REPUTATION] calculating new score cookie=${cookie} score=${reputation} →  (botScore=${botScore})`);
   const newReputation = Math.max(0, reputation - settings.restoredReputaionPoints); 
   if (newReputation !== reputation) { 
     await updateScore(newReputation, cookie)

@@ -119,15 +119,13 @@ export async function updateVisitor(u: userValidation) {
          browser                    = VALUES(browser),
          proxy                      = VALUES(proxy),
          hosting                    = VALUES(hosting),
-         is_bot                     = VALUES(is_bot),
          last_seen                  = NOW(),
          request_count              = request_count + 1,
          deviceVendor               = VALUES(deviceVendor),
          deviceModel                = VALUES(deviceModel),
          browserType                = VALUES(browserType),
          browserVersion             = VALUES(browserVersion),
-         os                         = VALUES(os),
-         suspicos_activity_score    = VALUES(suspicos_activity_score)`,
+         os                         = VALUES(os)`,
          params
     );
 

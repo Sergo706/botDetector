@@ -19,6 +19,7 @@ import { calculateProxyIspAndCookie } from './checkers/proxyISPAndCookieCalc.js'
 import { norm } from './helpers/normalize.js'
 import { processChecks } from './helpers/processChecks.js';
 import { updateIsBot } from './db/updateIsBot.js';
+import { reputationCache } from './helpers/cache/reputationCache.js';
 
 const BAN_THRESHOLD = settings.banScore;
 const MAX_SCORE = settings.maxScore;
@@ -209,7 +210,17 @@ if (settings.checks.enableGeoChecks) {
     return true;
   }
 
-  updateScore(botScore, cookie);
+
+  if (settings.setNewComputedScore) { 
+  await updateScore(botScore, cookie);
+  reputationCache.set(cookie, { isBot: false, score: botScore });
+  } else {
+  const cached = reputationCache.get(cookie);
+  if (!cached || cached.score === 0) {
+    await updateScore(botScore, cookie);   
+    reputationCache.set(cookie, { isBot: false, score: botScore });
+  }
+  }
   return false;
 }
 
