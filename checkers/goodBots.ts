@@ -23,9 +23,6 @@ export async function validateGoodBots(browserType: string, browserName: string,
   const botsWithoutSuffix  = ['duckduckbot','gptbot','oai-searchbot','chatgpt-user'].includes(name);
   const botsWithSuffix = userAgents.some(suf => name.includes(suf));
 
-
-    //If settings.banUnlistedBots is true any bot not listed in suffix.json or botsWithoutSuffix will be banned.
-    //Everything else exact names and any unknown bots when banning is off—hits the IP-range check.
     if (settings.banUnlistedBots && !botsWithoutSuffix && !botsWithSuffix) {
         return { score: 0, isBadBot: true, isGoodBot: false };   
     }

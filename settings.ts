@@ -5,10 +5,21 @@
  * Includes the ban threshold and individual penalty weights.
  */
 export interface Settings {
-
+      /**
+       * Total ban threshold the system accumaltae before banning.
+       */
     banScore: number;
+        /**
+       * Total ban score the system can assign.
+       */
     maxScore: number
+       /**
+       * is the system on a proxy server?.
+       */
     proxy: boolean;
+        /**
+       * Total score to restore for the next visitor reqeast.
+       */
     restoredReputaionPoints: number;
 /**
  * setNewComputedScore
@@ -60,6 +71,10 @@ export interface Settings {
  */
 
     setNewComputedScore: boolean;
+       /**
+       *   If settings.banUnlistedBots is true any bot not listed in suffix.json or botsWithoutSuffix will be banned.
+        *   Everything else exact names and any unknown bots when banning is off—hits the IP-range check..
+       */
     banUnlistedBots: boolean;
     penalties: {
       ipInvalid: number;

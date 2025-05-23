@@ -6,7 +6,7 @@ export function headersBotDetector(req: Request): number {
 
   if (req.httpVersion === '1.1') {
     const conn = req.get('connection')?.toLowerCase();
-    if (!conn || conn === 'close') score += settings.penalties.headerOptions.connectionHeaderIsClose;
+    if (conn === 'close') score += settings.penalties.headerOptions.connectionHeaderIsClose;
   }
 
   if (req.method !== 'GET') {
@@ -20,7 +20,7 @@ export function headersBotDetector(req: Request): number {
   
   const accept          = req.get('accept');
   const acceptLanguage  = req.get('accept-language');
-  const hostHeader      = req.get('x-forwarded-host');
+  const hostHeader      = req.get('X-Forwarded-Host');
 
   if (!acceptLanguage) score += settings.penalties.headerOptions.ommitedAcceptLanguage;
   if (!accept) score += settings.penalties.headerOptions.acceptHeader.acceptIsNULL;

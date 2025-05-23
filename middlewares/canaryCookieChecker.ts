@@ -15,7 +15,7 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
     let canary = req.cookies?.canary_id || null;
     const ua = req.get("User-Agent") || "";
     const ip = req.ip;
-    console.info(`[DEBUG] Validator entered for ${req.method} ${req.originalUrl}`);
+    console.info(`[DEBUG] Validator entered for ${req.method} ${req.get('X-Forwarded-Host')}`);
     console.info(`[DEBUG] Incoming cookies:`, req.cookies);
 
     if (canary) {

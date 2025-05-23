@@ -43,7 +43,7 @@ export async function uaAndGeoBotDetector(req: Request, ipAddress: string, userA
   let botScore: number = 0;
   const cookie = req.cookies.canary_id 
   const uaString = req.get("User-Agent") || "";
-  console.log(`[DEBUG] BotDetection called for ${req.method} ${req.originalUrl}`);
+  console.log(`[DEBUG] BotDetection called for ${req.method} ${req.get('X-Forwarded-Host')}`);
 
   const data: VisitorTrackingData = {
     cookie: cookie,
