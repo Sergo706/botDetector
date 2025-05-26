@@ -38,7 +38,7 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
     
     makeCookie(res,'canary_id', cookieValue, {
       httpOnly: true,
-      sameSite: "strict", 
+      sameSite: "lax", 
       maxAge: 1000 * 60 * 60 * 24 * 90,
       secure: true,
       path: "/", 

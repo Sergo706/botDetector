@@ -6,7 +6,7 @@ export function headersBotDetector(req: Request): number {
 
   if (req.httpVersion === '1.1') {
     const conn = req.get('connection')?.toLowerCase();
-    if (conn === 'close') score += settings.penalties.headerOptions.connectionHeaderIsClose;
+    if (conn && conn === 'close') score += settings.penalties.headerOptions.connectionHeaderIsClose;
   }
 
   if (req.method !== 'GET') {
