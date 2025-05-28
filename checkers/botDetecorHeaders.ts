@@ -37,7 +37,8 @@ export function headersBotDetector(req: Request): number {
 
   ]);
 
-  mustHeaders.forEach(h => {
+  mustHeaders.forEach((h, i) => {
+    if (req.method === 'POST' && h.startsWith('sec-fetch-')) return;
     if (!req.get(h)) score += settings.penalties.headerOptions.weightPerMustHeader;
   });
 

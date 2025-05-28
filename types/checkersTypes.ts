@@ -68,6 +68,7 @@ export type BanReasonCode =
   | 'META_UA_CHECK_FAILED'
   | 'DESKTOP_WITHOUT_OS'
   | 'NO_MODEL'
+  | 'XSS SCRIPTING ATTEMPT'
   | 'PATH_TRAVELAR_FOUND';
 
 /**
