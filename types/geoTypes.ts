@@ -11,7 +11,7 @@ export interface GeoResponse {
     currency?: string;
     isp?: string;
     org?: string;
-    as?: string;
+    as_org?: string;
     proxy?: boolean;
     hosting?: boolean;
   }

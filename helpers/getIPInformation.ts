@@ -18,7 +18,7 @@ export async function getdata(ip: string):Promise<GeoResponse> {
     currency:     undefined,
     isp:          undefined,
     org:          undefined,
-    as:           undefined,
+    as_org:           undefined,
     proxy:        false,
     hosting:      false,
   };
@@ -47,7 +47,7 @@ export async function getdata(ip: string):Promise<GeoResponse> {
   currency:      country.country?.isoCode,                              
   isp:           asn.autonomousSystemOrganization,                              
   org:           asn.autonomousSystemNumber?.toString(),
-  as:            asn.network,
+  as_org:            asn.network,
   proxy:        country.traits.isAnonymous ||
                 country.traits.isAnonymousVpn ||
                 country.traits.isTorExitNode ||

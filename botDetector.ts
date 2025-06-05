@@ -61,7 +61,7 @@ export async function uaAndGeoBotDetector(req: Request, ipAddress: string, userA
     currency: norm(geo.currency),
     isp: norm(geo.isp),
     org: norm(geo.org),
-    as: norm(geo.as),
+    as: norm(geo.as_org),
     browser: norm(parsedUA.browser),
     proxy: geo.proxy ?? false,
     hosting: (geo as any).hosting ?? false,

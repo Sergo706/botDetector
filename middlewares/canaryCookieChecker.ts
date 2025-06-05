@@ -67,7 +67,7 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
       currency: geo.currency ?? 'unknown',
       isp: geo.isp ?? 'unknown',
       org: geo.org ?? 'unknown',
-      as: geo.as ?? 'unknown',
+      as: geo.as_org ?? 'unknown',
       device_type: parsedUA.device,
       browser: parsedUA.browser,
       proxy: geo.proxy ?? false,
