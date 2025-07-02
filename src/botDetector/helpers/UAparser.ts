@@ -4,7 +4,7 @@ import { isAIBot, isBot } from 'ua-parser-js/helpers';
 import { CLIs, Crawlers, Fetchers, Libraries } from 'ua-parser-js/extensions';
 
 
-function parseUA(userAgent: string | number): ParsedUAResult  {
+export function parseUA(userAgent: string | number): ParsedUAResult  {
 
   
   const botParser = new UAParser(

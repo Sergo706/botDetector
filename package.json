@@ -5,7 +5,7 @@
   "license": "ISC",
   "author": "riavzon",
   "type": "module",
-  "main": "./dist/botDetector/middlewares/validator.js",
+  "main": "./dist/botDetector/main.js",
   "scripts": {
     "build": "tsc -b",
     "prepare": "npm run build && npm run updatebotips",

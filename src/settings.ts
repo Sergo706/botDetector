@@ -320,7 +320,7 @@ function isObject(item: any): item is Record<string, any> {
 }
 
 
-function mergeDeep<T>(target: T, source: Partial<T>): T {
+export function mergeDeep<T>(target: T, source: Partial<T>): T {
   const output = { ...target } as any;
   if (isObject(target) && isObject(source)) {
     Object.keys(source).forEach(key => {

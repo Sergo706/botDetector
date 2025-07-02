@@ -15,6 +15,12 @@ declare global {
   namespace Express {
     export interface Request {
       newVisitorId?: number;
+      botDetection: {
+        success: boolean,
+        banned: boolean,
+        time: string,
+        ipAddress: string
+      }
     }
   }
 }
@@ -109,6 +115,13 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
     res.sendStatus(403);
     return; 
   }
+   req.botDetection = {
+    success: true,
+    banned: isBot,
+    time: new Date().toISOString(),
+    ipAddress: req.ip!
+   }
+   
    userReputaion(canary).catch(err => console.error('[BOT DETECTION - MIDDLEWARE] userReputaion failed:', err))
      
   return next();
