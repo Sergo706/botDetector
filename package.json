@@ -1,0 +1,28 @@
+{
+  "name": "@riavzon/botdetector",
+  "version": "1.0.0",
+  "description": "The Bot Detector Service is a sophisticated system designed to identify and classify incoming web requests as originating from humans or automated bots. It employs a multi-layered approach involving a pipeline of \"cheap\" (low-resource) and \"heavy\" (resource-intensive) checks, various caching mechanisms, and a cumulative scoring system to detect, analyze, and mitigate potentially malicious bot activity. This service is specifically developed and tested for deployment on **Linux server** environments.",
+  "license": "ISC",
+  "author": "riavzon",
+  "type": "module",
+  "main": "botDetector.ts",
+  "scripts": {
+    "updatebotips": "node ./dist/botDetector/helpers/getIpsOfGoodBots.js",
+    "build": "tsc -b",
+    "prepare": "npm run build && npm run updatebotips"
+  },
+  "dependencies": {
+    "@maxmind/geoip2-node": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "date-fns": "^4.1.0",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "lru-cache": "^11.1.0",
+    "mysql2": "^3.14.0",
+    "pino": "^9.7.0",
+    "private-ip": "^3.0.2",
+    "telegraf": "^4.16.3",
+    "ua-parser-js": "^2.0.3",
+    "ip-range-check": "^0.2.0"
+  }
+}
