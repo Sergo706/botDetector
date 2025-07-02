@@ -8,6 +8,13 @@
   "files": ["dist/**/*", "README.md"],
   "main": "./dist/main.js",
   "types": "./dist/main.d.ts",
+  "exports": { 
+    ".": {
+       "import": "./dist/main.js", 
+       "require": "./dist/main.js", 
+       "types": "./dist/main.d.ts" 
+       } 
+      },
   "scripts": {
     "updatebotips": "node ./dist/botDetector/helpers/getIpsOfGoodBots.js",
     "build": "tsc -b",
