@@ -6,7 +6,7 @@
   "author": "riavzon",
   "type": "module",
   "main": "./dist/botDetector/main.js",
-  "types": "./dist/botDetector/.d.ts",
+  "types": "./dist/botDetector/main.d.ts",
   "scripts": {
     "build": "tsc -b",
     "prepare": "npm run build && npm run updatebotips",
