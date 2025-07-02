@@ -24,6 +24,11 @@
     "private-ip": "^3.0.2",
     "telegraf": "^4.16.3",
     "ua-parser-js": "^2.0.3",
-    "ip-range-check": "^0.2.0"
+    "ip-range-check": "^0.2.0",
+    "ts-node": "^10.9.2",
+    "@types/node": "^22.15.33",
+    "@types/express": "^5.0.1",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/date-fns": "^2.5.3"
   }
 }
