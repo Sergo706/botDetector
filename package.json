@@ -4,7 +4,6 @@
   "description": "The Bot Detector Service is a sophisticated system designed to identify and classify incoming web requests as originating from humans or automated bots. It employs a multi-layered approach involving a pipeline of \"cheap\" (low-resource) and \"heavy\" (resource-intensive) checks, various caching mechanisms, and a cumulative scoring system to detect, analyze, and mitigate potentially malicious bot activity. This service is specifically developed and tested for deployment on **Linux server** environments.",
   "license": "ISC",
   "author": "riavzon",
-  "files": ["dist/**", "src/**"],
   "type": "module",
   "main": "./dist/botDetector/main.js",
   "types": "./dist/botDetector/main.d.ts",
