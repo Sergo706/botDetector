@@ -11,7 +11,8 @@
     "forceConsistentCasingInFileNames": true,           
     "strict": true,                                      
     "skipLibCheck": true,
-    "composite": true                          
+    "composite": true,
+    "declaration": true                       
   },
   "include": ["src/**/*",  "src/**/*.json"],
   "exclude": ["node_modules"]

@@ -1,9 +1,9 @@
 import pinoNS from 'pino';
 import { existsSync, mkdirSync } from 'fs';
 import path from 'path';
-import { config } from '../config/secret.js';
 import { fileURLToPath } from 'url';
-
+import { getBotDetectorConfig } from '../config/secret.js';
+const { logLevel } = getBotDetectorConfig()
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -41,7 +41,7 @@ const transport = pinoNS.transport({
 
 export const logger = (pinoNS as any)(
   {
-    level: config.logs,
+    level: logLevel,
     timestamp: pinoNS.stdTimeFunctions.isoTime,
     mixin() { return { uptime: process.uptime() }; },
     redact: {
