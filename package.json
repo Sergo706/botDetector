@@ -17,7 +17,6 @@
     "typescript": "^5.4.0",
     "cookie-parser": "^1.4.7",
     "date-fns": "^4.1.0",
-    "dotenv": "^16.4.7",
     "express": "^5.1.0",
     "lru-cache": "^11.1.0",
     "mysql2": "^3.14.0",
