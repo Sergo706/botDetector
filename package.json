@@ -5,14 +5,15 @@
   "license": "ISC",
   "author": "riavzon",
   "type": "module",
-  "main": "botDetector.ts",
+  "main": "./dist/botDetector/middlewares/validator.js",
   "scripts": {
-    "updatebotips": "node ./dist/botDetector/helpers/getIpsOfGoodBots.js",
     "build": "tsc -b",
-    "prepare": "npm run build && npm run updatebotips"
+    "prepare": "npm run build && npm run updatebotips",
+    "updatebotips": "node ./dist/botDetector/helpers/getIpsOfGoodBots.js"
   },
   "dependencies": {
     "@maxmind/geoip2-node": "^6.0.0",
+    "typescript": "^5.4.0",
     "cookie-parser": "^1.4.7",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",

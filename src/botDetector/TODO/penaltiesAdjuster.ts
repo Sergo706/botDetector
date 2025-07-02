@@ -34,7 +34,7 @@
 // //    - Monitor the system after deploying the script to ensure it behaves as expected.
 
 
-import { pool } from "../../../config/dbConnection.js";
+import { pool } from "../config/dbConnection.js";
 import { RowDataPacket } from "mysql2";
 import { botDetectorSettings, settings } from "../../settings.js";
 import { se } from "date-fns/locale";

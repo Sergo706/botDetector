@@ -1,4 +1,3 @@
-// routes/check.ts
 import { Router } from 'express';
 import { validator } from '../middlewares/canaryCookieChecker.js';
 
