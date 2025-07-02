@@ -10,7 +10,7 @@
   "scripts": {
     "updatebotips": "node ./dist/botDetector/helpers/getIpsOfGoodBots.js",
     "build": "tsc -b",
-    "postinstall": "npm run build && npm run updatebotips"
+    "prepare": "npm run build && npm run updatebotips"
   },
   "dependencies": {
     "@maxmind/geoip2-node": "^6.0.0",
