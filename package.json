@@ -6,8 +6,8 @@
   "author": "riavzon",
   "type": "module",
   "files": ["dist/**/*", "README.md"],
-  "main": "./dist/botDetector/main.js",
-  "types": "./dist/botDetector/main.d.ts",
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
   "scripts": {
     "updatebotips": "node ./dist/botDetector/helpers/getIpsOfGoodBots.js",
     "build": "tsc -b",
