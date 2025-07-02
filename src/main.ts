@@ -7,3 +7,4 @@ export { getdata as getGeoData} from './botDetector/helpers/getIPInformation.js'
 export { loadUaPatterns } from './botDetector/checkers/badUaChecker.js';
 export { updateIsBot } from './botDetector/db/updateIsBot.js'
 export { updateBannedIP } from './botDetector/db/updateBanned.js'
+export { initBotDetector } from "./botDetector/config/secret.js";

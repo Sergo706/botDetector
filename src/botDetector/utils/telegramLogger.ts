@@ -1,9 +1,10 @@
-  import { Telegraf, Markup, MiddlewareFn } from 'telegraf';
-  import { config } from '../config/secret.js';
-  
-  const bot = new Telegraf(config.telegram.token!);
-  const ALLOWED = Number(config.telegram.allowedUser);
-  const LOG_CHAT_ID = Number(config.telegram.chatID);
+  import { Telegraf } from 'telegraf';
+  import { getBotDetectorConfig } from '../config/secret.js';
+  const {telegram } = getBotDetectorConfig()
+
+  const bot = new Telegraf(telegram.token!);
+  const ALLOWED = Number(telegram.allowedUser);
+  const LOG_CHAT_ID = Number(telegram.chatID);
   
 
   bot.use((ctx, next) => {

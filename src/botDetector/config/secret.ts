@@ -1,31 +1,22 @@
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { BotDetectorConfig } from '../types/config.js';
 
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+let cfg: BotDetectorConfig | undefined;
+
+export function initBotDetector(config: BotDetectorConfig): void {
+  if (!config.store?.host)      throw new Error('BotDetector: db.host is required');
+  if (!config.telegram?.token)
+    throw new Error('BotDetector: telegram.token is required');
+
+  cfg = Object.freeze(config);   
+}
 
 
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-
-export const config = {
-  db: {
-    host: process.env.DATABASE_HOST,
-    port: process.env.DATABASE_PORT,
-    user: process.env.DATABASE_USER,
-    password: process.env.DATABASE_SECRET,
-    name: process.env.DATABASE_NAME,
-  },
-  express: {
-    server: process.env.SERVER_IP,
-    port: process.env.PORT
-  },
-
-  telegram: {
-    token: process.env.BOT_TOKEN,
-    allowedUser: process.env.ALLOWED_USER_ID,
-    chatID: process.env.LOG_CHAT_ID
-  },
-  logs: 'debug'
-};
+export function getBotDetectorConfig(): BotDetectorConfig {
+  if (!cfg) {
+    throw new Error(
+      'BotDetector: initBotDetector() must be called once in app start-up'
+    );
+  }
+  return cfg;
+}
