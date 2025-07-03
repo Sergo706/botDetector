@@ -2,8 +2,7 @@ import pinoNS from 'pino';
 import { existsSync, mkdirSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getBotDetectorConfig } from '../config/secret.js';
-const { logLevel } = getBotDetectorConfig();
+import { getLogLvl } from '../config/loggerConfig.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const LOG_DIR = path.resolve(__dirname, '..', '..', '..', 'logs');
@@ -38,7 +37,7 @@ const transport = pinoNS.transport({
     ]
 });
 export const logger = pinoNS({
-    level: logLevel,
+    level: getLogLvl(),
     timestamp: pinoNS.stdTimeFunctions.isoTime,
     mixin() { return { uptime: process.uptime() }; },
     redact: {

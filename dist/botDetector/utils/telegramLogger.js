@@ -1,15 +1,14 @@
-import { Telegraf } from 'telegraf';
-import { getBotDetectorConfig } from '../config/secret.js';
-const { telegram } = getBotDetectorConfig();
-const bot = new Telegraf(telegram.token);
+import { TelegramBotClient } from '../config/telegramClient.js';
+const telegram = TelegramBotClient();
+const bot = telegram.bot;
 const ALLOWED = Number(telegram.allowedUser);
-const LOG_CHAT_ID = Number(telegram.chatID);
+const LOG_CHAT_ID = Number(telegram.chatId);
 bot.use((ctx, next) => {
     if (ctx.from?.id !== ALLOWED)
         return;
     return next();
 });
-bot.command('id', ctx => {
+bot.command('id', (ctx) => {
     ctx.reply(`Chat ID: ${ctx.chat.id}`);
 });
 function escapeHtml(input) {

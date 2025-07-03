@@ -1,20 +1,19 @@
-  import { Telegraf } from 'telegraf';
-  import { getBotDetectorConfig } from '../config/secret.js';
+import { TelegramBotClient } from '../config/telegramClient.js';
 
-  const { telegram } = getBotDetectorConfig()
+  const telegram  = TelegramBotClient()
 
-  const bot = new Telegraf(telegram.token!);
+  const bot = telegram.bot as any;
   const ALLOWED = Number(telegram.allowedUser);
-  const LOG_CHAT_ID = Number(telegram.chatID);
+  const LOG_CHAT_ID = Number(telegram.chatId);
   
 
-  bot.use((ctx, next) => {
+  bot.use((ctx: { from: { id: number; }; }, next: () => any) => {
     if (ctx.from?.id !== ALLOWED) return;
     return next();
   });
   
  
-  bot.command('id', ctx => {
+  bot.command('id', (ctx: { reply: (arg0: string) => void; chat: { id: any; }; }) => {
     ctx.reply(`Chat ID: ${ctx.chat.id}`);
   });
  
