@@ -34,7 +34,7 @@
 // //    - Monitor the system after deploying the script to ensure it behaves as expected.
 
 
-import { pool } from "../config/dbConnection.js";
+import { getPool } from "../config/dbConnection.js";
 import { RowDataPacket } from "mysql2";
 import { botDetectorSettings, settings } from "../../settings.js";
 import { se } from "date-fns/locale";
@@ -49,6 +49,7 @@ interface BannedRow {
 }
 
 export async function adjustPenalties(cookie: string): Promise<void> {
+    const pool = await getPool()
     const query =
     `
     SELECT

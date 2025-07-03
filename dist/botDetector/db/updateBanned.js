@@ -1,6 +1,7 @@
-import { pool } from '../config/dbConnection.js';
+import { getPool } from '../config/dbConnection.js';
 import { sendLog } from '../utils/telegramLogger.js';
 export async function updateBannedIP(cookie, ipAddress, country, user_agent, info) {
+    const pool = await getPool();
     const reasonPayload = JSON.stringify(info.reasons);
     const params = [cookie, ipAddress, country, user_agent, reasonPayload, info.score].map(v => v === undefined ? null : v);
     try {

@@ -1,7 +1,8 @@
-import { pool } from '../config/dbConnection.js';
+import { getPool } from '../config/dbConnection.js';
 import { sendLog } from '../utils/telegramLogger.js';
 export async function updateIsBot(isBot, cookie) {
     const params = [isBot, cookie].map(v => v === undefined ? null : v);
+    const pool = await getPool();
     try {
         await pool.execute(`UPDATE visitors SET is_bot = ? WHERE canary_id = ?`, params);
     }

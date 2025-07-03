@@ -1,5 +1,6 @@
-import { pool } from '../config/dbConnection.js';
+import { getPool } from '../config/dbConnection.js';
 export async function warmUp() {
+    const pool = await getPool();
     await Promise.all(Array.from({ length: 10 }, () => pool.query('SELECT 1')));
     await pool.execute(`SELECT last_seen, request_count
      FROM visitors

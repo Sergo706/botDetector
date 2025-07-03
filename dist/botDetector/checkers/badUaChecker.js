@@ -1,6 +1,7 @@
-import pool from '../config/dbConnection.js';
+import { getPool } from '../config/dbConnection.js';
 let patterns = [];
 export async function loadUaPatterns() {
+    const pool = await getPool();
     const [rows] = await pool.query(`SELECT http_user_agent, metadata_severity
        FROM user_agent_metadata
       WHERE metadata_severity IN ('low','medium','high','critical')`);

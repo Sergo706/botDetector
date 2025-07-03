@@ -1,6 +1,7 @@
-import { pool } from '../config/dbConnection.js';
+import { getPool } from '../config/dbConnection.js';
 import { sendLog } from '../utils/telegramLogger.js';
 export async function updateVisitor(u) {
+    const pool = await getPool();
     const { cookie, ipAddress, userAgent, country, region, regionName, city, district, lat, lon, timezone, currency, isp, org, as: asOrg, device_type, browser, proxy, hosting, is_bot, first_seen, last_seen, request_count, deviceVendor, deviceModel, browserType, browserVersion, os, activity_score, } = u;
     const params = [
         cookie,

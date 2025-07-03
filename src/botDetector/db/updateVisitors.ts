@@ -1,9 +1,10 @@
-import { pool } from '../config/dbConnection.js';
+import { getPool } from '../config/dbConnection.js';
 import { sendLog } from '../utils/telegramLogger.js';
 import { userValidation } from '../types/fingerPrint.js';
 import { RowDataPacket } from 'mysql2';
 
 export async function updateVisitor(u: userValidation) {
+  const pool = await getPool()
   const {
     cookie,
     ipAddress,

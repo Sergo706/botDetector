@@ -1,28 +1,22 @@
 import { getBotDetectorConfig } from './secret.js';
-import mysql from 'mysql2/promise';
+import mysql2 from 'mysql2/promise';
 
-const { store } = getBotDetectorConfig()
+let pool: mysql2.Pool;
 
- const db = await mysql.createConnection({
-  host: store.host,
-  port: store.port,
-  user: store.user,
-  password: store.password,
-  database: store.name,
-  connectTimeout: 990000,
-});
-export default db;
+export async function getPool() { 
+  if (pool) return pool;
+  const { store } = getBotDetectorConfig()
+  pool = mysql2.createPool({
+    host: store.host,
+    port: store.port,
+    user: store.user,
+    password: store.password,
+    database: store.name,
+    waitForConnections: true,      
+    connectionLimit: 10,          
+    queueLimit: 0,             
+    connectTimeout: 990000,
+  });
 console.log(`Connected to MySQL! to ${store.name} as ${store.user}`);
-
-export const pool = mysql.createPool({
-  host: store.host,
-  port: store.port,
-  user: store.user,
-  password: store.password,
-  database: store.name,
-  waitForConnections: true,      
-  connectionLimit: 10,          
-  queueLimit: 0,             
-  connectTimeout: 990000,
-});
-
+return pool;
+}

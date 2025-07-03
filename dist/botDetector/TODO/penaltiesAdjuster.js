@@ -26,9 +26,10 @@
 // //    - Ensure that the script runs efficiently and does not impact system performance.
 // //    - Test the script in a staging environment before deploying it to production.
 // //    - Monitor the system after deploying the script to ensure it behaves as expected.
-import { pool } from "../config/dbConnection.js";
+import { getPool } from "../config/dbConnection.js";
 import { botDetectorSettings, settings } from "../../settings.js";
 export async function adjustPenalties(cookie) {
+    const pool = await getPool();
     const query = `
     SELECT
     stats.ban_reason,

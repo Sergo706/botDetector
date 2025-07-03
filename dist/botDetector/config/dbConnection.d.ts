@@ -1,4 +1,2 @@
-import mysql from 'mysql2/promise';
-declare const db: mysql.Connection;
-export default db;
-export declare const pool: mysql.Pool;
+import mysql2 from 'mysql2/promise';
+export declare function getPool(): Promise<mysql2.Pool>;

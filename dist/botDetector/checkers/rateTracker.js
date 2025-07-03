@@ -1,4 +1,4 @@
-import { pool } from '../config/dbConnection.js';
+import { getPool } from '../config/dbConnection.js';
 import { settings } from '../../settings.js';
 import { rateCache } from '../helpers/cache/rateLimitarCache.js';
 const BEHAVIOURAL_THRESHOLD = settings.penalties.behaviorTooFast.behavioural_threshold;
@@ -6,6 +6,7 @@ const BEHAVIOURAL_WINDOW = settings.penalties.behaviorTooFast.behavioural_window
 const BEHAVIOURAL_PENALTY = settings.penalties.behaviorTooFast.behaviorPenalty;
 export async function behaviouralDbScore(cookie) {
     let score = 0;
+    const pool = await getPool();
     const cached = rateCache.get(cookie);
     if (cached) {
         console.log('[CACHE HIT] behaviouralDbScore');

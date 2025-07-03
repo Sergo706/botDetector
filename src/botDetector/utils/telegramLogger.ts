@@ -1,6 +1,7 @@
   import { Telegraf } from 'telegraf';
   import { getBotDetectorConfig } from '../config/secret.js';
-  const {telegram } = getBotDetectorConfig()
+
+  const { telegram } = getBotDetectorConfig()
 
   const bot = new Telegraf(telegram.token!);
   const ALLOWED = Number(telegram.allowedUser);
