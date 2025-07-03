@@ -8,3 +8,4 @@ export { loadUaPatterns } from './botDetector/checkers/badUaChecker.js';
 export { updateIsBot } from './botDetector/db/updateIsBot.js';
 export { updateBannedIP } from './botDetector/db/updateBanned.js';
 export { initBotDetector } from "./botDetector/config/secret.js";
+export { warmUp } from './botDetector/db/warmUp.js';
