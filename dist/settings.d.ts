@@ -145,25 +145,6 @@ export interface Settings {
         enableLocaleMapsCheck: boolean;
         enableTimeZoneMapper: boolean;
     };
-    storage: {
-        type: 'sqlite' | 'mysql';
-        sqlite: {
-            filePath: string;
-        };
-        mysql: {
-            host: string;
-            port: number;
-            user: string;
-            password: string;
-            database: string;
-        };
-    };
-    telegram: {
-        enabled: boolean;
-        botToken: string;
-        allowedUserID: string;
-        chatId: string;
-    };
 }
 /**
  * Default settings for the detector.

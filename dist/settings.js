@@ -97,25 +97,6 @@ export const defaultSettings = {
         enableLocaleMapsCheck: true,
         enableTimeZoneMapper: true
     },
-    storage: {
-        type: 'sqlite',
-        sqlite: {
-            filePath: './botdetector.sqlite',
-        },
-        mysql: {
-            host: 'localhost',
-            port: 3306,
-            user: 'username',
-            password: 'password',
-            database: 'botdetector',
-        },
-    },
-    telegram: {
-        enabled: true,
-        botToken: 'string',
-        allowedUserID: 'string',
-        chatId: 'string',
-    },
 };
 export let settings = { ...defaultSettings };
 export function botDetectorSettings(newSettings) {
