@@ -15,10 +15,11 @@
        "types": "./dist/main.d.ts" 
        } 
       },
-  "scripts": {
+  "scripts": { 
     "updatebotips": "node ./dist/botDetector/helpers/getIpsOfGoodBots.js",
-    "build": "tsc -b",
-    "prepare": "npm run build && npm run updatebotips"
+    "build": "tsc && mkdir -p dist && cp -R src/**/geoData dist/botDetector",
+    "prepare": "npm run build",
+    "pack": "npm pack --foreground-scripts --ignore-scripts=false"
   },
   "dependencies": {
     "@maxmind/geoip2-node": "^6.0.0",
