@@ -1,9 +1,9 @@
 import { spawn } from 'child_process';
 import { sendLog } from '../utils/telegramLogger.js';
-import { logger } from '../utils/logger.js';
+import { getLogger } from '../utils/logger.js';
 const UFW = '/usr/sbin/ufw';
 export function banIp(ip, info) {
-    const log = logger.child({ service: 'BOT DETECTOR', branch: `banIp`, ipAddress: ip, details: info });
+    const log = getLogger().child({ service: 'BOT DETECTOR', branch: `banIp`, ipAddress: ip, details: info });
     log.info('about to ban an IP');
     return new Promise((resolve, reject) => {
         const child = spawn('sudo', ['-n', UFW, 'insert', '1', 'deny', 'from', ip], {

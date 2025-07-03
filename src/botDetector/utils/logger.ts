@@ -39,21 +39,30 @@ const transport = pinoNS.transport({
   ]
 });
 
-export const logger = (pinoNS as any)(
-  {
-    level: getLogLvl(),
-    timestamp: pinoNS.stdTimeFunctions.isoTime,
-    mixin() { return { uptime: process.uptime() }; },
-    redact: {
-      paths: [
-        'req.headers.authorization',
-        'user.password',
-        'accessToken',
-        'refresh_token',
-        '*.secret'
-      ],
-      censor: '[SECRET]'
-    }
-  },
-  transport
-);
+let logger: pinoNS.Logger;  
+
+export function getLogger() {
+  if (logger) return logger;       
+
+  logger = (pinoNS as any)(
+    {
+      level: getLogLvl(),             
+      timestamp: pinoNS.stdTimeFunctions.isoTime,
+      mixin() { return { uptime: process.uptime() }; },
+      redact: {
+        paths: [
+          'req.headers.authorization',
+          'user.password',
+          'accessToken',
+          'refresh_token',
+          '*.secret'
+        ],
+        censor: '[SECRET]'
+      }
+    },
+    transport
+  );
+
+  return logger;
+}
+

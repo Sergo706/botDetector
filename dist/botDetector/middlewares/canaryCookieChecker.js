@@ -8,12 +8,12 @@ import { uaAndGeoBotDetector } from '../../botDetector.js';
 import { visitorCache } from '../helpers/cache/cannaryCache.js';
 import { settings } from '../../settings.js';
 import { userReputaion } from '../helpers/reputation.js';
-import { logger } from '../utils/logger.js';
+import { getLogger } from '../utils/logger.js';
 export const validator = async (req, res, next) => {
     let canary = req.cookies?.canary_id || null;
     const ua = req.get("User-Agent") || "";
     const ip = req.ip;
-    const log = logger.child({ service: 'BOT DETECTOR', branch: `main`, canary: canary });
+    const log = getLogger().child({ service: 'BOT DETECTOR', branch: `main`, canary: canary });
     log.info(`Validator entered for ${req.method} ${req.get('X-Forwarded-Host')}`);
     log.info({ cookies: req.cookies }, `Incoming cookies`);
     if (canary) {

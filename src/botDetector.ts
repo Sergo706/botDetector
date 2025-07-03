@@ -20,11 +20,11 @@ import { norm } from './botDetector/helpers/normalize.js'
 import { processChecks } from './botDetector/helpers/processChecks.js';
 import { updateIsBot } from './botDetector/db/updateIsBot.js';
 import { reputationCache } from './botDetector/helpers/cache/reputationCache.js';
-import { logger } from './botDetector/utils/logger.js';
+import { getLogger } from './botDetector/utils/logger.js';
 
 const BAN_THRESHOLD = settings.banScore;
 const MAX_SCORE = settings.maxScore;
-const log = logger.child({service: 'BOT DETECTOR', branch: 'main'});
+
 class BadBotDetected extends Error {
   constructor(message = 'Bad bot detected') {
     super(message);
@@ -39,7 +39,7 @@ class GoodBotDetected extends Error {
 }
 
 export async function uaAndGeoBotDetector(req: Request, ipAddress: string, userAgent: string, geo: GeoResponse,  parsedUA: ParsedUAResult ): Promise<boolean> {
-
+  const log = getLogger().child({service: 'BOT DETECTOR', branch: 'main'});
   const reasons: BanReasonCode[] = [];
   let botScore: number = 0;
   const cookie = req.cookies.canary_id 

@@ -1,22 +1,36 @@
-import { TelegramBotClient } from '../config/telegramClient.js';
-
-  const telegram  = TelegramBotClient()
-
-  const bot = telegram.bot as any;
-  const ALLOWED = Number(telegram.allowedUser);
-  const LOG_CHAT_ID = Number(telegram.chatId);
+import { Telegraf } from 'telegraf';
+import { getBotDetectorConfig } from '../config/secret.js';
   
+type TgCtx = {
+  bot: Telegraf;
+  allowed: number;
+  logChatId: number;
+};
 
-  bot.use((ctx: { from: { id: number; }; }, next: () => any) => {
-    if (ctx.from?.id !== ALLOWED) return;
+let tg: TgCtx | undefined;  
+
+function getTelegram(): TgCtx {
+  if (tg) return tg;
+
+  const { telegram } = getBotDetectorConfig();  
+  const bot = new Telegraf(telegram.token);
+
+  bot.use((ctx, next: () => any) => {
+    if (ctx.from?.id !== telegram.allowedUser) return;
     return next();
   });
-  
- 
-  bot.command('id', (ctx: { reply: (arg0: string) => void; chat: { id: any; }; }) => {
+
+  bot.command('id', (ctx) => {
     ctx.reply(`Chat ID: ${ctx.chat.id}`);
   });
- 
+
+  tg = {
+    bot,
+    allowed: Number(telegram.allowedUser),
+    logChatId: Number(telegram.chatID)
+  };
+  return tg;
+}
 
   function escapeHtml(input: unknown): string {
     const text = input == null ? '' : String(input);
@@ -27,6 +41,7 @@ import { TelegramBotClient } from '../config/telegramClient.js';
   }
   
   export async function sendLog(title: string, message: string) {
+    const { bot, logChatId } = getTelegram();  
     try { 
     const header    = '<b>New Event Occurred</b>';
     const boldTitle = `<b>${escapeHtml(title)}</b>`;
@@ -35,10 +50,9 @@ import { TelegramBotClient } from '../config/telegramClient.js';
     const text = [header, boldTitle, '', body].join('\n');
   
     return bot.telegram
-      .sendMessage(LOG_CHAT_ID, text, { parse_mode: 'HTML' })
+      .sendMessage(logChatId, text, { parse_mode: 'HTML' })
     }catch(err) {
       console.log('Telegram Logger Error:', err)
     };
-      
   }
 

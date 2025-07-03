@@ -1,1 +1,2 @@
-export declare const logger: any;
+import pinoNS from 'pino';
+export declare function getLogger(): pinoNS.Logger<never, boolean>;

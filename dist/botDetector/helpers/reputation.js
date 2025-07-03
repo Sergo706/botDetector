@@ -3,9 +3,9 @@ import { getPool } from "../config/dbConnection.js";
 import { updateScore } from "../db/updateVisitorScore.js";
 import { sendLog } from "../utils/telegramLogger.js";
 import { reputationCache } from "./cache/reputationCache.js";
-import { logger } from "../utils/logger.js";
-const log = logger.child({ service: `BOT DETECTOR`, branch: `reputation` });
+import { getLogger } from "../utils/logger.js";
 export async function userReputaion(cookie) {
+    const log = getLogger().child({ service: `BOT DETECTOR`, branch: `reputation` });
     const pool = await getPool();
     const botScore = settings.banScore;
     const cached = reputationCache.get(cookie);

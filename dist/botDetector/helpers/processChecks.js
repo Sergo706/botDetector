@@ -1,8 +1,8 @@
 import { settings } from "../../settings.js";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger.js";
 import { performance } from 'perf_hooks';
 export async function processChecks(checks, botScore, reasons, phaseLabel = 'phase') {
-    const log = logger.child({ service: `BOT DETECTOR`, branch: 'checks' });
+    const log = getLogger().child({ service: `BOT DETECTOR`, branch: 'checks' });
     const reqId = Date.now();
     const phaseStart = performance.now();
     log.info({ phase: phaseLabel, reqId, event: 'start' });
