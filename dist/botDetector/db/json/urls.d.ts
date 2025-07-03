@@ -1,0 +1,14 @@
+export declare const urlListOfGoogleIPs: string[];
+export declare const bingIPList: string[];
+export declare const openAiIPList: string[];
+export declare const appleIPList: string[];
+export declare const ahrefsIPList: string[];
+export declare const duckDuckGoIPList: string[];
+export declare const commonCrawlerIPList: string[];
+export declare const xAndTwitterIPList: string[];
+export declare const facebookIPList: string[];
+export declare const pinterestIPList: string[];
+export declare const linkedinIPList: never[];
+export declare const yahooSlurpCrawler: never[];
+export declare const telegramIPList: string[];
+export declare const semrushIPList: string[];
