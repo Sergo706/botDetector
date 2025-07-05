@@ -18,7 +18,7 @@
   "scripts": { 
     "updatebotips": "node ./dist/botDetector/helpers/getIpsOfGoodBots.js",
     "build": "tsc && mkdir -p dist && cp -R src/**/geoData dist/botDetector",
-    "preinstall": "npm run build",
+    "prepare": "npm run build",
     "pack": "npm pack --foreground-scripts --ignore-scripts=false"
   },
   "dependencies": {
