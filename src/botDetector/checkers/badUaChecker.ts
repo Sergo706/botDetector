@@ -3,7 +3,7 @@ import { getPool } from '../config/dbConnection.js';
 let patterns: { rx: RegExp; severity: string }[] = [];
 
 export async function loadUaPatterns(): Promise<void> {
-  const pool = await getPool()
+  const pool = getPool()
   const [rows] = await pool.query(
     `SELECT http_user_agent, metadata_severity
        FROM user_agent_metadata

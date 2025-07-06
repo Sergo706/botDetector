@@ -3,7 +3,7 @@ import { sendLog } from '../utils/telegramLogger.js';
 
 export async function updateScore( score: number, cookie: string) {
    const params = [ score, cookie ].map(v => v === undefined ? null : v);
-   const pool = await getPool()
+   const pool = getPool()
     try { 
  await pool.execute(`UPDATE visitors SET suspicos_activity_score = ? WHERE canary_id = ?`, params);
  } catch(err) {

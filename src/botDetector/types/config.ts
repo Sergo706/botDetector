@@ -1,10 +1,7 @@
+import mysql2 from 'mysql2/promise';
 export interface BotDetectorConfig {
   store: {
-    host:     string;
-    port:     number;
-    user:     string;
-    password: string;
-    name:     string;
+    main: mysql2.Pool,
   };
   telegram: {
     token:        string;

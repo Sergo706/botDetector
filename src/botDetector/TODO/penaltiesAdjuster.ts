@@ -37,7 +37,7 @@
 import { getPool } from "../config/dbConnection.js";
 import { RowDataPacket } from "mysql2";
 import { botDetectorSettings, settings } from "../../settings.js";
-import { se } from "date-fns/locale";
+
 
 interface BannedRow {
     ban_reason: string;
@@ -49,7 +49,7 @@ interface BannedRow {
 }
 
 export async function adjustPenalties(cookie: string): Promise<void> {
-    const pool = await getPool()
+    const pool = getPool()
     const query =
     `
     SELECT

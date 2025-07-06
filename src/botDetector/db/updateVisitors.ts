@@ -4,7 +4,7 @@ import { userValidation } from '../types/fingerPrint.js';
 import { RowDataPacket } from 'mysql2';
 
 export async function updateVisitor(u: userValidation) {
-  const pool = await getPool()
+  const pool = getPool()
   const {
     cookie,
     ipAddress,

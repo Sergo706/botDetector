@@ -1,7 +1,7 @@
 import { getPool } from '../config/dbConnection.js';
 
 export async function warmUp() { 
-const pool = await getPool()
+const pool = getPool()
 await Promise.all(
   Array.from({ length: 10 }, () => pool.query('SELECT 1'))
 );

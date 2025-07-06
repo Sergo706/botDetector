@@ -1,28 +1,24 @@
 import { getBotDetectorConfig } from './secret.js';
 import mysql2 from 'mysql2/promise';
-
+import type { Pool as PromisePool } from 'mysql2/promise';
 let pool: mysql2.Pool;
+let mainPool: PromisePool | undefined;
 
-export async function getPool() { 
-  if (pool) return pool;
+/**
+ * Returns the main promise-based MySQL pool used by the auth lib.
+ * This pool must be injected via `configuration({ store: { main: ... } })`.
+ */
+export function getPool(): PromisePool {
+  if (mainPool) return mainPool;
+
   const { store } = getBotDetectorConfig()
 
-  try { 
-  pool = mysql2.createPool ({
-    host: store.host,
-    port: store.port,
-    user: store.user,
-    password: store.password,
-    database: store.name,
-    waitForConnections: true,      
-    connectionLimit: 10,          
-    queueLimit: 0,             
-    connectTimeout: 1000 * 60 * 2,
-  });
-  console.log(`Connected to MySQL! to ${store.name} as ${store.user}`);
-} catch(err) {
-  console.log(`Error connecting to MySQL`, err);
-  throw err;
+  if (!store?.main) {
+    throw new Error('Auth lib: store.main (MySQL pool) must be provided in configuration()');
+  }
+
+  mainPool = store.main;
+  console.log('Auth lib connected to main DB pool');
+  return mainPool;
 }
-return pool;
-}
+

@@ -10,7 +10,7 @@ export async function updateBannedIP(
   user_agent: string,
   info: BannedInfo
 ) {
-  const pool = await getPool()
+  const pool = getPool()
   const reasonPayload = JSON.stringify(info.reasons);
   const params = [ cookie, ipAddress, country, user_agent, reasonPayload, info.score ].map(v => v === undefined ? null : v);
   

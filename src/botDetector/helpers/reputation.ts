@@ -13,7 +13,7 @@ interface VisitorRow extends RowDataPacket {
 
 export async function userReputaion(cookie: string): Promise<void> {
   const log = getLogger().child({service: `BOT DETECTOR`, branch: `reputation`})
-  const pool = await getPool()
+  const pool = getPool()
   const botScore = settings.banScore
 
   const cached = reputationCache.get(cookie);

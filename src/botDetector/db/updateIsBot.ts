@@ -3,7 +3,7 @@ import { sendLog } from '../utils/telegramLogger.js';
 
 export async function updateIsBot(isBot: boolean, cookie: string) {
     const params = [isBot, cookie].map(v => v === undefined ? null : v);
-    const pool = await getPool()
+    const pool =  getPool()
     try { 
         await pool.execute(`UPDATE visitors SET is_bot = ? WHERE canary_id = ?`, params);
     } catch (err) {

@@ -16,7 +16,7 @@ const BEHAVIOURAL_PENALTY   = settings.penalties.behaviorTooFast.behaviorPenalty
 
   export async function behaviouralDbScore(cookie: string): Promise<number> {
     let score: number = 0;
-    const pool = await getPool()
+    const pool = getPool()
     const cached = rateCache.get(cookie);
     
     if (cached) {
