@@ -15,5 +15,5 @@ await pool.execute(
   ['00000000‑warm‑up‑row']   
 );
 
-console.info('DB pool and statements warmed!');
+console.info('botDetector is ready!');
 }

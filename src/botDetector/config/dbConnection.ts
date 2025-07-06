@@ -5,7 +5,7 @@ let pool: mysql2.Pool;
 let mainPool: PromisePool | undefined;
 
 /**
- * Returns the main promise-based MySQL pool used by the auth lib.
+ * Returns the main promise-based MySQL pool used by the botDetector lib.
  * This pool must be injected via `configuration({ store: { main: ... } })`.
  */
 export function getPool(): PromisePool {
@@ -14,11 +14,11 @@ export function getPool(): PromisePool {
   const { store } = getBotDetectorConfig()
 
   if (!store?.main) {
-    throw new Error('Auth lib: store.main (MySQL pool) must be provided in configuration()');
+    throw new Error('botDetector lib: store.main (MySQL pool) must be provided in configuration()');
   }
 
   mainPool = store.main;
-  console.log('Auth lib connected to main DB pool');
+  console.log('botDetector lib connected to main DB pool');
   return mainPool;
 }
 
