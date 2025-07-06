@@ -4,7 +4,7 @@ import { BotDetectorConfig } from '../types/config.js';
 let cfg: BotDetectorConfig | undefined;
 
 export function initBotDetector(config: BotDetectorConfig): void {
-  if (!config.store?.host)      throw new Error('BotDetector: db.host is required');
+  if (!config.store)      throw new Error('BotDetector: db.host is required');
   if (!config.telegram?.token)
     throw new Error('BotDetector: telegram.token is required');
 
