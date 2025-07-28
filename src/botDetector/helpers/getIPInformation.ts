@@ -2,7 +2,7 @@ import { sendLog } from "../utils/telegramLogger.js";
 import type { GeoResponse } from "../types/geoTypes.js";
 import { geoCache, asnReader, countryReader, cityReader } from "./geoReaders.js";
 import { AddressNotFoundError } from "@maxmind/geoip2-node";
-import isPrivateIp from "private-ip"; 
+
 
 export async function getdata(ip: string):Promise<GeoResponse> {
   const EMPTY: GeoResponse = {
@@ -23,7 +23,7 @@ export async function getdata(ip: string):Promise<GeoResponse> {
     hosting:      false,
   };
   
-  if (!ip || isPrivateIp(ip)) return EMPTY;  
+  if (!ip) return EMPTY;  
 
     const cached = geoCache.get(ip);
     if (cached) return cached;
