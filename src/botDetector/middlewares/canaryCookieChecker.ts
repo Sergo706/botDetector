@@ -10,7 +10,7 @@ import { visitorCache } from '../helpers/cache/cannaryCache.js';
 import { settings } from '../../settings.js';
 import { userReputaion } from '../helpers/reputation.js';
 import { getLogger } from '../utils/logger.js';
-
+import { updateUsersIfExists } from '../db/updateUsers.js';
 declare global {
   namespace Express {
     export interface Request {
@@ -115,6 +115,7 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
     res.sendStatus(403);
     return; 
   }
+   await updateUsersIfExists(req, res)
    req.botDetection = {
     success: true,
     banned: isBot,
