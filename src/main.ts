@@ -9,3 +9,4 @@ export { updateIsBot } from './botDetector/db/updateIsBot.js'
 export { updateBannedIP } from './botDetector/db/updateBanned.js'
 export { initBotDetector } from "./botDetector/config/secret.js";
 export { warmUp } from './botDetector/db/warmUp.js';
+export { updateVisitors } from "./botDetector/db/customUpdate.js";
