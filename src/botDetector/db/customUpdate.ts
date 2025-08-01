@@ -65,8 +65,8 @@ export async function updateVisitors (data: fingerPrint, cookie: string, visitor
       const [updateVisitor] = await pool.execute<ResultSetHeader>(`
      UPDATE visitors
          SET
-          ip_address = ?,
           user_agent = ?,
+          ip_address = ?,
           country = ?,
           region = ?,
           region_name = ?,
