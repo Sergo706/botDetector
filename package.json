@@ -5,37 +5,45 @@
   "license": "ISC",
   "author": "riavzon",
   "type": "module",
-  "files": ["dist/**/*", "README.md"],
+  "files": [
+    "dist/**/*",
+    "README.md"
+  ],
   "main": "./dist/main.js",
   "types": "./dist/main.d.ts",
-  "exports": { 
+  "exports": {
     ".": {
-       "import": "./dist/main.js", 
-       "require": "./dist/main.js"
-       } 
-      },
-  "scripts": { 
+      "import": "./dist/main.js",
+      "require": "./dist/main.js"
+    }
+  },
+  "scripts": {
     "updatebotips": "node ./dist/botDetector/helpers/getIpsOfGoodBots.js",
     "build": "tsc && mkdir -p dist && cp -R src/**/geoData dist/botDetector",
     "prepare": "npm run build",
+    "docs:markdown": "typedoc --options ./typedoc.json",
     "pack": "npm pack --foreground-scripts --ignore-scripts=false"
   },
   "dependencies": {
     "@maxmind/geoip2-node": "^6.0.0",
-    "typescript": "^5.4.0",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/date-fns": "^2.5.3",
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.15.33",
     "cookie-parser": "^1.4.7",
     "date-fns": "^4.1.0",
     "express": "^5.1.0",
+    "ip-range-check": "^0.2.0",
     "lru-cache": "^11.1.0",
     "mysql2": "^3.14.0",
     "pino": "^9.7.0",
     "telegraf": "^4.16.3",
-    "ua-parser-js": "^2.0.3",
-    "ip-range-check": "^0.2.0",
     "ts-node": "^10.9.2",
-    "@types/node": "^22.15.33",
-    "@types/express": "^5.0.1",
-    "@types/cookie-parser": "^1.4.8",
-    "@types/date-fns": "^2.5.3"
+    "typescript": "^5.4.0",
+    "ua-parser-js": "^2.0.3"
+  },
+  "devDependencies": {
+    "typedoc": "^0.28.9",
+    "typedoc-plugin-markdown": "^4.8.0"
   }
 }
