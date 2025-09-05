@@ -20,6 +20,7 @@
   "scripts": {
     "updatebotips": "node ./dist/botDetector/helpers/getIpsOfGoodBots.js",
     "build": "tsc && mkdir -p dist && cp -R src/**/geoData dist/botDetector",
+    "build:tables": "node ./dist/botDetector/db/schema.js",
     "prepare": "npm run build",
     "docs:markdown": "typedoc --options ./typedoc.json",
     "pack": "npm pack --foreground-scripts --ignore-scripts=false"

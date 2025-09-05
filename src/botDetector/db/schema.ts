@@ -1,6 +1,7 @@
-import { Connection } from 'mysql2/promise';
+import {  Pool } from 'mysql2/promise';
+import { getBotDetectorConfig } from '../config/secret.js';
 
-async function createTables(connection: Connection): Promise<void> {
+async function createTables(connection: Pool): Promise<void> {
     const createVisitorsTable = `
         CREATE TABLE IF NOT EXISTS visitors (
             visitor_id INT AUTO_INCREMENT UNIQUE NOT NULL,
@@ -89,3 +90,10 @@ const userAgentMetadataSQL = `
         throw error;
     }
 }
+
+export async function makeTables() {
+    const { store } = getBotDetectorConfig()
+    await createTables(store.main)
+}
+
+await makeTables();
