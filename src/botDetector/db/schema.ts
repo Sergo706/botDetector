@@ -3,6 +3,7 @@ import { Connection } from 'mysql2/promise';
 async function createTables(connection: Connection): Promise<void> {
     const createVisitorsTable = `
         CREATE TABLE IF NOT EXISTS visitors (
+            visitor_id INT AUTO_INCREMENT UNIQUE NOT NULL,
             canary_id VARCHAR(64) PRIMARY KEY,
             ip_address VARCHAR(45),
             user_agent TEXT,
