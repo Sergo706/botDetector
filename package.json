@@ -30,7 +30,7 @@
     "@types/cookie-parser": "^1.4.8",
     "@types/date-fns": "^2.5.3",
     "@types/express": "^5.0.1",
-    "@types/node": "^22.15.33",
+    "@types/node": "^24.5.2",
     "cookie-parser": "^1.4.7",
     "date-fns": "^4.1.0",
     "express": "^5.1.0",
