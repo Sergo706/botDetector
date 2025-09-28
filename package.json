@@ -9,11 +9,11 @@
     "dist/**/*",
     "README.md"
   ],
-  "main": "./dist/main.js",
-  "types": "./dist/main.d.ts",
+    
   "exports": {
     ".": {
       "import": "./dist/main.js",
+      "types": "./dist/main.d.ts",
       "require": "./dist/main.js"
     }
   },
