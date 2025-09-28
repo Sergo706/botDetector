@@ -7,10 +7,10 @@ import { format } from 'date-fns';
 import { updateVisitor } from '../db/updateVisitors.js';
 import { uaAndGeoBotDetector } from '../../botDetector.js';
 import { visitorCache } from '../helpers/cache/cannaryCache.js';
-import { settings } from '../../settings.js';
 import { userReputaion } from '../helpers/reputation.js';
 import { getLogger } from '../utils/logger.js';
 import { userValidation } from '../types/fingerPrint.js';
+import { getConfiguration } from '../config/config.js';
 
 declare global {
   namespace Express {
@@ -28,7 +28,7 @@ declare global {
 
 
 export const validator = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-
+    const {checksTimeRateControl} = getConfiguration()
     let canary = req.cookies?.canary_id || null;
     const ua = req.get("User-Agent") || "";
     const ip = req.ip;
@@ -44,7 +44,7 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
           return; 
         } 
         req.newVisitorId = cached.visitor_id;
-        if (!settings.checksTimeRateControl.checkEveryReqest){ 
+        if (!checksTimeRateControl.checkEveryReqest){ 
         return next();
       }
       }

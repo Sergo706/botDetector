@@ -10,3 +10,9 @@ export {configuration as initBotDetector } from "./botDetector/config/config.js"
 export { warmUp } from './botDetector/db/warmUp.js';
 export { updateVisitors } from "./botDetector/db/customUpdate.js";
 export { configurationSchema } from "./botDetector/types/configSchema.js"
+export type { BotDetectorConfig } from "./botDetector/types/configSchema.js";
+export type { GeoResponse } from './botDetector/types/geoTypes.js';
+export type { ParsedUAResult } from './botDetector/types/UAparserTypes.js';
+export type { BannedInfo, BanReasonCode, BannedReason } from './botDetector/types/checkersTypes.js';
+export type { VisitorTrackingData } from './botDetector/types/botDetectorTypes.js';
+export type { userValidation } from './botDetector/types/fingerPrint.js'
