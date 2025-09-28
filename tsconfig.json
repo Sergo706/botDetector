@@ -13,6 +13,7 @@
     "skipLibCheck": true,
     "composite": true,
     "declaration": true,
+    "declarationMap": true,
   },
 
   "include": ["src/**/*",  "src/**/*.json"],

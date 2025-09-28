@@ -12,11 +12,13 @@
     
   "exports": {
     ".": {
-      "import": "./dist/main.js",
       "types": "./dist/main.d.ts",
-      "require": "./dist/main.js"
-    }
+      "import": "./dist/main.js",
+      "default": "./dist/main.js"
+    },
+    "./package.json": "./package.json"
   },
+  "types": "./dist/main.d.ts",
   "scripts": {
     "updatebotips": "node ./dist/botDetector/helpers/getIpsOfGoodBots.js",
     "build": "tsc && mkdir -p dist && cp -R src/**/geoData dist/botDetector",
