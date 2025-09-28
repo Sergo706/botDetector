@@ -1,5 +1,5 @@
 import {  Pool } from 'mysql2/promise';
-import { getBotDetectorConfig } from '../config/secret.js';
+import { getConfiguration } from "../config/config.js";
 
 async function createTables(connection: Pool): Promise<void> {
     const createVisitorsTable = `
@@ -92,8 +92,8 @@ const userAgentMetadataSQL = `
 }
 
 export async function makeTables() {
-    const { store } = getBotDetectorConfig()
-    await createTables(store.main)
+    const { storeAndTelegram } = getConfiguration()
+    await createTables(storeAndTelegram.store.main)
 }
 
 await makeTables();

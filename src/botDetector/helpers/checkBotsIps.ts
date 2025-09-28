@@ -1,7 +1,7 @@
 import ipAddresses from '../db/json/ip-database.json' with { type: 'json' }
 import { botIPCache } from './cache/botIpCache.js';
 import ipRangeCheck from 'ip-range-check' 
-import { settings } from '../../settings.js';
+import { getConfiguration } from "../config/config.js";
 
 const combinedIps: string[] = [
     ...ipAddresses.openai.flatMap(e => e.prefixes.map(p => p.ipv4Prefix)),
@@ -22,11 +22,14 @@ const combinedIps: string[] = [
   
 
 export function isBotIPTrusted(ipAddress: string): boolean {
+
 const cached = botIPCache.get(ipAddress)
 if (cached) {
     return cached.validIP;
   }
-  const ranges = settings.banUnlistedBots
+  
+  const {banUnlistedBots} = getConfiguration()
+  const ranges = banUnlistedBots
     ? combinedIps
     : lastCheck;
   

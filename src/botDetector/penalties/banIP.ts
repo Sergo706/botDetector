@@ -2,11 +2,20 @@ import { spawn } from 'child_process';
 import { sendLog } from '../utils/telegramLogger.js';
 import type { BannedInfo } from '../types/checkersTypes.js';
 import { getLogger } from '../utils/logger.js';
+import { getConfiguration } from "../config/config.js";
+
 const UFW = '/usr/sbin/ufw';
 
 
-export function banIp(ip: string, info: BannedInfo): Promise<void> {
+export function banIp(ip: string, info: BannedInfo): Promise<void> | void { 
   const log = getLogger().child({service: 'BOT DETECTOR', branch: `banIp`, ipAddress: ip, details: info});
+  const {punishmentType} = getConfiguration()
+
+  if (!punishmentType.enableFireWallBan) {
+    log.info(`Firewall punishment ban is disabled, skipping`);
+    return;
+  }
+
   log.info('about to ban an IP');
   return new Promise((resolve, reject) => {
     const child = spawn('sudo', ['-n', UFW, 'insert', '1', 'deny', 'from', ip], {

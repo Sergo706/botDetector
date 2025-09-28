@@ -1,11 +1,10 @@
 import { Request } from 'express';
 import path from 'path';
 import { URL } from 'url';
-import { settings } from '../../settings.js';
+import { getConfiguration } from "../config/config.js";
 
 
-const MAX_DECODE_ITERATIONS = settings.penalties.pathTraveler.maxIterations;
-const MAX_PATH_LENGTH = settings.penalties.pathTraveler.maxPathLength;
+
 
 
 const PATH_RULES: Array<{ re: RegExp; weight: number }> = [
@@ -17,7 +16,6 @@ const PATH_RULES: Array<{ re: RegExp; weight: number }> = [
   { re: /\/(jenkins|hudson)(?:\/|$)/i,                 weight: 9 },            
   { re: /\/(script|login)\.groovy(?:\/|$)/i,           weight: 8 },
   { re: /\/actuator\/(?:env|health|metrics)(?:\/|$)/i, weight: 8 },
-  // { re: /[?&]url=https?:\/\//i,                        weight: 6 }, // Striped
   { re: /\/web\.config(?:\/|$)/i,                      weight: 7 },
   { re: /\/\.DS_Store(?:\/|$)/i,                       weight: 4 },
   { re: /\/latest\/meta-data\/iam(?:\/|$)/i,           weight: 10 },           
@@ -70,12 +68,16 @@ const WHITELIST: RegExp[] = [
 
 
 export function pathScore(req: Request): number {
-  
+
+  const {penalties, proxy} = getConfiguration()
+  const MAX_DECODE_ITERATIONS = penalties.pathTraveler.maxIterations;
+  const MAX_PATH_LENGTH = penalties.pathTraveler.maxPathLength;
+
   let score = 0;
   const hostHeader = req.get('x-forwarded-host');
   const base = `${req.protocol}://${hostHeader || req.get('host')}`;
 
-  const rawPath = settings.proxy
+  const rawPath = proxy
   ? (req.get('x-original-path') || req.originalUrl)
   : req.originalUrl;
 
@@ -94,7 +96,7 @@ export function pathScore(req: Request): number {
   
   
   if (pathname.length > MAX_PATH_LENGTH) {
-    return settings.penalties.pathTraveler.pathLengthToLong;
+    return penalties.pathTraveler.pathLengthToLong;
   }
 
 
@@ -111,7 +113,7 @@ for (let i = 0; i < MAX_DECODE_ITERATIONS; i++) {
     if (tmp === decoded) break;
     totalDecodedLength += tmp.length;
     if (totalDecodedLength > MAX_PATH_LENGTH * 2) {
-      return settings.penalties.pathTraveler.longDecoding; 
+      return penalties.pathTraveler.longDecoding; 
     }
     decoded = tmp;
   } catch {
@@ -123,7 +125,6 @@ for (let i = 0; i < MAX_DECODE_ITERATIONS; i++) {
 
   for (const { re, weight } of PATH_RULES) {
     if (re.test(normalized)) {
-      console.log('matched', re, 'score +', weight);   // ← add this
       score += weight;
       if (score >= 30) break;
     }

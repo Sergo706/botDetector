@@ -1,10 +1,10 @@
-import { settings } from "../../settings.js";
 import { getPool } from "../config/dbConnection.js";
 import type { RowDataPacket } from 'mysql2';
 import { updateScore } from "../db/updateVisitorScore.js";
 import { sendLog } from "../utils/telegramLogger.js";
 import { reputationCache } from "./cache/reputationCache.js";
 import { getLogger } from "../utils/logger.js";
+import { getConfiguration } from "../config/config.js";
 
 interface VisitorRow extends RowDataPacket {
   is_bot: number;
@@ -14,7 +14,9 @@ interface VisitorRow extends RowDataPacket {
 export async function userReputaion(cookie: string): Promise<void> {
   const log = getLogger().child({service: `BOT DETECTOR`, branch: `reputation`})
   const pool = getPool()
-  const botScore = settings.banScore
+  const {banScore, restoredReputaionPoints, setNewComputedScore} = getConfiguration()
+
+  const botScore = banScore
 
   const cached = reputationCache.get(cookie);
     if (cached) {
@@ -25,7 +27,7 @@ export async function userReputaion(cookie: string): Promise<void> {
    
     if (!cached.isBot && cached.score > 0 && cached.score < botScore) {
       log.info(`updating cache score cookie=${cookie} score=${cached.score} →  (botScore=${botScore})`)   
-      const newReputation = Math.max(0, cached.score - settings.restoredReputaionPoints); 
+      const newReputation = Math.max(0, cached.score - restoredReputaionPoints); 
 
       if (newReputation !== cached.score) {
         await updateScore(newReputation, cookie);
@@ -63,7 +65,7 @@ let reputation = Number(visitor.suspicos_activity_score);
 
 if (isBot) return;
 
-if (!settings.setNewComputedScore) { 
+if (!setNewComputedScore) { 
 reputationCache.set(cookie, {
     isBot:  isBot,
     score: reputation
@@ -75,13 +77,13 @@ log.info({
   score: reputation,
   'score>0': reputation > 0,
   'score<ban': reputation < botScore,
-  healPts: settings.restoredReputaionPoints
+  healPts: restoredReputaionPoints
 })
 
 
 if (!isBot && reputation > 0 && reputation < botScore) {
   log.info(`calculating new score cookie=${cookie} score=${reputation} →  (botScore=${botScore})`)
-  const newReputation = Math.max(0, reputation - settings.restoredReputaionPoints); 
+  const newReputation = Math.max(0, reputation - restoredReputaionPoints); 
   if (newReputation !== reputation) { 
     await updateScore(newReputation, cookie)
       log.info(`Update Score for cookie', ${cookie}, 'New Score:', ${newReputation}`)

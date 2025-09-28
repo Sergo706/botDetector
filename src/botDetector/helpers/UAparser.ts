@@ -28,7 +28,6 @@ export function parseUA(userAgent: string | number): ParsedUAResult  {
     os: result.os?.name || 'unknown',
     botAI: isAIBot(result),
     bot: isBot(result),
-    
     allResults: result,
   };
 

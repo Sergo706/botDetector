@@ -1,14 +1,16 @@
 import { Request } from 'express';
-import { settings } from '../../settings.js';
+import { getConfiguration } from "../config/config.js";
+
 
 export function tlsBotScore(req: Request): number {
+  const {penalties} = getConfiguration()
   let score = 0;
   const proto = req.httpVersion === '2.0' ? 'h2'
                : req.httpVersion === '1.1' ? 'http/1.1'
                : '';
 
   if (!proto || (proto !== 'h2' && proto !== 'http/1.1')) {
-    score += settings.penalties.tlsCheckFailed;
+    score += penalties.tlsCheckFailed;
   }
 
   const cipher = req.get('x-client-cipher') || '';
@@ -21,7 +23,7 @@ export function tlsBotScore(req: Request): number {
     'ECDHE-ECDSA-AES256-GCM-SHA384', 'ECDHE-RSA-AES256-GCM-SHA384',
   ]);
 
-  if (!browserCiphers.has(cipher)) score += settings.penalties.tlsCheckFailed;;
+  if (!browserCiphers.has(cipher)) score += penalties.tlsCheckFailed;;
                                           
   const tlsVersion = (req.get('x-client-tls-version') || '').toLowerCase(); // e.g. "tls1.3"
   if (
@@ -29,7 +31,7 @@ export function tlsBotScore(req: Request): number {
     !tlsVersion.startsWith('tls1.3') &&
     !tlsVersion.startsWith('tls1.2')
   ) {
-    score += settings.penalties.tlsCheckFailed;      // very old stack
+    score += penalties.tlsCheckFailed;      // very old stack
   }
 
   return score;

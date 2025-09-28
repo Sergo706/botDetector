@@ -1,5 +1,5 @@
 import { Telegraf } from 'telegraf';
-import { getBotDetectorConfig } from '../config/secret.js';
+import { getConfiguration } from '../config/config.js';
   
 type TgCtx = {
   bot: Telegraf;
@@ -9,14 +9,17 @@ type TgCtx = {
 
 let tg: TgCtx | undefined;  
 
-function getTelegram(): TgCtx {
+function getTelegram(): TgCtx | void{
   if (tg) return tg;
 
-  const { telegram } = getBotDetectorConfig();  
-  const bot = new Telegraf(telegram.token);
+  const { storeAndTelegram } = getConfiguration();  
+
+  if (!storeAndTelegram.telegram.enableTelegramLogger) return;
+
+  const bot = new Telegraf(storeAndTelegram.telegram.token);
 
   bot.use((ctx, next: () => any) => {
-    if (ctx.from?.id !== telegram.allowedUser) return;
+    if (ctx.from?.id !== storeAndTelegram.telegram.allowedUser) return;
     return next();
   });
 
@@ -26,8 +29,8 @@ function getTelegram(): TgCtx {
 
   tg = {
     bot,
-    allowed: Number(telegram.allowedUser),
-    logChatId: Number(telegram.chatID)
+    allowed: Number(storeAndTelegram.telegram.allowedUser),
+    logChatId: Number(storeAndTelegram.telegram.chatId)
   };
   return tg;
 }
@@ -41,7 +44,9 @@ function getTelegram(): TgCtx {
   }
   
   export async function sendLog(title: string, message: string) {
-    const { bot, logChatId } = getTelegram();  
+        const telegram = getTelegram(); 
+         if (!telegram) return;
+     
     try { 
     const header    = '<b>New Event Occurred</b>';
     const boldTitle = `<b>${escapeHtml(title)}</b>`;
@@ -49,8 +54,8 @@ function getTelegram(): TgCtx {
   
     const text = [header, boldTitle, '', body].join('\n');
   
-    return bot.telegram
-      .sendMessage(logChatId, text, { parse_mode: 'HTML' })
+    return telegram.bot.telegram
+      .sendMessage(telegram.logChatId, text, { parse_mode: 'HTML' })
     }catch(err) {
       console.log('Telegram Logger Error:', err)
     };

@@ -1,8 +1,8 @@
 import { localeCountryMap } from "../helpers/localeCountryMap.js";
-import { settings } from "../../settings.js";
+import { getConfiguration } from "../config/config.js";
 
 export function mapCountry(AccHeader: string, country: string, countryCode: string): number { 
-
+const {penalties} = getConfiguration()
 let score = 0;
 
 const accept = AccHeader;
@@ -40,7 +40,7 @@ for (const { tag } of langs) {
 
 
 if (!localeMatchesGeo && geoFull !== 'unknown') {
-  return score += settings.penalties.localeMismatch;
+  return score += penalties.localeMismatch;
 }
     return 0;
 }

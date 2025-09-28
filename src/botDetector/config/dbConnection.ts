@@ -1,7 +1,6 @@
-import { getBotDetectorConfig } from './secret.js';
-import mysql2 from 'mysql2/promise';
+import { getConfiguration } from './config.js';
 import type { Pool as PromisePool } from 'mysql2/promise';
-let pool: mysql2.Pool;
+
 let mainPool: PromisePool | undefined;
 
 /**
@@ -11,14 +10,13 @@ let mainPool: PromisePool | undefined;
 export function getPool(): PromisePool {
   if (mainPool) return mainPool;
 
-  const { store } = getBotDetectorConfig()
+  const { storeAndTelegram } = getConfiguration()
 
-  if (!store?.main) {
+  if (!storeAndTelegram.store.main) {
     throw new Error('botDetector lib: store.main (MySQL pool) must be provided in configuration()');
   }
 
-  mainPool = store.main;
+  mainPool = storeAndTelegram.store.main;
   console.log('botDetector lib connected to main DB pool');
   return mainPool;
 }
-

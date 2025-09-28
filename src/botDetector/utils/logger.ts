@@ -2,7 +2,7 @@ import pinoNS from 'pino';
 import { existsSync, mkdirSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getLogLvl } from '../config/loggerConfig.js';
+import { getConfiguration } from '../config/config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -43,10 +43,11 @@ let logger: pinoNS.Logger;
 
 export function getLogger() {
   if (logger) return logger;       
+  const {logLevel} = getConfiguration()
 
   logger = (pinoNS as any)(
     {
-      level: getLogLvl(),             
+      level: logLevel,             
       timestamp: pinoNS.stdTimeFunctions.isoTime,
       mixin() { return { uptime: process.uptime() }; },
       redact: {

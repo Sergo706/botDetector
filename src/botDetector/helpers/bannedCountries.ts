@@ -1,7 +1,8 @@
-import { settings } from '../../settings.js';
+import { getConfiguration } from "../config/config.js";
 
 
   export function isAllowedCountry(country: string): boolean {
-    const blockedCountries = settings.penalties.bannedCountries;
+    const {penalties} = getConfiguration()
+    const blockedCountries = penalties.bannedCountries;
     return !blockedCountries.includes(country.trim().toLowerCase());
   }

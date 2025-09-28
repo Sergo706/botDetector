@@ -1,7 +1,7 @@
-import { settings } from "../../settings.js";
 import { BanReasonCode } from "../types/checkersTypes.js";
 import { getLogger } from "../utils/logger.js";
 import { performance } from 'perf_hooks';
+import { getConfiguration } from "../config/config.js";
 
 export async function processChecks(
  checks: Array<() => Promise<{ score: number; reasons?: BanReasonCode[] }>>,
@@ -10,13 +10,14 @@ export async function processChecks(
     phaseLabel = 'phase' 
   ): Promise<number> {
 
+    const {banScore} = getConfiguration()
     const log = getLogger().child({service: `BOT DETECTOR`, branch: 'checks'})
     const reqId = Date.now(); 
 
     const phaseStart = performance.now()
     log.info({ phase: phaseLabel, reqId, event: 'start' });
                  
-    let banLimit = settings.banScore
+    let banLimit = banScore
 
     for (const runCheck of checks) {
       const label = runCheck.name || 'anon';

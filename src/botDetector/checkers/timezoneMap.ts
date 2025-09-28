@@ -1,4 +1,4 @@
-import { settings } from "../../settings.js";
+import { getConfiguration } from "../config/config.js";
 
 
 const timezoneMap: Record<string, string[]> = {
@@ -57,12 +57,13 @@ const timezoneMap: Record<string, string[]> = {
                         ],
     'new zealand'     : ['Pacific/Auckland', 'Pacific/Chatham'],
   
-    /* Africa */
     'nigeria'         : ['Africa/Lagos'],
     'south africa'    : ['Africa/Johannesburg'],
   } as const;
   
 export function timeZoneMapper(timezone: string, country: string): number {
+    const {penalties} = getConfiguration()
+
     let score = 0;
     let trCountry = country.trim()
 
@@ -70,7 +71,7 @@ if (trCountry !== 'unknown' && timezone && timezone !== 'unknown') {
   const validTzs = (timezoneMap[trCountry]).map(z => z.toLowerCase());
 
   if (!validTzs.includes(timezone)) {
-    return score += settings.penalties.timezoneUnknown;
+    return score += penalties.timezoneUnknown;
   }
 }
     return score

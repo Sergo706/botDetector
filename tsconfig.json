@@ -12,8 +12,9 @@
     "strict": true,                                      
     "skipLibCheck": true,
     "composite": true,
-    "declaration": true                       
+    "declaration": true,
   },
+
   "include": ["src/**/*",  "src/**/*.json"],
   "exclude": ["node_modules"]
 }

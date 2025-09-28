@@ -1,6 +1,6 @@
 import { isBotFromTrustedDomain } from "../helpers/checkGoodBotDomain.js";
 import suffix from '../db/json/suffix.json' with { type: 'json' };
-import { settings } from '../../settings.js';
+import { getConfiguration } from "../config/config.js";
 import { isBotIPTrusted } from "../helpers/checkBotsIps.js";
 
 const userAgents: string[] = Object.values(suffix)
@@ -11,6 +11,8 @@ const userAgents: string[] = Object.values(suffix)
 
 
 export async function validateGoodBots(browserType: string, browserName: string, ipAddress: string): Promise<{ score: number, isBadBot: boolean, isGoodBot: boolean }> {
+
+const {penalties, banUnlistedBots} = getConfiguration()
 
   let score: number = 0;
 
@@ -23,7 +25,7 @@ export async function validateGoodBots(browserType: string, browserName: string,
   const botsWithoutSuffix  = ['duckduckbot','gptbot','oai-searchbot','chatgpt-user'].includes(name);
   const botsWithSuffix = userAgents.some(suf => name.includes(suf));
 
-    if (settings.banUnlistedBots && !botsWithoutSuffix && !botsWithSuffix) {
+    if (banUnlistedBots && !botsWithoutSuffix && !botsWithSuffix) {
         return { score: 0, isBadBot: true, isGoodBot: false };   
     }
 
@@ -37,7 +39,7 @@ export async function validateGoodBots(browserType: string, browserName: string,
 
     if (!trusted) {
       return {
-        score: settings.penalties.badGoodbot,
+        score: penalties.badGoodbot,
         isBadBot: true,
         isGoodBot: false
       };

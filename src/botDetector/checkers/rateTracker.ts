@@ -1,20 +1,24 @@
 import { getPool } from '../config/dbConnection.js';
 import { RowDataPacket } from 'mysql2';
-import { settings } from '../../settings.js';
 import { rateCache } from '../helpers/cache/rateLimitarCache.js';
+import { getConfiguration } from "../config/config.js";
 
 interface VisitorRow extends RowDataPacket {
   last_seen: Date;
   request_count: number;
 }
 
-const BEHAVIOURAL_THRESHOLD = settings.penalties.behaviorTooFast.behavioural_threshold;      
-const BEHAVIOURAL_WINDOW    = settings.penalties.behaviorTooFast.behavioural_window;  
-const BEHAVIOURAL_PENALTY   = settings.penalties.behaviorTooFast.behaviorPenalty;     
+ 
 
 
 
   export async function behaviouralDbScore(cookie: string): Promise<number> {
+
+    const {penalties} = getConfiguration()
+    const BEHAVIOURAL_THRESHOLD = penalties.behaviorTooFast.behavioural_threshold;      
+    const BEHAVIOURAL_WINDOW    = penalties.behaviorTooFast.behavioural_window;  
+    const BEHAVIOURAL_PENALTY   = penalties.behaviorTooFast.behaviorPenalty;    
+
     let score: number = 0;
     const pool = getPool()
     const cached = rateCache.get(cookie);

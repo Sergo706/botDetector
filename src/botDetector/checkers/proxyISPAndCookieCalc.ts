@@ -1,5 +1,5 @@
 import { BanReasonCode } from "../types/checkersTypes.js";
-import { settings } from "../../settings.js";
+import { getConfiguration } from "../config/config.js";
 
 export function calculateProxyIspAndCookie(
 cookie: string,
@@ -10,31 +10,33 @@ org: string,
 as: string
 ):{ score: number, reasons: BanReasonCode[] } {
 
+const {penalties} = getConfiguration()
+
     const reasons: BanReasonCode[] = [];
     let score = 0;
 
 if (!cookie) { 
-  score += settings.penalties.cookieMissing;        
+  score += penalties.cookieMissing;        
   reasons.push('COOKIE_MISSING');
 }  
 
 if (proxy) {
-    score += settings.penalties.proxyDetected;
+    score += penalties.proxyDetected;
     reasons.push('PROXY_DETECTED');
   }
   
   if (hosting) {
-    score += settings.penalties.hostingDetected;
+    score += penalties.hostingDetected;
     reasons.push('HOSTING_DETECTED');
   }
 
   if (isp === 'unknown') {
-    score += settings.penalties.ispUnknown;
+    score += penalties.ispUnknown;
     reasons.push('ISP_UNKNOWN');
   }
 
   if (org === 'unknown' ||  as === 'unknown') {
-    score += settings.penalties.orgUnknown;
+    score += penalties.orgUnknown;
     reasons.push('ORG_UNKNOWN');
   }
 

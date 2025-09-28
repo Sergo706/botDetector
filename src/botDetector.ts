@@ -13,7 +13,6 @@ import { BanReasonCode } from './botDetector/types/checkersTypes.js';
 import { validateGoodBots } from './botDetector/checkers/goodBots.js';
 import { calculateUaAndHeaderScore } from './botDetector/checkers/headersAndUACalc.js';
 import { calculateBrowserDetailsAndDevice } from './botDetector/checkers/browserTypesAneDevicesCalc.js';
-import { settings } from './settings.js';
 import { calculateGeoLocation } from './botDetector/checkers/geoLocationCalc.js';
 import { calculateProxyIspAndCookie } from './botDetector/checkers/proxyISPAndCookieCalc.js';
 import { norm } from './botDetector/helpers/normalize.js'
@@ -21,9 +20,9 @@ import { processChecks } from './botDetector/helpers/processChecks.js';
 import { updateIsBot } from './botDetector/db/updateIsBot.js';
 import { reputationCache } from './botDetector/helpers/cache/reputationCache.js';
 import { getLogger } from './botDetector/utils/logger.js';
+import { getConfiguration } from './botDetector/config/config.js';
 
-const BAN_THRESHOLD = settings.banScore;
-const MAX_SCORE = settings.maxScore;
+
 
 class BadBotDetected extends Error {
   constructor(message = 'Bad bot detected') {
@@ -40,6 +39,10 @@ class GoodBotDetected extends Error {
 
 export async function uaAndGeoBotDetector(req: Request, ipAddress: string, userAgent: string, geo: GeoResponse,  parsedUA: ParsedUAResult ): Promise<boolean> {
   const log = getLogger().child({service: 'BOT DETECTOR', branch: 'main'});
+  const {banScore, maxScore, checks: enabledChecks, setNewComputedScore} = getConfiguration()
+  const BAN_THRESHOLD = banScore;
+  const MAX_SCORE = maxScore;
+
   const reasons: BanReasonCode[] = [];
   let botScore: number = 0;
   const cookie = req.cookies.canary_id 
@@ -81,7 +84,7 @@ const checks: Array<() => Promise<{ score: number; reasons?: BanReasonCode[] }>>
 
 
 
-if (settings.checks.enableIpChecks) {
+if (enabledChecks.enableIpChecks) {
     cheapChecks.push(async function ipCheck() {
       const isValid = await validateIp(ipAddress);
       return {
@@ -91,7 +94,7 @@ if (settings.checks.enableIpChecks) {
     });
   }
 
-  if (settings.checks.enableGoodBotsChecks) {
+  if (enabledChecks.enableGoodBotsChecks) {
     cheapChecks.push(async function goodBotCheck() {
       const { score, isBadBot, isGoodBot } =
         await validateGoodBots(data.browserType, data.browser, ipAddress);
@@ -101,7 +104,7 @@ if (settings.checks.enableIpChecks) {
     });
   }
 
-  if (settings.checks.enableBrowserAndDeviceChecks) {
+  if (enabledChecks.enableBrowserAndDeviceChecks) {
     cheapChecks.push(async function browserDetailsAndDeviceCheck() {
       return calculateBrowserDetailsAndDevice(
         data.browserType,
@@ -115,7 +118,7 @@ if (settings.checks.enableIpChecks) {
     });
   }
   
-  if (settings.checks.enableTimeZoneMapper) {
+  if (enabledChecks.enableTimeZoneMapper) {
     cheapChecks.push(async function timeZoneMapperCheck() {
       const score = timeZoneMapper(data.country, data.timezone);
       return { score, reasons: score ? ['TZ_MISMATCH'] : [] };
@@ -123,7 +126,7 @@ if (settings.checks.enableIpChecks) {
   }
   
 
-  if (settings.checks.enableLocaleMapsCheck) {
+  if (enabledChecks.enableLocaleMapsCheck) {
     cheapChecks.push(async function localeMapCheck() {
       const score = mapCountry(
         req.get('Accept-Language') || '',
@@ -135,14 +138,14 @@ if (settings.checks.enableIpChecks) {
   }
 
 
-  if (settings.checks.enableBehaviorRateCheck) {
+  if (enabledChecks.enableBehaviorRateCheck) {
     checks.push(async function behaviouralDbScoreCheck() {
       const score = await behaviouralDbScore(cookie);
       return { score, reasons: score ? ['BEHAVIOR_TOO_FAST'] : [] };
     });
   }
 
-  if (settings.checks.enableProxyIspCookiesChecks) {
+  if (enabledChecks.enableProxyIspCookiesChecks) {
     checks.push(async function proxyIspCookieCheck() {
       return calculateProxyIspAndCookie(
         cookie,
@@ -156,14 +159,14 @@ if (settings.checks.enableIpChecks) {
   }
 
 
-if (settings.checks.enableUaAndHeaderChecks) {
+if (enabledChecks.enableUaAndHeaderChecks) {
   checks.push(async function uaHeaderScoreCheck() {
     return calculateUaAndHeaderScore(req);
   });
 }
 
 
-if (settings.checks.enableGeoChecks) {
+if (enabledChecks.enableGeoChecks) {
     checks.push(async function geoLocationCheck() {
       return calculateGeoLocation(
         data.country,
@@ -212,7 +215,7 @@ if (settings.checks.enableGeoChecks) {
   }
 
 
-  if (settings.setNewComputedScore) { 
+  if (setNewComputedScore) { 
   await updateScore(botScore, cookie);
   reputationCache.set(cookie, { isBot: false, score: botScore });
   } else {

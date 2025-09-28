@@ -1,28 +1,28 @@
-import { settings } from "../../settings.js";
 import { BanReasonCode } from '../types/checkersTypes.js';
 import { tlsBotScore } from "./cipherChecks.js";
 import { headersBotDetector } from "./botDetecorHeaders.js";
 import { Request } from 'express';
 import { metaUaScore } from "./badUaChecker.js";
 import { pathScore } from "./pathTravelers.js";
+import { getConfiguration } from "../config/config.js";
 
 
 export function calculateUaAndHeaderScore(req: Request): 
 { score: number, reasons: BanReasonCode[] } {
     const reasons: BanReasonCode[] = [];
     let score = 0;
-    console.log('[DEBUG]starting calculateUaAndHeaderScore');
+    const {penalties} = getConfiguration()
 
     const uaString = req.get("User-Agent") || "";
     const uaLower = uaString.toLowerCase();
 
     if (/(headless|puppeteer|playwright|selenium|phantomjs)/.test(uaLower)) {
-        score += settings.penalties.headlessBrowser;
+        score += penalties.headlessBrowser;
         reasons.push('HEADLESS_BROWSER_DETECTED');
       }
 
       if (!uaString || uaString.length < 10) {
-        score += settings.penalties.shortUserAgent;
+        score += penalties.shortUserAgent;
         reasons.push('SHORT_USER_AGENT');
       }
 
