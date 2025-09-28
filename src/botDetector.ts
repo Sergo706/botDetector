@@ -18,7 +18,7 @@ import { calculateProxyIspAndCookie } from './botDetector/checkers/proxyISPAndCo
 import { norm } from './botDetector/helpers/normalize.js'
 import { processChecks } from './botDetector/helpers/processChecks.js';
 import { updateIsBot } from './botDetector/db/updateIsBot.js';
-import { reputationCache } from './botDetector/helpers/cache/reputationCache.js';
+import { getReputationCache } from './botDetector/helpers/cache/reputationCache.js';
 import { getLogger } from './botDetector/utils/logger.js';
 import { getConfiguration } from './botDetector/config/config.js';
 
@@ -217,12 +217,12 @@ if (enabledChecks.enableGeoChecks) {
 
   if (setNewComputedScore) { 
   await updateScore(botScore, cookie);
-  reputationCache.set(cookie, { isBot: false, score: botScore });
+  getReputationCache().set(cookie, { isBot: false, score: botScore });
   } else {
-  const cached = reputationCache.get(cookie);
+  const cached = getReputationCache().get(cookie);
   if (!cached || cached.score === 0) {
     await updateScore(botScore, cookie);   
-    reputationCache.set(cookie, { isBot: false, score: botScore });
+    getReputationCache().set(cookie, { isBot: false, score: botScore });
   }
   }
   return false;

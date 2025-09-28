@@ -2,7 +2,7 @@ import { getPool } from "../config/dbConnection.js";
 import type { RowDataPacket } from 'mysql2';
 import { updateScore } from "../db/updateVisitorScore.js";
 import { sendLog } from "../utils/telegramLogger.js";
-import { reputationCache } from "./cache/reputationCache.js";
+import { getReputationCache } from "./cache/reputationCache.js";
 import { getLogger } from "../utils/logger.js";
 import { getConfiguration } from "../config/config.js";
 
@@ -14,6 +14,8 @@ interface VisitorRow extends RowDataPacket {
 export async function userReputaion(cookie: string): Promise<void> {
   const log = getLogger().child({service: `BOT DETECTOR`, branch: `reputation`})
   const pool = getPool()
+  const reputationCache = getReputationCache();
+  
   const {banScore, restoredReputaionPoints, setNewComputedScore} = getConfiguration()
 
   const botScore = banScore

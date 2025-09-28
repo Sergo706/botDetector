@@ -6,7 +6,7 @@ import parseUA from '../helpers/UAparser.js';
 import { format } from 'date-fns';
 import { updateVisitor } from '../db/updateVisitors.js';
 import { uaAndGeoBotDetector } from '../../botDetector.js';
-import { visitorCache } from '../helpers/cache/cannaryCache.js';
+import { getVisitorCache } from '../helpers/cache/cannaryCache.js';
 import { userReputaion } from '../helpers/reputation.js';
 import { getLogger } from '../utils/logger.js';
 import { userValidation } from '../types/fingerPrint.js';
@@ -37,7 +37,7 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
      log.info({ cookies: req.cookies },`Incoming cookies`)
 
     if (canary) {
-      const cached = visitorCache.get(canary);
+      const cached = getVisitorCache().get(canary);
       if (cached) {
         if (cached.banned) {
           res.sendStatus(403);
@@ -108,7 +108,7 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
 
   const isBot = await uaAndGeoBotDetector(req, ip!, ua, geo, parsedUA);
   
-  visitorCache.set(canary, {
+  getVisitorCache().set(canary, {
     banned:  isBot,
     visitor_id: visitorId!
   });

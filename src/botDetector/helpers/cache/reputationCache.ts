@@ -6,12 +6,13 @@ export interface CachedResult {
     score: number;
   }
   
-  function config() {
+let cache: LRUCache<string, CachedResult> | undefined;
+
+export function getReputationCache() {
+    if (cache) return cache;
+
     const {checksTimeRateControl} = getConfiguration()
-    return checksTimeRateControl.checkEvery;
+
+    cache = new LRUCache({ max: 10_000, ttl: checksTimeRateControl.checkEvery }); 
+    return cache; 
   }
-  
-  export const reputationCache = new LRUCache<string, CachedResult>({
-    max: 10_000,               
-    ttl: config()   
-  });

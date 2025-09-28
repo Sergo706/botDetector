@@ -6,12 +6,14 @@ export interface CachedResult {
   visitor_id: number;
 }
 
-function config() {
-  const {checksTimeRateControl} = getConfiguration()
-  return checksTimeRateControl.checkEvery;
-}
+let cache: LRUCache<string, CachedResult> | undefined;
 
-export const visitorCache = new LRUCache<string, CachedResult>({
-  max: 10_000,               
-  ttl: config()     
-});
+export function getVisitorCache() {
+    if (cache) return cache;
+
+    const {checksTimeRateControl} = getConfiguration()
+    cache = new LRUCache({ max: 10_000, ttl: checksTimeRateControl.checkEvery }); 
+
+    return cache; 
+    
+}
