@@ -34,9 +34,10 @@
 // //    - Monitor the system after deploying the script to ensure it behaves as expected.
 
 
+import { getConfiguration } from "../config/config.js";
 import { getPool } from "../config/dbConnection.js";
 import { RowDataPacket } from "mysql2";
-import { botDetectorSettings, settings } from "../../settings.js";
+
 
 
 interface BannedRow {
@@ -234,12 +235,12 @@ export async function adjustPenalties(cookie: string): Promise<void> {
 
    // Calculate new penalty value based on severity
    let currentValue: number;
-   
+   const {penalties} = getConfiguration()
    if (settingPath.includes('.')) {
        const [objectName, propertyName] = settingPath.split('.');
-       currentValue = (settings.penalties as any)[objectName][propertyName];
+       currentValue = (penalties as any)[objectName][propertyName];
    } else {
-       currentValue = (settings.penalties as any)[settingPath];
+       currentValue = (penalties as any)[settingPath];
    }
    
    // Skip if current value is not a number
@@ -274,7 +275,7 @@ export async function adjustPenalties(cookie: string): Promise<void> {
    }
    
    console.log(`Adjusting ${ban_reason} penalty from ${currentValue} to ${newValue}`);
-   botDetectorSettings(updateObj);
+    // botDetectorSettings(updateObj);
 });
 
 }
