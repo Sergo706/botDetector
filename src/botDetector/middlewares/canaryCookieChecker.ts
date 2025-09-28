@@ -11,6 +11,7 @@ import { userReputaion } from '../helpers/reputation.js';
 import { getLogger } from '../utils/logger.js';
 import { userValidation } from '../types/fingerPrint.js';
 import { getConfiguration } from '../config/config.js';
+import { isInWhiteList } from '../utils/whitelist.js';
 
 declare global {
   namespace Express {
@@ -34,7 +35,14 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
     const ip = req.ip;
      const log = getLogger().child({service: 'BOT DETECTOR', branch: `main`, canary: canary});
      log.info(`Validator entered for ${req.method} ${req.get('X-Forwarded-Host')}`)
-     log.info({ cookies: req.cookies },`Incoming cookies`)
+     log.info({ cookies: req.cookies },`Incoming cookies`);
+     const whiteList = isInWhiteList(ip!); 
+
+     if (whiteList) {
+      log.info(`${ip} is in white list skipping botDetection checks.`);
+      return next()
+     };
+
 
     if (canary) {
       const cached = getVisitorCache().get(canary);

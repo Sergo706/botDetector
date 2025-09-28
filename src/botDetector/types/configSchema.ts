@@ -107,6 +107,7 @@ export const configurationSchema = z.object({
         *   Everything else exact names and any unknown bots when banning is off—hits the IP-range check..
        */
     banUnlistedBots: z.boolean(),
+    whiteList: z.array(z.ipv4()).optional(),
     penalties: z.object({
       ipInvalid: z.number(),
 
