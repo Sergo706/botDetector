@@ -100,7 +100,7 @@ export async function updateVisitor(u: userValidation) {
          browserType,
          browserVersion,
          os,
-         suspicos_activity_score
+         suspicious_activity_score
        ) VALUES (
         ${params.map(() => '?').join(', ')}
        )

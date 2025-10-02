@@ -33,7 +33,7 @@ async function createTables(connection: Pool): Promise<void> {
             browserType VARCHAR(64) DEFAULT 'unknown',
             browserVersion VARCHAR(64) DEFAULT 'unknown',
             os VARCHAR(64) DEFAULT 'unknown',
-            suspicos_activity_score INT DEFAULT 0
+            suspicious_activity_score INT DEFAULT 0
         );
         `;
 

@@ -8,7 +8,7 @@ import { getConfiguration } from "../config/config.js";
 
 interface VisitorRow extends RowDataPacket {
   is_bot: number;
-  suspicos_activity_score: number;  
+  suspicious_activity_score: number;  
 }
 
 export async function userReputaion(cookie: string): Promise<void> {
@@ -48,7 +48,7 @@ export async function userReputaion(cookie: string): Promise<void> {
     try { 
 const VisitorQuery: string = `
 SELECT is_bot, 
-suspicos_activity_score
+suspicious_activity_score
  FROM visitors
   WHERE canary_id = ?
   LIMIT 1`
@@ -62,7 +62,7 @@ if (!visitor || visitor === undefined)  {
 }
 
 const isBot = visitor.is_bot === 0 ? false : true;
-let reputation = Number(visitor.suspicos_activity_score);
+let reputation = Number(visitor.suspicious_activity_score);
 
 
 if (isBot) return;
