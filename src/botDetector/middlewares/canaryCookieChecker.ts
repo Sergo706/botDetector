@@ -41,7 +41,7 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
     if (canary) {
       const cached = getVisitorCache().get(canary);
       if (cached) {
-        if (cached.banned) {
+        if (cached.banned && !whiteList) {
           res.sendStatus(403);
           return; 
         } 
@@ -108,10 +108,24 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
   const visitorId = await updateVisitor(userValidation);
   req.newVisitorId = visitorId
 
-  if (whiteList) {
-      log.info(`${ip} is in white list skipping botDetection checks.`);
+    if (whiteList) {
+        log.info(`${ip} is in white list skipping botDetection checks.`);
+        
+      if (visitorId) {
+        getVisitorCache().set(canary, { 
+          banned: false,
+          visitor_id: visitorId 
+        });
+      }
+      req.botDetection = {
+      success: true,
+      banned: false,
+      time: new Date().toISOString(),
+      ipAddress: req.ip!
+      };
+      
       return next()
-  };
+    };
 
   const isBot = await uaAndGeoBotDetector(req, ip!, ua, geo, parsedUA);
   

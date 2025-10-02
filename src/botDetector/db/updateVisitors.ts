@@ -2,9 +2,11 @@ import { getPool } from '../config/dbConnection.js';
 import { sendLog } from '../utils/telegramLogger.js';
 import { userValidation } from '../types/fingerPrint.js';
 import { RowDataPacket } from 'mysql2';
+import { getLogger } from '../utils/logger.js';
 
 export async function updateVisitor(u: userValidation) {
   const pool = getPool()
+  const log = getLogger().child({service: 'BOT DETECTOR', branch: 'db', type: 'updateVisitors'})
   const {
     cookie,
     ipAddress,
@@ -135,7 +137,7 @@ export async function updateVisitor(u: userValidation) {
       'Updated visitors table',
       `Visitor row for canary_id=${cookie} inserted/updated successfully.`
     );
-
+    log.info(`Updated visitors table, Visitor row for canary_id=${cookie} inserted/updated successfully.`)
     const [idRow] = await pool.execute<RowDataPacket[]>(
       'SELECT visitor_id FROM visitors WHERE canary_id = ?',
       [cookie]
@@ -143,6 +145,7 @@ export async function updateVisitor(u: userValidation) {
     return idRow[0].visitor_id as number; 
 
   } catch (err: any) {
+    log.error({error: err},`ERROR UPDATING visitors TABLE`)
     await sendLog(
       'ERROR UPDATING visitors TABLE',
       err?.message || String(err)
