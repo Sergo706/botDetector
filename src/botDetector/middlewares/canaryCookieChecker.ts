@@ -38,12 +38,6 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
      log.info({ cookies: req.cookies },`Incoming cookies`);
      const whiteList = isInWhiteList(ip!); 
 
-     if (whiteList) {
-      log.info(`${ip} is in white list skipping botDetection checks.`);
-      return next()
-     };
-
-
     if (canary) {
       const cached = getVisitorCache().get(canary);
       if (cached) {
@@ -113,6 +107,11 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
 
   const visitorId = await updateVisitor(userValidation);
   req.newVisitorId = visitorId
+
+  if (whiteList) {
+      log.info(`${ip} is in white list skipping botDetection checks.`);
+      return next()
+  };
 
   const isBot = await uaAndGeoBotDetector(req, ip!, ua, geo, parsedUA);
   
