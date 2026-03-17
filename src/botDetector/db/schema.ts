@@ -1,10 +1,11 @@
 import {  Pool } from 'mysql2/promise';
-import { getConfiguration } from "../config/config.js";
+import { uploadCsv } from '@sergo/utils/server';
+import { join } from 'path';
 
-async function createTables(connection: Pool): Promise<void> {
+export async function createTables(connection: Pool): Promise<void> {
     const createVisitorsTable = `
         CREATE TABLE IF NOT EXISTS visitors (
-            visitor_id INT AUTO_INCREMENT UNIQUE NOT NULL,
+            visitor_id CHAR(36) NOT NULL,
             canary_id VARCHAR(64) PRIMARY KEY,
             ip_address VARCHAR(45),
             user_agent TEXT,
@@ -57,15 +58,6 @@ const userAgentMetadataSQL = `
       PRIMARY KEY (http_user_agent)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
     `;
-    const LOADUSERAGENTDATA = `
-        LOAD DATA LOCAL INFILE './useragent.csv'
-        INTO TABLE user_agent_metadata
-        FIELDS ENCLOSED BY '"' 
-        TERMINATED BY ',' 
-        ESCAPED BY '"' 
-        LINES TERMINATED BY '\r\n'
-        IGNORE 1 LINES;
-    `;
     
     const createBannedTable = `
         CREATE TABLE IF NOT EXISTS banned (
@@ -83,17 +75,17 @@ const userAgentMetadataSQL = `
         await connection.execute(createVisitorsTable);
         await connection.execute(createBannedTable);
         await connection.execute(userAgentMetadataSQL);
-        await connection.execute(LOADUSERAGENTDATA);
+        const csvPath = join(import.meta.dirname, 'useragent.csv');
+
+        const up = await uploadCsv(csvPath, 'user_agent_metadata', connection)
+        if (!up.ok) {
+            throw new Error(up.reason);
+        }
+        
         console.log('Tables created successfully.');
+        return;
     } catch (error) {
         console.error('Error creating tables:', error);
         throw error;
     }
 }
-
-export async function makeTables() {
-    const { storeAndTelegram } = getConfiguration()
-    await createTables(storeAndTelegram.store.main)
-}
-
-await makeTables();

@@ -10,13 +10,13 @@ let mainPool: PromisePool | undefined;
 export function getPool(): PromisePool {
   if (mainPool) return mainPool;
 
-  const { storeAndTelegram } = getConfiguration()
+  const { store } = getConfiguration();
 
-  if (!storeAndTelegram.store.main) {
+  if (!store || !store.main) {
     throw new Error('botDetector lib: store.main (MySQL pool) must be provided in configuration()');
   }
 
-  mainPool = storeAndTelegram.store.main;
+  mainPool = store.main;
   console.log('botDetector lib connected to main DB pool');
   return mainPool;
 }

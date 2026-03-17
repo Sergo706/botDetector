@@ -1,7 +1,6 @@
 import { getPool } from "../config/dbConnection.js";
 import type { RowDataPacket } from 'mysql2';
 import { updateScore } from "../db/updateVisitorScore.js";
-import { sendLog } from "../utils/telegramLogger.js";
 import { getReputationCache } from "./cache/reputationCache.js";
 import { getLogger } from "../utils/logger.js";
 import { getConfiguration } from "../config/config.js";
@@ -11,12 +10,12 @@ interface VisitorRow extends RowDataPacket {
   suspicious_activity_score: number;  
 }
 
-export async function userReputaion(cookie: string): Promise<void> {
+export async function userReputation(cookie: string): Promise<void> {
   const log = getLogger().child({service: `BOT DETECTOR`, branch: `reputation`})
   const pool = getPool()
   const reputationCache = getReputationCache();
   
-  const {banScore, restoredReputaionPoints, setNewComputedScore} = getConfiguration()
+  const {banScore, restoredReputationPoints, setNewComputedScore} = getConfiguration()
 
   const botScore = banScore
 
@@ -29,7 +28,7 @@ export async function userReputaion(cookie: string): Promise<void> {
    
     if (!cached.isBot && cached.score > 0 && cached.score < botScore) {
       log.info(`updating cache score cookie=${cookie} score=${cached.score} →  (botScore=${botScore})`)   
-      const newReputation = Math.max(0, cached.score - restoredReputaionPoints); 
+      const newReputation = Math.max(0, cached.score - restoredReputationPoints); 
 
       if (newReputation !== cached.score) {
         await updateScore(newReputation, cookie);
@@ -79,13 +78,13 @@ log.info({
   score: reputation,
   'score>0': reputation > 0,
   'score<ban': reputation < botScore,
-  healPts: restoredReputaionPoints
+  healPts: restoredReputationPoints
 })
 
 
 if (!isBot && reputation > 0 && reputation < botScore) {
   log.info(`calculating new score cookie=${cookie} score=${reputation} →  (botScore=${botScore})`)
-  const newReputation = Math.max(0, reputation - restoredReputaionPoints); 
+  const newReputation = Math.max(0, reputation - restoredReputationPoints); 
   if (newReputation !== reputation) { 
     await updateScore(newReputation, cookie)
       log.info(`Update Score for cookie', ${cookie}, 'New Score:', ${newReputation}`)
@@ -96,7 +95,6 @@ if (!isBot && reputation > 0 && reputation < botScore) {
   }
 }
 } catch(err) {
-    sendLog('An error occured updating visitor reputation', `\nError Messege: ${err}`)
-    log.error({err},`An error occured updating visitor reputation`)
+    // sendLog removed    log.error({err},`An error occured updating visitor reputation`)
 }
 }

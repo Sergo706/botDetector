@@ -1,37 +1,6 @@
-export interface BannedReason {
-    isIPValid: boolean,
-    behavierScore : string,
-    isGoodBot: boolean,
-    isLegitGoogleBot: boolean,
-    shortUserAgent: boolean,
-    isCliOrLibary: boolean,
-    isKaliLinux: boolean,
-    isInternetExplorer: boolean,
-    isCookieDosntExistsAfterSended: boolean,
-    isBannedCountry: boolean,
-    isCountryUnknown: boolean, 
-    isProxy: boolean,
-    isHosting: boolean,
-    isTimeZoneUnknown: boolean,
-    isISPUnknown: boolean,
-    isRegionOrRegionNameUnknown: boolean,
-    isLatAndLotUnknown: boolean,
-    isISPOrgUnknown: boolean,
-    isDeviceTypeUnknown: boolean,
-    isDeviceVendorUnknown: boolean,
-    isBrowserTypeUnknown: boolean,
-    isBrowserVersionUnknown: boolean,
-    isDistrictUnknown: boolean,
-    isCityUnknown: boolean,
-    isOSUnknown: boolean,
-    isBrowserNameUnknown: boolean,
-    isHeadlessBrowser: boolean,
-    isLangsDontMatchCountry: boolean,
-    isTzDontMatchCountry: boolean,
-    isTLSCheckFail: boolean,
-    isHeaderCheckGreaterThen4: boolean,
-    isMetaUAcheckFail: boolean,
-}
+import { BotDetectorConfig } from './configSchema.js';
+import { ValidationContext } from './botDetectorTypes.js';
+
 
 export type BanReasonCode =
   | 'IP_INVALID'
@@ -69,19 +38,20 @@ export type BanReasonCode =
   | 'DESKTOP_WITHOUT_OS'
   | 'NO_MODEL'
   | 'XSS SCRIPTING ATTEMPT'
-  | 'PATH_TRAVELAR_FOUND';
+  | 'PATH_TRAVELER_FOUND'
+  | 'BAD_UA_DETECTED'
+  | 'BAD_BOT_DETECTED';
 
-/**
- * Summary of the bot detection outcome: overall score plus detailed reasons.
- */
+
 export interface BannedInfo {
-  /**
-   * Final computed bot score (0–30).
-   */
   score: number;
-
-  /**
-   * List of codes explaining which checks contributed to the score.
-   */
   reasons: BanReasonCode[];
+}
+
+
+export interface IBotChecker<Code> {
+  name: string;
+  phase: 'cheap' | 'heavy'; 
+  isEnabled(config: BotDetectorConfig): boolean; 
+  run(ctx: ValidationContext, config: BotDetectorConfig): Promise<{ score: number; reasons: Code[] | BanReasonCode[]}> | { score: number; reasons: Code[] | BanReasonCode[] };
 }

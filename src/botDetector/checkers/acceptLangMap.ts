@@ -1,46 +1,92 @@
-import { localeCountryMap } from "../helpers/localeCountryMap.js";
-import { getConfiguration } from "../config/config.js";
+import { acceptLanguageValidator } from "../utils/regex/acceptLangRegex.js";
+import { IBotChecker, BanReasonCode } from "../types/checkersTypes.js";
+import { ValidationContext } from "../types/botDetectorTypes.js";
+import { BotDetectorConfig } from "../types/configSchema.js";
+import { CheckerRegistry } from "./CheckerRegistry.js";
 
-export function mapCountry(AccHeader: string, country: string, countryCode: string): number { 
-const {penalties} = getConfiguration()
-let score = 0;
+export class LocaleMapChecker implements IBotChecker<BanReasonCode> {
+  name = 'Locale and Country Verification';
+  phase = 'cheap' as const;
 
-const accept = AccHeader;
-const langs = accept
-  .split(',')
-  .map(entry => {
-    const [tag, q] = entry.trim().split(';q=');
-    return { tag: tag.toLowerCase(), weight: q ? parseFloat(q) : 1 };
-  })
-  .sort((a, b) => b.weight - a.weight); // highest q first
-
-
-const geoFull   = country.toLowerCase();
-const geoCode  = countryCode.toLowerCase();
-
-
-let localeMatchesGeo = false;
-for (const { tag } of langs) {
-
-  const [lang, region] = tag.split(/[-_]/);
-
-
-  if (region && region === geoCode) {
-    localeMatchesGeo = true;
-    break;
+  isEnabled(config: BotDetectorConfig): boolean {
+    return config.checkers.localeMapsCheck.enable;
   }
 
+  async run(ctx: ValidationContext, config: BotDetectorConfig) {
+    const settings = config.checkers.localeMapsCheck;
+    const reasons: BanReasonCode[] = [];
+    let score = 0;
 
-  const mapped = localeCountryMap[tag] ?? localeCountryMap[lang];
-  if (mapped && mapped.toLowerCase() === geoFull) {
-    localeMatchesGeo = true;
-    break;
+    if (settings.enable === false) return { score, reasons };
+
+    const AccHeader = ctx.req.get('Accept-Language') || '';
+    if (!AccHeader) {
+      score += settings.penalties.missingHeader;
+      if (score > 0) reasons.push('LOCALE_MISMATCH');
+      return { score, reasons };
+    }
+
+    const isValidHeader = acceptLanguageValidator.test(AccHeader.trim().toLowerCase());
+
+    if (!isValidHeader) {
+        score += settings.penalties.malformedHeader; 
+        if (score > 0) reasons.push('LOCALE_MISMATCH');
+        return { score, reasons };
+    }
+
+    const langs = AccHeader
+      .split(',')
+      .map(entry => {
+        const [tag, q] = entry.trim().split(/\s*;\s*q\s*=\s*/);
+        return { tag: tag.toLowerCase(), weight: q ? parseFloat(q) : 1 };
+      })
+      .sort((a, b) => b.weight - a.weight);
+
+    const country = ctx.geoData.country;
+    const countryCode = ctx.geoData.countryCode;
+    const iso6 = ctx.geoData.iso639;
+
+    if (!country || !countryCode || !iso6) {
+      score += settings.penalties.missingGeoData;
+      if (score > 0) reasons.push('LOCALE_MISMATCH');
+      return { score, reasons };
+    }
+
+    const expectedCountryCode = countryCode.toLowerCase();
+    const expectedLang = iso6.toLowerCase();
+    const combined = `${expectedLang}-${expectedCountryCode}`;
+
+    let localeMatchesGeo = false;
+
+    for (const { tag, weight } of langs) {
+      if (weight === 0) continue;
+      const parts = tag.split(/[-_]/);
+      const langPart = parts[0];
+      const regionPart = parts.find(p => p.length === 2 && p === expectedCountryCode);
+      
+      if (regionPart) {
+          localeMatchesGeo = true;
+          break;
+      }
+
+      if (langPart === expectedLang) {
+          localeMatchesGeo = true;
+          break;
+      }
+
+      if ((langPart && regionPart) && tag === combined) {
+          localeMatchesGeo = true;
+          break;
+      }
+    }
+
+    if (!localeMatchesGeo) {
+      score += settings.penalties.ipAndHeaderMismatch;
+      if (score > 0) reasons.push('LOCALE_MISMATCH');
+    }
+
+    return { score, reasons };
   }
 }
 
-
-if (!localeMatchesGeo && geoFull !== 'unknown') {
-  return score += penalties.localeMismatch;
-}
-    return 0;
-}
+CheckerRegistry.register(new LocaleMapChecker());

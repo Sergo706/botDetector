@@ -1,45 +1,58 @@
-import { BanReasonCode } from "../types/checkersTypes.js";
-import { getConfiguration } from "../config/config.js";
+import { BanReasonCode, IBotChecker } from "../types/checkersTypes.js";
+import { ValidationContext } from "../types/botDetectorTypes.js";
+import { BotDetectorConfig } from "../types/configSchema.js";
+import { CheckerRegistry } from "./CheckerRegistry.js";
 
-export function calculateProxyIspAndCookie(
-cookie: string,
-proxy: boolean,
-hosting: boolean,
-isp: string, 
-org: string,
-as: string
-):{ score: number, reasons: BanReasonCode[] } {
+export class ProxyIspAndCookieChecker implements IBotChecker<BanReasonCode> {
+  name = 'Proxy, ISP and Cookie Verification';
+  phase = 'heavy' as const;
 
-const {penalties} = getConfiguration()
+  isEnabled(config: BotDetectorConfig): boolean {
+    return config.checkers.enableProxyIspCookiesChecks.enable;
+  }
 
+  async run(ctx: ValidationContext, config: BotDetectorConfig) {
+    const checkConfig = config.checkers.enableProxyIspCookiesChecks;
     const reasons: BanReasonCode[] = [];
     let score = 0;
 
-if (!cookie) { 
-  score += penalties.cookieMissing;        
-  reasons.push('COOKIE_MISSING');
-}  
+    if (checkConfig.enable === false) return { score, reasons };
+    const { penalties } = checkConfig;
 
-if (proxy) {
-    score += penalties.proxyDetected;
-    reasons.push('PROXY_DETECTED');
-  }
-  
-  if (hosting) {
-    score += penalties.hostingDetected;
-    reasons.push('HOSTING_DETECTED');
-  }
+    const cookie = ctx.cookie || '';
+    const proxy = ctx.proxy.isProxy;
+    const hosting = ctx.geoData.hosting || false;
+    const isp = ctx.geoData.isp || '';
+    const org = ctx.geoData.org || '';
+    const as = (ctx.bgp as any).as || ''; 
 
-  if (isp === 'unknown') {
-    score += penalties.ispUnknown;
-    reasons.push('ISP_UNKNOWN');
-  }
+    if (!cookie) { 
+      score += penalties.cookieMissing;        
+      reasons.push('COOKIE_MISSING');
+    }  
 
-  if (org === 'unknown' ||  as === 'unknown') {
-    score += penalties.orgUnknown;
-    reasons.push('ORG_UNKNOWN');
-  }
+    if (proxy) {
+        score += penalties.proxyDetected;
+        reasons.push('PROXY_DETECTED');
+    }
+      
+    if (hosting) {
+        score += penalties.hostingDetected;
+        reasons.push('HOSTING_DETECTED');
+    }
+
+    if (!isp) {
+        score += penalties.ispUnknown;
+        reasons.push('ISP_UNKNOWN');
+    }
+
+    if (!org || !as) {
+        score += penalties.orgUnknown;
+        reasons.push('ORG_UNKNOWN');
+    }
 
     return { score, reasons };
+  }
 }
 
+CheckerRegistry.register(new ProxyIspAndCookieChecker());

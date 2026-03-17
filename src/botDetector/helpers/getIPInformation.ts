@@ -1,74 +1,46 @@
-import { sendLog } from "../utils/telegramLogger.js";
 import type { GeoResponse } from "../types/geoTypes.js";
-import { geoCache, asnReader, countryReader, cityReader } from "./geoReaders.js";
-import { AddressNotFoundError } from "@maxmind/geoip2-node";
+import { getDataSources } from "../config/config.js";
 
-
-export async function getdata(ip: string):Promise<GeoResponse> {
-  const EMPTY: GeoResponse = {
-    country:      undefined,
-    countryCode:  undefined,
-    region:       undefined,
-    regionName:   undefined,
-    city:         undefined,
-    district:     undefined,
-    lat:          undefined,
-    lon:          undefined,
-    timezone:     undefined,
-    currency:     undefined,
-    isp:          undefined,
-    org:          undefined,
-    as_org:           undefined,
-    proxy:        false,
-    hosting:      false,
-  };
+const norm = (string?: string) => string?.trim().toLowerCase();
   
-  if (!ip) return EMPTY;  
-
-    const cached = geoCache.get(ip);
-    if (cached) return cached;
-
-  try { 
-    const asn      = asnReader.asn(ip);        // AsnResponse
-    const city     = cityReader.city(ip);      // CityResponse
-    const country  = countryReader.country(ip);// CountryResponse
+export function getData(ip: string): GeoResponse {
+  const dataSource = getDataSources()
+  const countryLvl = dataSource.countryDataBase(ip);
+  const cityLvl = dataSource.cityDataBase(ip);
+  const asn = dataSource.asnDataBase(ip);
+  const proxy = dataSource.proxyDataBase(ip);
+  const tor = dataSource.torDataBase(ip);
 
 
- const geo: GeoResponse = {
-  country:       country.country?.names?.en,
-  countryCode:   country.country?.isoCode,
-  region:        city.subdivisions?.[0]?.isoCode,
-  regionName:    city.subdivisions?.[0]?.names?.en,
-  city:          city.city?.names?.en,
-  district:      country.continent?.names.en,     
-  lat:           city.location?.latitude,
-  lon:           city.location?.longitude,
-  timezone:      city.location?.timeZone,
-  currency:      country.country?.isoCode,                              
-  isp:           asn.autonomousSystemOrganization,                              
-  org:           asn.autonomousSystemNumber?.toString(),
-  as_org:            asn.network,
-  proxy:        country.traits.isAnonymous ||
-                country.traits.isAnonymousVpn ||
-                country.traits.isTorExitNode ||
-                country.traits.isPublicProxy,
-  hosting:      country.traits.isHostingProvider
-        };
-
-
-    geoCache.set(ip, geo);
-    return geo;
-  
-  } catch(err) {
-    
-    if (err instanceof AddressNotFoundError) {
-      return EMPTY;                                
-    }
-
-    sendLog("Error Getting GEO data", `local MMDB lookup failed: ${err}`);
-    throw err;
-    }
+  return {
+    country: norm(countryLvl?.name ?? cityLvl?.name),
+    countryCode: norm(countryLvl?.country_code ?? cityLvl?.country_code),
+    region: norm(cityLvl?.region ?? countryLvl?.region),
+    regionName: norm(cityLvl?.continent ?? cityLvl?.subregion ?? countryLvl?.subregion),
+    subregion: norm(cityLvl?.subregion ?? countryLvl?.subregion),
+    state: norm(cityLvl?.state),
+    zipCode: norm(cityLvl?.zip_code),
+    city: norm(cityLvl?.city ?? cityLvl?.capital ?? countryLvl?.capital),
+    phone: norm(cityLvl?.phone ?? countryLvl?.phone),
+    numericCode: norm(cityLvl?.numericCode ?? countryLvl?.numericCode),
+    native: norm(cityLvl?.native ?? countryLvl?.native),
+    continent: norm(cityLvl?.continent),
+    capital: norm(cityLvl?.capital ?? countryLvl?.capital),
+    district: norm(cityLvl?.state),
+    lat: norm(cityLvl?.latitude),
+    lon: norm(cityLvl?.longitude),
+    timezone: norm(cityLvl?.timezone ?? countryLvl?.timezone),
+    timeZoneName: norm(cityLvl?.timeZoneName ?? countryLvl?.timeZoneName),
+    utc_offset: norm(cityLvl?.utc_offset ?? countryLvl?.utc_offset),
+    tld: norm(cityLvl?.tld ?? countryLvl?.tld),
+    nationality: norm(cityLvl?.nationality ?? countryLvl?.nationality),
+    currency: norm(cityLvl?.currency ?? countryLvl?.currency),
+    iso639: norm(cityLvl?.iso639 ?? countryLvl?.iso639),
+    languages: norm(cityLvl?.languages ?? countryLvl?.languages),
+    isp: norm(asn?.asn_name),
+    org: norm(asn?.asn_id),
+    as_org: norm(asn?.asn_name),
+    proxy: proxy ? true : false,
+    hosting: asn?.classification === "Content" || Boolean(tor?.exit_addresses),
   }
-   
-
-   
+}

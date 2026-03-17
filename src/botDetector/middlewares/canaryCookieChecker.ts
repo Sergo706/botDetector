@@ -1,22 +1,21 @@
-import { getdata } from '../helpers/getIPInformation.js';
+import { getData } from '../helpers/getIPInformation.js';
 import { makeCookie } from '../utils/cookieGenerator.js';
 import { Request, Response, NextFunction } from "express";
-import { randomBytes } from "crypto";
+import { randomBytes, randomUUID } from "crypto";
 import parseUA from '../helpers/UAparser.js';
 import { format } from 'date-fns';
-import { updateVisitor } from '../db/updateVisitors.js';
 import { uaAndGeoBotDetector } from '../../botDetector.js';
 import { getVisitorCache } from '../helpers/cache/cannaryCache.js';
-import { userReputaion } from '../helpers/reputation.js';
+import { userReputation } from '../helpers/reputation.js';
 import { getLogger } from '../utils/logger.js';
 import { userValidation } from '../types/fingerPrint.js';
-import { getConfiguration } from '../config/config.js';
+import { getConfiguration, getBatchQueue } from '../config/config.js';
 import { isInWhiteList } from '../utils/whitelist.js';
 
 declare global {
   namespace Express {
     export interface Request {
-      newVisitorId?: number;
+      newVisitorId?: string;
       botDetection: {
         success: boolean,
         banned: boolean,
@@ -69,30 +68,18 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
     log.info(`New canary_id cookie set:, ${cookieValue}`)
   }
 
-  const [geo] = await Promise.all([ getdata(ip!) ]);
+  const geo = getData(ip!);
   const parsedUA = parseUA(ua);
-  
+  const visitorId = randomUUID()
+
     const now = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
     const userValidation = {
+      visitorId,
       cookie: canary,
       userAgent: ua,
-      ipAddress: ip || 'unknown',
-      country: geo.country  ?? 'unknown',
-      region: geo.region ?? 'unknown',
-      regionName: geo.regionName ?? 'unknown',
-      city: geo.city ?? 'unknown',
-      district: geo.district ?? 'unknown',
-      lat: geo.lat != null ? String(geo.lat) : 'unknown',
-      lon: geo.lon != null ? String(geo.lon) : 'unknown',
-      timezone: geo.timezone ?? 'unknown',
-      currency: geo.currency ?? 'unknown',
-      isp: geo.isp ?? 'unknown',
-      org: geo.org ?? 'unknown',
-      as: geo.as_org ?? 'unknown',
+      ipAddress: ip,
       device_type: parsedUA.device,
       browser: parsedUA.browser,
-      proxy: geo.proxy ?? false,
-      hosting: geo.hosting ?? false,
       is_bot: false,
       first_seen: now,        
       last_seen: now,       
@@ -103,9 +90,10 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
       browserVersion: parsedUA.browserVersion,
       os: parsedUA.os,
       activity_score: '0',
+      ...geo,
     } as userValidation;
 
-  const visitorId = await updateVisitor(userValidation);
+  await getBatchQueue().addQueue(canary, ip!, 'visitor_upsert', { insert: userValidation as userValidation }, 'immediate');
   req.newVisitorId = visitorId
 
     if (whiteList) {
@@ -138,6 +126,7 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
     res.sendStatus(403);
     return; 
   }
+  
    req.botDetection = {
     success: true,
     banned: isBot,
@@ -145,7 +134,7 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
     ipAddress: req.ip!
    }
    
-   userReputaion(canary).catch(err => console.error('[BOT DETECTION - MIDDLEWARE] userReputaion failed:', err))
+   userReputation(canary).catch(err => console.error('[BOT DETECTION - MIDDLEWARE] userReputation failed:', err))
      
   return next();
 }

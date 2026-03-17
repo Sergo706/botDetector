@@ -3,7 +3,7 @@ import { getConfiguration } from '../../config/config.js';
 
 export interface CachedResult {
   banned: boolean;
-  visitor_id: number;
+  visitor_id: string;
 }
 
 let cache: LRUCache<string, CachedResult> | undefined;

@@ -1,13 +1,13 @@
 import { getPool } from '../config/dbConnection.js';
-import { sendLog } from '../utils/telegramLogger.js';
 import { userValidation } from '../types/fingerPrint.js';
-import { RowDataPacket } from 'mysql2';
+import { ResultSetHeader } from 'mysql2';
 import { getLogger } from '../utils/logger.js';
 
 export async function updateVisitor(u: userValidation) {
   const pool = getPool()
   const log = getLogger().child({service: 'BOT DETECTOR', branch: 'db', type: 'updateVisitors'})
   const {
+    visitorId,
     cookie,
     ipAddress,
     userAgent,
@@ -39,6 +39,7 @@ export async function updateVisitor(u: userValidation) {
     activity_score,
   } = u;
   const params = [
+    visitorId,
     cookie,
     ipAddress,
     userAgent,
@@ -70,8 +71,9 @@ export async function updateVisitor(u: userValidation) {
     Number(activity_score) || 0,
   ].map(value => value === undefined ? null : value);
   try {
-    await pool.execute(
+    await pool.execute<ResultSetHeader>(
       `INSERT INTO visitors (
+        visitor_id,
          canary_id,
          ip_address,
          user_agent,
@@ -133,22 +135,9 @@ export async function updateVisitor(u: userValidation) {
          params
     );
 
-    await sendLog(
-      'Updated visitors table',
-      `Visitor row for canary_id=${cookie} inserted/updated successfully.`
-    );
     log.info(`Updated visitors table, Visitor row for canary_id=${cookie} inserted/updated successfully.`)
-    const [idRow] = await pool.execute<RowDataPacket[]>(
-      'SELECT visitor_id FROM visitors WHERE canary_id = ?',
-      [cookie]
-    );
-    return idRow[0].visitor_id as number; 
-
+    return;
   } catch (err: any) {
     log.error({error: err},`ERROR UPDATING visitors TABLE`)
-    await sendLog(
-      'ERROR UPDATING visitors TABLE',
-      err?.message || String(err)
-    );
   }
 }

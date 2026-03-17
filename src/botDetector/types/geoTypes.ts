@@ -3,12 +3,26 @@ export interface GeoResponse {
     countryCode?: string;
     region?: string;
     regionName?: string;
+    subregion?: string;
+    state?: string,
+    zipCode?: string,
     city?: string;
+    phone?: string;
+    numericCode?: string;
+    native?: string;
+    continent?: string;
+    capital?: string;
     district?: string;
-    lat?: number;
-    lon?: number;
+    lat?: string;
+    lon?: string;
     timezone?: string;
+    timeZoneName?: string;
+    utc_offset?: string;
+    tld?: string;
+    nationality?: string; 
     currency?: string;
+    iso639?: string;
+    languages?: string;
     isp?: string;
     org?: string;
     as_org?: string;
