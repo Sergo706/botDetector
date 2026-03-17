@@ -1,9 +1,8 @@
 import { getPool } from "../config/dbConnection.js";
 import type { RowDataPacket } from 'mysql2';
-import { updateScore } from "../db/updateVisitorScore.js";
 import { getReputationCache } from "./cache/reputationCache.js";
 import { getLogger } from "../utils/logger.js";
-import { getConfiguration } from "../config/config.js";
+import { getBatchQueue, getConfiguration } from "../config/config.js";
 
 interface VisitorRow extends RowDataPacket {
   is_bot: number;
@@ -31,7 +30,7 @@ export async function userReputation(cookie: string): Promise<void> {
       const newReputation = Math.max(0, cached.score - restoredReputationPoints); 
 
       if (newReputation !== cached.score) {
-        await updateScore(newReputation, cookie);
+        getBatchQueue().addQueue(cookie, '', 'score_update', { score: newReputation, cookie }, 'deferred');
         log.info(`updating cache score to DB cookie=${cookie} score=${cached.score} →  (botScore=${botScore})`)
         reputationCache.set(cookie, {
           isBot: cached.isBot,
@@ -45,56 +44,60 @@ export async function userReputation(cookie: string): Promise<void> {
     
 
     try { 
-const VisitorQuery: string = `
-SELECT is_bot, 
-suspicious_activity_score
- FROM visitors
-  WHERE canary_id = ?
-  LIMIT 1`
+        const VisitorQuery: string = `
+        SELECT is_bot, 
+        suspicious_activity_score
+        FROM visitors
+          WHERE canary_id = ?
+          LIMIT 1`
 
-const [rows] = await pool.execute<VisitorRow[]>(VisitorQuery,[cookie])
-const visitor = rows[0];
+        const [rows] = await pool.execute<VisitorRow[]>(VisitorQuery,[cookie])
+        const visitor = rows[0];
 
-if (!visitor || visitor === undefined)  {
-  log.warn(`no visitor record for canary_id=${cookie}`)
-  return;
-}
+        if (!visitor || visitor === undefined)  {
+          log.warn(`no visitor record for canary_id=${cookie}`)
+          return;
+        }
 
-const isBot = visitor.is_bot === 0 ? false : true;
-let reputation = Number(visitor.suspicious_activity_score);
-
-
-if (isBot) return;
-
-if (!setNewComputedScore) { 
-reputationCache.set(cookie, {
-    isBot:  isBot,
-    score: reputation
-});
-}
-log.info({
-  label: '[REP-GATE]',
-  isBot: isBot,
-  score: reputation,
-  'score>0': reputation > 0,
-  'score<ban': reputation < botScore,
-  healPts: restoredReputationPoints
-})
+        const isBot = visitor.is_bot === 0 ? false : true;
+        let reputation = Number(visitor.suspicious_activity_score);
 
 
-if (!isBot && reputation > 0 && reputation < botScore) {
-  log.info(`calculating new score cookie=${cookie} score=${reputation} →  (botScore=${botScore})`)
-  const newReputation = Math.max(0, reputation - restoredReputationPoints); 
-  if (newReputation !== reputation) { 
-    await updateScore(newReputation, cookie)
-      log.info(`Update Score for cookie', ${cookie}, 'New Score:', ${newReputation}`)
-    reputationCache.set(cookie, {
-      isBot: isBot,
-      score: newReputation
-    });
-  }
-}
-} catch(err) {
-    // sendLog removed    log.error({err},`An error occured updating visitor reputation`)
-}
+        if (isBot) return;
+
+        if (!setNewComputedScore) { 
+        reputationCache.set(cookie, {
+            isBot:  isBot,
+            score: reputation
+        });
+        }
+        
+        log.info({
+          label: '[REP-GATE]',
+          isBot: isBot,
+          score: reputation,
+          'score>0': reputation > 0,
+          'score<ban': reputation < botScore,
+          healPts: restoredReputationPoints
+        })
+
+
+        if (!isBot && reputation > 0 && reputation < botScore) {
+          log.info(`calculating new score cookie=${cookie} score=${reputation} →  (botScore=${botScore})`)
+          const newReputation = Math.max(0, reputation - restoredReputationPoints);
+
+          if (newReputation !== reputation) {
+            getBatchQueue().addQueue(cookie, '', 'score_update', { score: newReputation, cookie }, 'deferred');
+            log.info(`Update Score for cookie', ${cookie}, 'New Score:', ${newReputation}`)
+            
+            reputationCache.set(cookie, {
+              isBot: isBot,
+              score: newReputation
+            });
+          }
+
+        }
+      } catch(err) {
+          log.error({err},`An error occurred updating visitor reputation`)
+      }
 }

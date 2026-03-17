@@ -40,7 +40,28 @@ export type BanReasonCode =
   | 'XSS SCRIPTING ATTEMPT'
   | 'PATH_TRAVELER_FOUND'
   | 'BAD_UA_DETECTED'
-  | 'BAD_BOT_DETECTED';
+  | 'BAD_BOT_DETECTED'
+  | 'ANONYMITY_NETWORK'
+  | 'FIREHOL_L1_THREAT'
+  | 'FIREHOL_L2_THREAT'
+  | 'FIREHOL_L3_THREAT'
+  | 'FIREHOL_L4_THREAT'
+  | 'ASN_HOSTING_CLASSIFIED'
+  | 'ASN_CLASSIFICATION_UNKNOWN'
+  | 'ASN_LOW_VISIBILITY'
+  | 'ASN_HOSTING_LOW_VISIBILITY_COMBO'
+  | 'TOR_ACTIVE_NODE'
+  | 'TOR_EXIT_NODE'
+  | 'TOR_WEB_EXIT_CAPABLE'
+  | 'TOR_GUARD_NODE'
+  | 'TOR_BAD_EXIT'
+  | 'TOR_OBSOLETE_VERSION'
+  | 'TZ_HEADER_GEO_MISMATCH'
+  | 'HONEYPOT_PATH_HIT'
+  | 'SESSION_COHERENCE_VIOLATION'
+  | 'TIMING_TOO_REGULAR'
+  | 'PREVIOUSLY_BANNED_IP'
+  | 'PREVIOUSLY_HIGH_RISK_IP';
 
 
 export interface BannedInfo {
@@ -49,9 +70,9 @@ export interface BannedInfo {
 }
 
 
-export interface IBotChecker<Code> {
+export interface IBotChecker<Code, TCustom = Record<string, never>> {
   name: string;
-  phase: 'cheap' | 'heavy'; 
-  isEnabled(config: BotDetectorConfig): boolean; 
-  run(ctx: ValidationContext, config: BotDetectorConfig): Promise<{ score: number; reasons: Code[] | BanReasonCode[]}> | { score: number; reasons: Code[] | BanReasonCode[] };
+  phase: 'cheap' | 'heavy';
+  isEnabled(config: BotDetectorConfig): boolean;
+  run(ctx: ValidationContext<TCustom>, config: BotDetectorConfig): Promise<{ score: number; reasons: Code[] | BanReasonCode[] }> | { score: number; reasons: Code[] | BanReasonCode[] };
 }

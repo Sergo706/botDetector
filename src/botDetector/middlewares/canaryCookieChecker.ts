@@ -1,6 +1,6 @@
 import { getData } from '../helpers/getIPInformation.js';
 import { makeCookie } from '../utils/cookieGenerator.js';
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, RequestHandler } from "express";
 import { randomBytes, randomUUID } from "crypto";
 import parseUA from '../helpers/UAparser.js';
 import { format } from 'date-fns';
@@ -27,7 +27,10 @@ declare global {
 }
 
 
-export const validator = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export function validator<TCustom = Record<string, never>>(
+  buildCustomContext?: (req: Request) => TCustom,
+): RequestHandler {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const {checksTimeRateControl} = getConfiguration()
     let canary = req.cookies?.canary_id || null;
     const ua = req.get("User-Agent") || "";
@@ -115,7 +118,7 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
       return next()
     };
 
-  const isBot = await uaAndGeoBotDetector(req, ip!, ua, geo, parsedUA);
+  const isBot = await uaAndGeoBotDetector(req, ip!, ua, geo, parsedUA, buildCustomContext);
   
   getVisitorCache().set(canary, {
     banned:  isBot,
@@ -135,6 +138,7 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
    }
    
    userReputation(canary).catch(err => console.error('[BOT DETECTION - MIDDLEWARE] userReputation failed:', err))
-     
+
   return next();
+  };
 }

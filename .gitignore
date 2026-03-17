@@ -19,4 +19,4 @@ tsconfig.tsbuildinfo
 docs/
 mmdb/
 coverage/
-.claude
+CUSTOM.md

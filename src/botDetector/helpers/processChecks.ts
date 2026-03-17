@@ -8,7 +8,7 @@ import { BadBotDetected, GoodBotDetected } from "./exceptions.js";
 
 export async function processChecks(
   checkers: IBotChecker<any>[],
-  ctx: ValidationContext,
+  ctx: ValidationContext<any>,
   config: BotDetectorConfig,
   botScore: number,
   reasons: BanReasonCode[],

@@ -21,21 +21,29 @@ export class ProxyIspAndCookieChecker implements IBotChecker<BanReasonCode> {
 
     const cookie = ctx.cookie || '';
     const proxy = ctx.proxy.isProxy;
+    const proxyType = ctx.proxy.proxyType || '';
     const hosting = ctx.geoData.hosting || false;
     const isp = ctx.geoData.isp || '';
     const org = ctx.geoData.org || '';
-    const as = (ctx.bgp as any).as || ''; 
 
-    if (!cookie) { 
-      score += penalties.cookieMissing;        
+    if (!cookie) {
+      score += penalties.cookieMissing;
       reasons.push('COOKIE_MISSING');
-    }  
+    }
 
     if (proxy) {
         score += penalties.proxyDetected;
         reasons.push('PROXY_DETECTED');
+        if (proxyType) {
+            const sourceCount = proxyType.split(',').length;
+            if (sourceCount >= 4) {
+                score += penalties.multiSourceBonus4plus;
+            } else if (sourceCount >= 2) {
+                score += penalties.multiSourceBonus2to3;
+            }
+        }
     }
-      
+
     if (hosting) {
         score += penalties.hostingDetected;
         reasons.push('HOSTING_DETECTED');
@@ -46,7 +54,7 @@ export class ProxyIspAndCookieChecker implements IBotChecker<BanReasonCode> {
         reasons.push('ISP_UNKNOWN');
     }
 
-    if (!org || !as) {
+    if (!org) {
         score += penalties.orgUnknown;
         reasons.push('ORG_UNKNOWN');
     }

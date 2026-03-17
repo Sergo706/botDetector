@@ -1,13 +1,15 @@
 import maxmind, { Reader } from 'maxmind';
 import type { BgpRecord, CityGeoRecord, GeoRecord, TorRecord, ThreatRecord, CrawlersRecord, ProxyRecord } from '@riavzon/shield-base'
+import type { BannedRecord, HighRiskRecord } from '../types/generator.js';
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { existsSync } from "node:fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export interface DataReaders {
-    asnDataBase(ip: string): BgpRecord | null; 
+    asnDataBase(ip: string): BgpRecord | null;
     cityDataBase(ip: string): CityGeoRecord | null;
     countryDataBase(ip: string): GeoRecord | null;
     goodBotsDataBase(ip: string): CrawlersRecord | null;
@@ -18,6 +20,8 @@ export interface DataReaders {
     fireholLvl2DataBase(ip: string): ThreatRecord | null;
     fireholLvl3DataBase(ip: string): ThreatRecord | null;
     fireholLvl4DataBase(ip: string): ThreatRecord | null;
+    bannedDataBase(ip: string): BannedRecord | null;
+    highRiskDataBase(ip: string): HighRiskRecord | null;
 }
 
 export interface AppReaders {
@@ -32,6 +36,8 @@ export interface AppReaders {
     fireholLvl2: Reader<ThreatRecord & maxmind.Response>;
     fireholLvl3: Reader<ThreatRecord & maxmind.Response>;
     fireholLvl4: Reader<ThreatRecord & maxmind.Response>;
+    banned?: Reader<BannedRecord & maxmind.Response>;
+    highRisk?: Reader<HighRiskRecord & maxmind.Response>;
 }
 
 
@@ -58,8 +64,15 @@ export class DataSources implements DataReaders {
       maxmind.open<ThreatRecord & maxmind.Response>(path.join(basePath, 'firehol_l3.mmdb'), options),
       maxmind.open<ThreatRecord & maxmind.Response>(path.join(basePath, 'firehol_l4.mmdb'), options),
     ]);
-      
-    
+
+    const bannedPath   = path.join(basePath, 'banned.mmdb');
+    const highRiskPath = path.join(basePath, 'highRisk.mmdb');
+
+    const [banned, highRisk] = await Promise.all([
+      existsSync(bannedPath) ? maxmind.open<BannedRecord & maxmind.Response>(bannedPath, options): Promise.resolve(undefined),
+      existsSync(highRiskPath) ? maxmind.open<HighRiskRecord & maxmind.Response>(highRiskPath, options): Promise.resolve(undefined),
+    ]);
+
     return new DataSources({
        asn,
        city,
@@ -71,7 +84,9 @@ export class DataSources implements DataReaders {
        fireholLvl1,
        fireholLvl2,
        fireholLvl3,
-       fireholLvl4
+       fireholLvl4,
+       banned,
+       highRisk,
     });
   }
     
@@ -130,4 +145,12 @@ export class DataSources implements DataReaders {
     return result;
   }
 
-} 
+  public bannedDataBase(ip: string): BannedRecord | null {
+    return this.readers.banned?.get(ip) ?? null;
+  }
+
+  public highRiskDataBase(ip: string): HighRiskRecord | null {
+    return this.readers.highRisk?.get(ip) ?? null;
+  }
+
+}

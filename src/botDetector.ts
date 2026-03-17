@@ -12,7 +12,15 @@ import { getReputationCache } from './botDetector/helpers/cache/reputationCache.
 import { getLogger } from './botDetector/utils/logger.js';
 import { getConfiguration, getDataSources, getBatchQueue } from './botDetector/config/config.js';
 
-export async function uaAndGeoBotDetector(req: Request, ipAddress: string, userAgent: string, geo: GeoResponse,  parsedUA: ParsedUAResult ): Promise<boolean> {
+export async function uaAndGeoBotDetector<TCustom = Record<string, never>>(
+  req: Request,
+  ipAddress: string,
+  userAgent: string,
+  geo: GeoResponse,
+  parsedUA: ParsedUAResult,
+  buildCustomContext?: (req: Request) => TCustom,
+): Promise<boolean> {
+  
   const log = getLogger().child({service: 'BOT DETECTOR', branch: 'main'});
   const {banScore, maxScore, setNewComputedScore} = getConfiguration()
   const BAN_THRESHOLD = banScore;
@@ -48,7 +56,7 @@ export async function uaAndGeoBotDetector(req: Request, ipAddress: string, userA
   }
 
   const proxyResult = proxy();
-  const ctx: ValidationContext = {
+  const ctx: ValidationContext<TCustom> = {
     req,
     ipAddress,
     parsedUA: parsedUA,
@@ -61,7 +69,8 @@ export async function uaAndGeoBotDetector(req: Request, ipAddress: string, userA
     anon,
     bgp: asn || {},
     tor: tor || {},
-    threatLevel
+    threatLevel,
+    custom: buildCustomContext ? buildCustomContext(req) : ({} as TCustom),
   };
 
   const cheapChecks = CheckerRegistry.getEnabled('cheap', getConfiguration());

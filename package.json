@@ -28,7 +28,7 @@
     "pack": "npm pack --foreground-scripts --ignore-scripts=false"
   },
   "dependencies": {
-    "@riavzon/shield-base": "^1.5.0",
+    "@riavzon/shield-base": "^1.6.3",
     "@sergo/utils": "github:Sergo706/utils",
     "cookie-parser": "^1.4.7",
     "date-fns": "^4.1.0",

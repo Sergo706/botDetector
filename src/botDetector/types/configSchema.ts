@@ -171,6 +171,8 @@ export const configSchema = z.object({
                     penalties: z.object({
                         cookieMissing: z.number().default(80),
                         proxyDetected: z.number().default(40),
+                        multiSourceBonus2to3: z.number().default(10),
+                        multiSourceBonus4plus: z.number().default(20),
                         hostingDetected: z.number().default(50),
                         ispUnknown: z.number().default(10),
                         orgUnknown: z.number().default(10),
@@ -237,7 +239,102 @@ export const configSchema = z.object({
                 }),
             ]).prefault({enable: true}),
 
+            enableKnownThreatsDetections: z.discriminatedUnion('enable', [
+                z.object({
+                    enable: z.literal(false)
+                }),
+
+                z.object({
+                    enable: z.literal(true),
+                    penalties: z.object({
+                        anonymiseNetwork: z.number().default(20),
+                        threatLevels: z.object({
+                            criticalLevel1: z.number().default(40),
+                            currentAttacksLevel2: z.number().default(30),
+                            threatLevel3: z.number().default(20),
+                            threatLevel4: z.number().default(10),
+                        }).prefault({}),
+                    }).prefault({})
+                }),
+            ]).prefault({enable: true}),
+
+            enableAsnClassification: z.discriminatedUnion('enable', [
+                z.object({ enable: z.literal(false) }),
+                z.object({
+                    enable: z.literal(true),
+                    penalties: z.object({
+                        contentClassification: z.number().default(20),
+                        unknownClassification: z.number().default(10),
+                        lowVisibilityPenalty: z.number().default(10),
+                        lowVisibilityThreshold: z.number().default(15),
+                        comboHostingLowVisibility: z.number().default(20),
+                    }).prefault({}),
+                }),
+            ]).prefault({ enable: true }),
+
+            enableTorAnalysis: z.discriminatedUnion('enable', [
+                z.object({ enable: z.literal(false) }),
+                z.object({
+                    enable: z.literal(true),
+                    penalties: z.object({
+                        runningNode: z.number().default(15),
+                        exitNode: z.number().default(20),
+                        webExitCapable: z.number().default(15),
+                        guardNode: z.number().default(10),
+                        badExit: z.number().default(40),
+                        obsoleteVersion: z.number().default(10),
+                    }).prefault({}),
+                }),
+            ]).prefault({ enable: true }),
+
+            enableTimezoneConsistency: z.discriminatedUnion('enable', [
+                z.object({ enable: z.literal(false) }),
+                z.object({
+                    enable: z.literal(true),
+                    penalties: z.number().default(20),
+                }),
+            ]).prefault({ enable: true }),
+
+            honeypot: z.discriminatedUnion('enable', [
+                z.object({ enable: z.literal(false) }),
+                z.object({
+                    enable: z.literal(true),
+                    paths: z.array(z.string()).default([]),
+                }),
+            ]).prefault({ enable: true }),
+
+            enableSessionCoherence: z.discriminatedUnion('enable', [
+                z.object({ enable: z.literal(false) }),
+                z.object({
+                    enable: z.literal(true),
+                    penalties: z.number().default(10),
+                }),
+            ]).prefault({ enable: true }),
+
+            enableVelocityFingerprint: z.discriminatedUnion('enable', [
+                z.object({ enable: z.literal(false) }),
+                z.object({
+                    enable: z.literal(true),
+                    cvThreshold: z.number().default(0.1),
+                    penalties: z.number().default(40),
+                }),
+            ]).prefault({ enable: true }),
+
+            enableKnownBadIpsCheck: z.discriminatedUnion('enable', [
+                z.object({ enable: z.literal(false) }),
+                z.object({
+                    enable: z.literal(true),
+                    highRiskPenalty: z.number().default(30),
+                }),
+            ]).prefault({ enable: true }),
         }),
+
+        generator: z.object({
+            scoreThreshold: z.number().default(70),
+            generateTypes: z.boolean().default(false),
+            deleteAfterBuild: z.boolean().default(false),
+            mmdbctlPath: z.string().default('mmdbctl')
+        }).prefault({}),
 
         headerOptions: z.object({
                 weightPerMustHeader: z.number().default(20),
