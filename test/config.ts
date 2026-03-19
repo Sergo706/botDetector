@@ -19,9 +19,6 @@ export const poolConnection = mysql2.createPool({
 });
 export const defaultSettings: BotDetectorConfigInput  = {
     store: { main: poolConnection },
-    banScore: 10,
-    maxScore: 30,
-    restoredReputationPoints: 1,
     whiteList: ["172.18.0.1", "172.29.20.1", "172.21.10.1", "127.0.0.1", "172.20.5.4", "172.21.10.4", "::ffff:127.0.0.1"],
     checkers: {
         enableGeoChecks: {

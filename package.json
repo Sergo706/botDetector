@@ -19,7 +19,7 @@
   },
   "types": "./dist/main.d.ts",
   "scripts": {
-    "update-data": "npx @riavzon/shield-base --refreshAll",
+    "update-data": "npx @riavzon/shield-base --refreshAll --path=src/botDetector/db/mmdb",
     "build": "tsc -p tsconfig.build.json && mkdir -p dist && cp -R src/**/geoData dist/botDetector",
     "build:tables": "node ./dist/botDetector/db/schema.js",
     "test": "vitest run --coverage",

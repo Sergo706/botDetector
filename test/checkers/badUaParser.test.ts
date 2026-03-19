@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { BadUaChecker } from '@checkers/badUaChecker.js'
 import { getConfiguration } from "~~/src/botDetector/config/config.js";
-import { createMockContext } from "../setup.js";
+import { createMockContext } from '../test-utils/test-utils.js';
 
 describe('User-Agent parser for severity', () => {
     const toDetect = ['*YAYAYAY*', '*Nmap Scripting Engine*', '*NDES client *', 'Wireshark/*'];

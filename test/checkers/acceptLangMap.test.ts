@@ -1,7 +1,7 @@
 import { it, describe, expect } from 'vitest';
 import {  getDataSources, getConfiguration } from '~~/src/botDetector/config/config.js';
 import { LocaleMapChecker } from '@checkers/acceptLangMap.js';
-import { createMockContext } from '../setup.js';
+import { createMockContext } from '../test-utils/test-utils.js';
 
 const checker = new LocaleMapChecker();
 

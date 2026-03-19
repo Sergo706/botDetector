@@ -22,16 +22,34 @@ export class SessionCoherenceChecker implements IBotChecker<BanReasonCode> {
 
         const currentPath = ctx.req.path;
         const refererHeader = ctx.req.get('Referer');
+        const secFetchSite = ctx.req.get('Sec-Fetch-Site');
+        const currentHostname = ctx.req.hostname;
         const cached = sessionCache.get(ctx.cookie);
 
-        if (cached && refererHeader) {
+        const missingSameOriginReferer = secFetchSite === 'same-origin' && !refererHeader;
+        const missingSubsequentReferer = cached && !refererHeader;
+
+        if (missingSameOriginReferer || missingSubsequentReferer) {
+            score += checkConfig.penalties.missingReferer;
+            reasons.push('SESSION_COHERENCE_MISSING_REFERER');
+        }
+
+        else if (refererHeader) {
             try {
-                const refererPath = new URL(refererHeader).pathname;
-                if (refererPath !== cached.lastPath) {
-                    score += checkConfig.penalties;
-                    reasons.push('SESSION_COHERENCE_VIOLATION');
+                const refererUrl = new URL(refererHeader);
+
+                if (refererUrl.hostname !== currentHostname) {
+                    score += checkConfig.penalties.domainMismatch;
+                    reasons.push('SESSION_COHERENCE_DOMAIN_MISMATCH');
+                } 
+
+                else if (cached && refererUrl.pathname !== cached.lastPath) {
+                    score += checkConfig.penalties.pathMismatch;
+                    reasons.push('SESSION_COHERENCE_PATH_MISMATCH');
                 }
             } catch {
+                score += checkConfig.penalties.missingReferer; 
+                reasons.push('SESSION_COHERENCE_INVALID_REFERER');
             }
         }
 

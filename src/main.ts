@@ -11,6 +11,7 @@ export { configuration as initBotDetector } from "./botDetector/config/config.js
 export { warmUp } from './botDetector/db/warmUp.js';
 export { runGeneration } from './botDetector/db/generator.js';
 export { updateVisitors } from "./botDetector/db/customUpdate.js";
+export { getDataSources } from "./botDetector/config/config.js";
 export type { VisitorFingerPrint } from "./botDetector/db/customUpdate.js";
 export type { BotDetectorConfig } from "./botDetector/types/configSchema.js";
 export type { GeoResponse } from './botDetector/types/geoTypes.js';

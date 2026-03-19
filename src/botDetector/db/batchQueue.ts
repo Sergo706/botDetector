@@ -8,14 +8,17 @@ import { getLogger } from "@utils/logger.js";
 
 
 export class BatchQueue {
-    private config = getConfiguration().batchQueue;
-    private bufferSize: number = this.config.maxBufferSize;
-    private flushIntervalMs: number = this.config.flushIntervalMs;
     private jobs: Map<string, BatchJob> = new Map();
     private timer: NodeJS.Timeout | null = null;
     private isFlushing: boolean = false;
-    private retries: number = this.config.maxRetries;
-    private log = getLogger().child({service: 'BOT DETECTOR', branch: 'BatchQueue'})
+    
+    private get config() { 
+        return getConfiguration().batchQueue; 
+    }
+
+    private get log() { 
+        return getLogger().child({service: 'BOT DETECTOR', branch: 'BatchQueue'}); 
+    }
 
     public async addQueue<T extends BatchQueueOps>(
         canary: string,
@@ -27,10 +30,10 @@ export class BatchQueue {
         const key = `${type}:${canary}:${ipAddress}`;
         this.jobs.set(key, { id: key, type, priority, params });
 
-        if (priority === 'immediate' || this.jobs.size >= this.bufferSize) {
+        if (priority === 'immediate' || this.jobs.size >= this.config.maxBufferSize) {
             await this.flush();
         } else if (!this.timer) {
-            this.timer = setTimeout(() => this.flush(), this.flushIntervalMs);
+            this.timer = setTimeout(() => this.flush(), this.config.flushIntervalMs);
         }
     }
 
@@ -69,7 +72,7 @@ export class BatchQueue {
         } catch (err) {
             this.log.error({err}, `Batch flush failed (Attempt ${retryCount + 1})`);
 
-            if (retryCount < this.retries) {
+            if (retryCount < this.config.maxRetries) {
                 this.isFlushing = false;
                 await new Promise(res => setTimeout(res, 1000));
                 currentBatch.forEach(j => this.jobs.set(j.id, j));

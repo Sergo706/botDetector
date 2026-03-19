@@ -207,6 +207,7 @@ export const configSchema = z.object({
                         cliOrLibrary: z.number().default(100),
                         internetExplorer: z.number().default(100),
                         linuxOs: z.number().default(10),
+                        impossibleBrowserCombinations: z.number().default(30),
                         browserTypeUnknown: z.number().default(10),
                         browserNameUnknown: z.number().default(10),
                         desktopWithoutOS: z.number().default(10),
@@ -307,7 +308,11 @@ export const configSchema = z.object({
                 z.object({ enable: z.literal(false) }),
                 z.object({
                     enable: z.literal(true),
-                    penalties: z.number().default(10),
+                    penalties: z.object({
+                        pathMismatch: z.number().default(10),
+                        missingReferer: z.number().default(20),
+                        domainMismatch: z.number().default(30),
+                    }).prefault({}),
                 }),
             ]).prefault({ enable: true }),
 
@@ -363,6 +368,7 @@ export const configSchema = z.object({
                 maxPathLength: z.number().default(1500),
                 pathLengthToLong: z.number().default(100),
                 longDecoding: z.number().default(100),
+                traversalDetected: z.number().default(60),
             }).prefault({}),
 
         

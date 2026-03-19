@@ -31,8 +31,8 @@ export class AsnClassificationChecker implements IBotChecker<BanReasonCode> {
             reasons.push('ASN_HOSTING_CLASSIFIED');
         }
 
-        const hitsNum = hits !== undefined ? parseInt(hits, 10) : NaN;
-        const isLowVisibility = !isNaN(hitsNum) && hitsNum < penalties.lowVisibilityThreshold;
+        const hitsNum = parseInt(hits ?? '', 10);
+        const isLowVisibility = Number.isFinite(hitsNum) && hitsNum >= 0 && hitsNum < penalties.lowVisibilityThreshold;
 
         if (isLowVisibility) {
             score += penalties.lowVisibilityPenalty;

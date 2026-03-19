@@ -15,17 +15,20 @@ export class UaAndHeaderCheckerBase {
         const base = `${req.protocol}://${hostHeader || req.get('host')}`;
         
         const rawPath = req.get('x-original-path') || req.originalUrl;
-        
-        
+
+        const traversalRe = /(?:\.\.[\\/]|\.\.%2f|\.\.%5c|%2e%2e[\\/]|%2e%2e%2f|%2e%2e%5c)/i;
+        if (traversalRe.test(rawPath)) {
+            return settings.traversalDetected;
+        }
+
         let pathname: string;
         try {
-        
+
             const fullUrl = new URL(rawPath, base);
             pathname = fullUrl.pathname;
-            console.log('[DEBUG] fullUrl.pathname =', fullUrl.pathname);
+            
         } catch {
             pathname = rawPath.split('?')[0];
-            console.log('[DEBUG][pathScore] fallback path =', pathname);
         }
         
         

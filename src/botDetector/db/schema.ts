@@ -5,7 +5,7 @@ import { join } from 'path';
 export async function createTables(connection: Pool): Promise<void> {
     const createVisitorsTable = `
         CREATE TABLE IF NOT EXISTS visitors (
-            visitor_id CHAR(36) NOT NULL,
+            visitor_id CHAR(36) NOT NULL DEFAULT (UUID()),
             canary_id VARCHAR(64) PRIMARY KEY,
             ip_address VARCHAR(45),
             user_agent TEXT,

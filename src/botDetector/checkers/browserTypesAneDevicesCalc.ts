@@ -40,17 +40,17 @@ export class BrowserDetailsAndDeviceChecker implements IBotChecker<BanReasonCode
     }
 
     if (bOS === 'Mac OS' && dType === 'mobile') {
-        score += 30; 
+        score += penalties.impossibleBrowserCombinations; 
         reasons.push('IMPOSSIBLE_BROWSER_COMBINATION' as BanReasonCode);
     }
 
     if (bName === 'Safari' && bOS === 'Windows') {
-        score += 30; 
+        score += penalties.impossibleBrowserCombinations; 
         reasons.push('IMPOSSIBLE_BROWSER_COMBINATION' as BanReasonCode);
     }
 
     if (dType === 'desktop' && ctx.parsedUA.deviceVendor) {
-        score += 20; 
+        score += penalties.impossibleBrowserCombinations; 
         reasons.push('IMPOSSIBLE_BROWSER_COMBINATION' as BanReasonCode);
     }
 

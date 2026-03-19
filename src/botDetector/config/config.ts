@@ -28,13 +28,19 @@ export async function configuration(config: BotDetectorConfigInput): Promise<voi
     }
   };
 
-  await defineConfiguration(config, [initDataSourcesTask]);
+  const initBatchQueueTask = () => {
+    if (!globalBatchQueue) {
+      globalBatchQueue = new BatchQueue();
+      process.on('SIGTERM', () => globalBatchQueue!.shutdown());
+      process.on('SIGINT',  () => globalBatchQueue!.shutdown());
+    }
+  };
+  
+  await defineConfiguration(config, [
+    initDataSourcesTask, 
+    initBatchQueueTask
+  ]);
 
-  if (!globalBatchQueue) {
-    globalBatchQueue = new BatchQueue();
-    process.on('SIGTERM', () => globalBatchQueue!.shutdown());
-    process.on('SIGINT',  () => globalBatchQueue!.shutdown());
-  }
 }
 
 

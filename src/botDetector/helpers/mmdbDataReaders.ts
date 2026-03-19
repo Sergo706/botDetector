@@ -8,6 +8,8 @@ import { existsSync } from "node:fs";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+export type ThreatRecordModified = ThreatRecord & { network: string }
+
 export interface DataReaders {
     asnDataBase(ip: string): BgpRecord | null;
     cityDataBase(ip: string): CityGeoRecord | null;
@@ -15,11 +17,11 @@ export interface DataReaders {
     goodBotsDataBase(ip: string): CrawlersRecord | null;
     torDataBase(ip: string): TorRecord | null;
     proxyDataBase(ip: string): ProxyRecord | null;
-    fireholAnonDataBase(ip: string): ThreatRecord | null;
-    fireholLvl1DataBase(ip: string): ThreatRecord | null;
-    fireholLvl2DataBase(ip: string): ThreatRecord | null;
-    fireholLvl3DataBase(ip: string): ThreatRecord | null;
-    fireholLvl4DataBase(ip: string): ThreatRecord | null;
+    fireholAnonDataBase(ip: string): ThreatRecordModified | null;
+    fireholLvl1DataBase(ip: string): ThreatRecordModified | null;
+    fireholLvl2DataBase(ip: string): ThreatRecordModified | null;
+    fireholLvl3DataBase(ip: string): ThreatRecordModified | null;
+    fireholLvl4DataBase(ip: string): ThreatRecordModified | null;
     bannedDataBase(ip: string): BannedRecord | null;
     highRiskDataBase(ip: string): HighRiskRecord | null;
 }
@@ -31,11 +33,11 @@ export interface AppReaders {
     goodBots: Reader<CrawlersRecord & maxmind.Response>;
     tor: Reader<TorRecord & maxmind.Response>;
     proxy: Reader<ProxyRecord & maxmind.Response>;
-    fireholAnon: Reader<ThreatRecord & maxmind.Response>;
-    fireholLvl1: Reader<ThreatRecord & maxmind.Response>;
-    fireholLvl2: Reader<ThreatRecord & maxmind.Response>;
-    fireholLvl3: Reader<ThreatRecord & maxmind.Response>;
-    fireholLvl4: Reader<ThreatRecord & maxmind.Response>;
+    fireholAnon: Reader<ThreatRecordModified & maxmind.Response>;
+    fireholLvl1: Reader<ThreatRecordModified & maxmind.Response>;
+    fireholLvl2: Reader<ThreatRecordModified & maxmind.Response>;
+    fireholLvl3: Reader<ThreatRecordModified & maxmind.Response>;
+    fireholLvl4: Reader<ThreatRecordModified & maxmind.Response>;
     banned?: Reader<BannedRecord & maxmind.Response>;
     highRisk?: Reader<HighRiskRecord & maxmind.Response>;
 }
@@ -58,11 +60,11 @@ export class DataSources implements DataReaders {
       maxmind.open<CrawlersRecord& maxmind.Response>(path.join(basePath, 'goodBots.mmdb'), options),
       maxmind.open<TorRecord & maxmind.Response>(path.join(basePath, 'tor.mmdb'), options),
       maxmind.open<ProxyRecord & maxmind.Response>(path.join(basePath, 'proxy.mmdb'), options),
-      maxmind.open<ThreatRecord & maxmind.Response>(path.join(basePath, 'firehol_anonymous.mmdb'), options),
-      maxmind.open<ThreatRecord & maxmind.Response>(path.join(basePath, 'firehol_l1.mmdb'), options),
-      maxmind.open<ThreatRecord & maxmind.Response>(path.join(basePath, 'firehol_l2.mmdb'), options),
-      maxmind.open<ThreatRecord & maxmind.Response>(path.join(basePath, 'firehol_l3.mmdb'), options),
-      maxmind.open<ThreatRecord & maxmind.Response>(path.join(basePath, 'firehol_l4.mmdb'), options),
+      maxmind.open<ThreatRecordModified & maxmind.Response>(path.join(basePath, 'firehol_anonymous.mmdb'), options),
+      maxmind.open<ThreatRecordModified & maxmind.Response>(path.join(basePath, 'firehol_l1.mmdb'), options),
+      maxmind.open<ThreatRecordModified & maxmind.Response>(path.join(basePath, 'firehol_l2.mmdb'), options),
+      maxmind.open<ThreatRecordModified & maxmind.Response>(path.join(basePath, 'firehol_l3.mmdb'), options),
+      maxmind.open<ThreatRecordModified & maxmind.Response>(path.join(basePath, 'firehol_l4.mmdb'), options),
     ]);
 
     const bannedPath   = path.join(basePath, 'banned.mmdb');
@@ -120,28 +122,28 @@ export class DataSources implements DataReaders {
     return result;
   }
 
-  public fireholAnonDataBase(ip: string): ThreatRecord | null {
-    const result: ThreatRecord | null = this.readers.fireholAnon.get(ip);
+  public fireholAnonDataBase(ip: string): ThreatRecordModified | null {
+    const result: ThreatRecordModified | null = this.readers.fireholAnon.get(ip);
     return result;
   }
 
-  public fireholLvl1DataBase(ip: string): ThreatRecord | null {
-    const result: ThreatRecord | null = this.readers.fireholLvl1.get(ip);
+  public fireholLvl1DataBase(ip: string): ThreatRecordModified | null {
+    const result: ThreatRecordModified | null = this.readers.fireholLvl1.get(ip);
     return result;
   }
 
-  public fireholLvl2DataBase(ip: string): ThreatRecord | null {
-    const result: ThreatRecord | null = this.readers.fireholLvl2.get(ip);
+  public fireholLvl2DataBase(ip: string): ThreatRecordModified | null {
+    const result: ThreatRecordModified | null = this.readers.fireholLvl2.get(ip);
     return result;
   }
 
-  public fireholLvl3DataBase(ip: string): ThreatRecord | null {
-    const result: ThreatRecord | null = this.readers.fireholLvl3.get(ip);
+  public fireholLvl3DataBase(ip: string): ThreatRecordModified | null {
+    const result: ThreatRecordModified | null = this.readers.fireholLvl3.get(ip);
     return result;
   }
 
-  public fireholLvl4DataBase(ip: string): ThreatRecord | null {
-    const result: ThreatRecord | null = this.readers.fireholLvl4.get(ip);
+  public fireholLvl4DataBase(ip: string): ThreatRecordModified | null {
+    const result: ThreatRecordModified | null = this.readers.fireholLvl4.get(ip);
     return result;
   }
 

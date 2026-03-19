@@ -30,8 +30,11 @@ export class GeoLocationChecker implements IBotChecker<BanReasonCode> {
     const countryCode = details.countryCode;
 
     if (countryCode || country) {
-      if (!this.isAllowedCountry(countryCode || country || "", checkConfig.bannedCountries)) {
-        score += banScore; 
+      const banned = checkConfig.bannedCountries;
+      const codeMatch = !!countryCode && !this.isAllowedCountry(countryCode, banned);
+      const nameMatch = !!country && !this.isAllowedCountry(country, banned);
+      if (codeMatch || nameMatch) {
+        score += banScore;
         reasons.push('BANNED_COUNTRY');
       }
 
