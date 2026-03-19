@@ -2,8 +2,8 @@ import { userValidation } from "~~/src/main.js";
 import { getBatchQueue } from "~~/src/botDetector/config/config.js";
 import { uid } from "./test-utils.js";
 import { poolConnection } from "../config.js";
+import { nowMysql } from "@utils/nowMysql.js";
 
-const nowMysql = () => new Date().toISOString().slice(0, 19).replace('T', ' ');
 
 export function makeVisitor(cookie: string, visitorId = uid(), overrides?: Partial<userValidation>): userValidation {
     const defaults: userValidation = {

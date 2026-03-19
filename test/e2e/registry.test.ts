@@ -12,14 +12,14 @@ beforeAll(async () => {
 
 describe('CheckerRegistry', () => {
     describe('phase distribution', () => {
-        it('registers at least 11 cheap phase checkers', () => {
+        it('registers at least 10 cheap phase checkers', () => {
             const cheap = CheckerRegistry.getEnabled('cheap', getConfiguration());
-            expect(cheap.length).toBe(11);
+            expect(cheap.length).toBe(10);
         });
 
-        it('registers at least 6 heavy phase checkers', () => {
+        it('registers at least 7 heavy phase checkers', () => {
             const heavy = CheckerRegistry.getEnabled('heavy', getConfiguration());
-            expect(heavy.length).toBe(6);
+            expect(heavy.length).toBe(7);
         });
 
         it('geo checker is in the heavy phase', () => {

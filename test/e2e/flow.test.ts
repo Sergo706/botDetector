@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { uaAndGeoBotDetector } from '~~/src/botDetector.js';
 import { CheckerRegistry } from '~~/src/botDetector/checkers/CheckerRegistry.js';
 import { getConfiguration, getBatchQueue } from '~~/src/botDetector/config/config.js';
-import { getReputationCache } from '~~/src/botDetector/helpers/cache/reputationCache.js';
+import { reputationCache } from '~~/src/botDetector/helpers/cache/reputationCache.js';
 import { makeReq, cleanUSGeo, bannedCountryGeo, cleanBrowserUA } from '../test-utils/test-utils.js';
 import { seedVisitor, getVisitor, deleteVisitor } from '../test-utils/database-utils.js';
 import type { IBotChecker } from '~~/src/botDetector/types/checkersTypes.js';
@@ -44,7 +44,7 @@ describe('legitimate request', () => {
 
         await uaAndGeoBotDetector(req, CLEAN_IP, req.get('user-agent') || '', cleanUSGeo, cleanBrowserUA);
 
-        const cached = getReputationCache().get(cookie);
+        const cached = await reputationCache.get(cookie);
         expect(cached).toBeDefined();
         expect(cached!.isBot).toBe(false);
         expect(typeof cached!.score).toBe('number');

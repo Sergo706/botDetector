@@ -8,7 +8,7 @@ import type { ParsedUAResult } from './botDetector/types/UAparserTypes.js';
 import type { GeoResponse } from './botDetector/types/geoTypes.js';
 import { BanReasonCode } from './botDetector/types/checkersTypes.js';
 import { processChecks } from './botDetector/helpers/processChecks.js';
-import { getReputationCache } from './botDetector/helpers/cache/reputationCache.js';
+import { reputationCache } from './botDetector/helpers/cache/reputationCache.js';
 import { getLogger } from './botDetector/utils/logger.js';
 import { getConfiguration, getDataSources, getBatchQueue } from './botDetector/config/config.js';
 
@@ -113,12 +113,20 @@ export async function uaAndGeoBotDetector<TCustom = Record<string, never>>(
 
   if (setNewComputedScore) {
     getBatchQueue().addQueue(cookie, ipAddress, 'score_update', { score: botScore, cookie }, 'deferred');
-    getReputationCache().set(cookie, { isBot: false, score: botScore });
+
+    reputationCache.set(cookie, { isBot: false, score: botScore }).catch((err) => {
+      log.error({err}, 'Failed to set reputationCache in storage')
+    });
+
   } else {
-    const cached = getReputationCache().get(cookie);
+    const cached = await reputationCache.get(cookie);
     if (!cached || cached.score === 0) {
       getBatchQueue().addQueue(cookie, ipAddress, 'score_update', { score: botScore, cookie }, 'deferred');
-      getReputationCache().set(cookie, { isBot: false, score: botScore });
+
+      reputationCache.set(cookie, { isBot: false, score: botScore }).catch((err) => {
+         log.error({err}, 'Failed to set reputationCache in storage')
+      });
+      
     }
   }
   return false;

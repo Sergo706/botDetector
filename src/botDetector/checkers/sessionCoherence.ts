@@ -3,16 +3,23 @@ import { BanReasonCode, IBotChecker } from "../types/checkersTypes.js";
 import { BotDetectorConfig } from "../types/configSchema.js";
 import { CheckerRegistry } from "./CheckerRegistry.js";
 import { sessionCache } from "../helpers/cache/sessionCache.js";
+import { getLogger } from "@utils/logger.js";
 
 export class SessionCoherenceChecker implements IBotChecker<BanReasonCode> {
     name = 'Session Coherence';
-    phase = 'cheap' as const;
+    phase = 'heavy' as const;
+    
+    private _logger?: ReturnType<typeof getLogger>;
+    private get logger() {
+        if (!this._logger) this._logger = getLogger().child({service: 'botDetector', branch: 'checker', type: 'SessionCoherenceChecker'});
+        return this._logger;
+    }
 
     isEnabled(config: BotDetectorConfig): boolean {
         return config.checkers.enableSessionCoherence.enable;
     }
 
-    run(ctx: ValidationContext, config: BotDetectorConfig) {
+    async run(ctx: ValidationContext, config: BotDetectorConfig) {
         const checkConfig = config.checkers.enableSessionCoherence;
         const reasons: BanReasonCode[] = [];
         let score = 0;
@@ -24,7 +31,7 @@ export class SessionCoherenceChecker implements IBotChecker<BanReasonCode> {
         const refererHeader = ctx.req.get('Referer');
         const secFetchSite = ctx.req.get('Sec-Fetch-Site');
         const currentHostname = ctx.req.hostname;
-        const cached = sessionCache.get(ctx.cookie);
+        const cached = await sessionCache.get(ctx.cookie);
 
         const missingSameOriginReferer = secFetchSite === 'same-origin' && !refererHeader;
         const missingSubsequentReferer = cached && !refererHeader;
@@ -53,7 +60,10 @@ export class SessionCoherenceChecker implements IBotChecker<BanReasonCode> {
             }
         }
 
-        sessionCache.set(ctx.cookie, { lastPath: currentPath });
+        sessionCache.set(ctx.cookie, { lastPath: currentPath }).catch((err) => {
+            this.logger.error({err}, 'Failed to save session in storage.')
+        });
+        
         return { score, reasons };
     }
 }

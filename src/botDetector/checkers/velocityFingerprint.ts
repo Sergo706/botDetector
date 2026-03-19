@@ -3,6 +3,7 @@ import { BanReasonCode, IBotChecker } from "../types/checkersTypes.js";
 import { BotDetectorConfig } from "../types/configSchema.js";
 import { CheckerRegistry } from "./CheckerRegistry.js";
 import { timingCache } from "../helpers/cache/timingCache.js";
+import { getLogger } from "@utils/logger.js";
 
 const MAX_SAMPLES = 10;
 const MIN_SAMPLES_TO_EVALUATE = 5;
@@ -10,12 +11,17 @@ const MIN_SAMPLES_TO_EVALUATE = 5;
 export class VelocityFingerprintChecker implements IBotChecker<BanReasonCode> {
     name = 'Velocity Fingerprinting';
     phase = 'heavy' as const;
+    private _logger?: ReturnType<typeof getLogger>;
+    private get logger() {
+        if (!this._logger) this._logger = getLogger().child({service: 'botDetector', branch: 'checker', type: 'VelocityFingerprintChecker'});
+        return this._logger;
+    }
 
     isEnabled(config: BotDetectorConfig): boolean {
         return config.checkers.enableVelocityFingerprint.enable;
     }
 
-    run(ctx: ValidationContext, config: BotDetectorConfig) {
+   async run(ctx: ValidationContext, config: BotDetectorConfig) {
         const checkConfig = config.checkers.enableVelocityFingerprint;
         const reasons: BanReasonCode[] = [];
         let score = 0;
@@ -23,9 +29,12 @@ export class VelocityFingerprintChecker implements IBotChecker<BanReasonCode> {
         if (checkConfig.enable === false || !ctx.cookie) return { score, reasons };
 
         const now = Date.now();
-        const existing = timingCache.get(ctx.cookie) ?? [];
+        const existing = await timingCache.get(ctx.cookie) ?? [];
         const timestamps = [...existing, now].slice(-MAX_SAMPLES);
-        timingCache.set(ctx.cookie, timestamps);
+
+        timingCache.set(ctx.cookie, timestamps).catch((err) => {
+            this.logger.error({err}, 'Failed to save timingCache in storage')
+        });
 
         if (timestamps.length < MIN_SAMPLES_TO_EVALUATE) return { score, reasons };
 
@@ -48,5 +57,4 @@ export class VelocityFingerprintChecker implements IBotChecker<BanReasonCode> {
         return { score, reasons };
     }
 }
-
 CheckerRegistry.register(new VelocityFingerprintChecker());

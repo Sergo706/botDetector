@@ -1,33 +1,31 @@
 import { getPool } from "../config/dbConnection.js";
 import type { RowDataPacket } from 'mysql2';
-import { getReputationCache } from "./cache/reputationCache.js";
+import { reputationCache } from "./cache/reputationCache.js";
 import { getLogger } from "../utils/logger.js";
 import { getBatchQueue, getConfiguration } from "../config/config.js";
 
 interface VisitorRow extends RowDataPacket {
   is_bot: number;
-  suspicious_activity_score: number;  
+  suspicious_activity_score: number;
 }
 
 export async function userReputation(cookie: string): Promise<void> {
   const log = getLogger().child({service: `BOT DETECTOR`, branch: `reputation`})
   const pool = getPool()
-  const reputationCache = getReputationCache();
-  
   const {banScore, restoredReputationPoints, setNewComputedScore} = getConfiguration()
 
   const botScore = banScore
 
-  const cached = reputationCache.get(cookie);
+  const cached = await reputationCache.get(cookie);
     if (cached) {
-      log.info(`CACHE HIT cookie=${cookie} score=${cached.score} →  (botScore=${botScore})`)      
+      log.info(`CACHE HIT cookie=${cookie} score=${cached.score} →  (botScore=${botScore})`)
       if(cached.isBot) {
         return;
       }
-   
+
     if (!cached.isBot && cached.score > 0 && cached.score < botScore) {
-      log.info(`updating cache score cookie=${cookie} score=${cached.score} →  (botScore=${botScore})`)   
-      const newReputation = Math.max(0, cached.score - restoredReputationPoints); 
+      log.info(`updating cache score cookie=${cookie} score=${cached.score} →  (botScore=${botScore})`)
+      const newReputation = Math.max(0, cached.score - restoredReputationPoints);
 
       if (newReputation !== cached.score) {
         getBatchQueue().addQueue(cookie, '', 'score_update', { score: newReputation, cookie }, 'deferred');
@@ -35,17 +33,19 @@ export async function userReputation(cookie: string): Promise<void> {
         reputationCache.set(cookie, {
           isBot: cached.isBot,
           score: newReputation
+        }).catch((err) => {
+          log.error({ err }, 'Failed to save reputationCache in storage');
         });
       }
       log.info(`finished Updating Score from cache to DB cookie: ${cookie} NEW SCORE: ${newReputation}`)
     }
-    return; 
+    return;
   }
-    
 
-    try { 
+
+    try {
         const VisitorQuery: string = `
-        SELECT is_bot, 
+        SELECT is_bot,
         suspicious_activity_score
         FROM visitors
           WHERE canary_id = ?
@@ -65,13 +65,15 @@ export async function userReputation(cookie: string): Promise<void> {
 
         if (isBot) return;
 
-        if (!setNewComputedScore) { 
-        reputationCache.set(cookie, {
-            isBot:  isBot,
-            score: reputation
-        });
+        if (!setNewComputedScore) {
+            reputationCache.set(cookie, {
+                isBot:  isBot,
+                score: reputation
+            }).catch((err) => {
+              log.error({ err }, 'Failed to save reputationCache in storage');
+            });
         }
-        
+
         log.info({
           label: '[REP-GATE]',
           isBot: isBot,
@@ -89,10 +91,12 @@ export async function userReputation(cookie: string): Promise<void> {
           if (newReputation !== reputation) {
             getBatchQueue().addQueue(cookie, '', 'score_update', { score: newReputation, cookie }, 'deferred');
             log.info(`Update Score for cookie', ${cookie}, 'New Score:', ${newReputation}`)
-            
+
             reputationCache.set(cookie, {
               isBot: isBot,
               score: newReputation
+            }).catch((err) => {
+                log.error({ err }, 'Failed to save reputationCache in storage');
             });
           }
 

@@ -1,7 +1,7 @@
 import { it, describe, expect, beforeEach, afterEach } from 'vitest';
 import { getConfiguration } from '~~/src/botDetector/config/config.js';
 import { userReputation } from '~~/src/botDetector/helpers/reputation.js';
-import { getReputationCache } from '~~/src/botDetector/helpers/cache/reputationCache.js';
+import { reputationCache } from '~~/src/botDetector/helpers/cache/reputationCache.js';
 import { deleteVisitor, getVisitor, seedVisitorWithReputation } from '../test-utils/database-utils.js';
 
 const TEST_COOKIE_CLEAN = 'rep-test-clean-' + Date.now();
@@ -9,8 +9,8 @@ const TEST_COOKIE_SUSPECT = 'rep-test-suspect-' + Date.now();
 const TEST_COOKIE_BOT = 'rep-test-bot-' + Date.now();
 
 
-beforeEach(() => {
-    getReputationCache().clear();
+beforeEach(async () => {
+   await reputationCache.clear();
 });
 
 afterEach(async () => {
@@ -19,7 +19,7 @@ afterEach(async () => {
         deleteVisitor(TEST_COOKIE_SUSPECT),
         deleteVisitor(TEST_COOKIE_BOT),
     ]);
-    getReputationCache().clear();
+   await reputationCache.clear();
 });
 
 describe('userReputation', () => {
@@ -34,7 +34,7 @@ describe('userReputation', () => {
         it('returns early without modifying cache when visitor is already banned', async () => {
             await seedVisitorWithReputation(TEST_COOKIE_BOT, 1, 50);
             await userReputation(TEST_COOKIE_BOT);
-            expect(getReputationCache().get(TEST_COOKIE_BOT)).toBeUndefined();
+            expect(await reputationCache.get(TEST_COOKIE_BOT)).toBeNull();
         });
     });
 
@@ -60,7 +60,7 @@ describe('userReputation', () => {
             await seedVisitorWithReputation(TEST_COOKIE_SUSPECT, 0, startScore);
             await userReputation(TEST_COOKIE_SUSPECT);
 
-            const cached = getReputationCache().get(TEST_COOKIE_SUSPECT);
+            const cached = await reputationCache.get(TEST_COOKIE_SUSPECT);
             expect(cached).toBeDefined()
             if (cached) {
                 const expectedScore = Math.max(0, startScore - config.restoredReputationPoints);
@@ -83,7 +83,7 @@ describe('userReputation', () => {
             await seedVisitorWithReputation(TEST_COOKIE_SUSPECT, 0, 3);
             await userReputation(TEST_COOKIE_SUSPECT);
 
-            const cached = getReputationCache().get(TEST_COOKIE_SUSPECT);
+            const cached = await reputationCache.get(TEST_COOKIE_SUSPECT);
             expect(cached).toBeDefined()
             if (cached) {
                 expect(typeof cached.isBot).toBe('boolean');
@@ -97,9 +97,9 @@ describe('userReputation', () => {
             const config = getConfiguration();
             const cachedScore = 4;
 
-            getReputationCache().set(TEST_COOKIE_CLEAN, { isBot: false, score: cachedScore });
+            await reputationCache.set(TEST_COOKIE_CLEAN, { isBot: false, score: cachedScore });
             await userReputation(TEST_COOKIE_CLEAN);
-            const cached = getReputationCache().get(TEST_COOKIE_CLEAN);
+            const cached = await reputationCache.get(TEST_COOKIE_CLEAN);
             expect(cached).toBeDefined()
             if (cached) {
                 const expected = Math.max(0, cachedScore - config.restoredReputationPoints);
@@ -108,10 +108,10 @@ describe('userReputation', () => {
         });
 
         it('returns immediately for a cached confirmed bot without DB access', async () => {
-            getReputationCache().set(TEST_COOKIE_BOT, { isBot: true, score: 50 });
+            await reputationCache.set(TEST_COOKIE_BOT, { isBot: true, score: 50 });
             await expect(userReputation(TEST_COOKIE_BOT)).resolves.toBeUndefined();
 
-            const cached = getReputationCache().get(TEST_COOKIE_BOT);
+            const cached = await reputationCache.get(TEST_COOKIE_BOT);
             expect(cached?.isBot).toBe(true);
             expect(cached?.score).toBe(50);
         });

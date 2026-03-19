@@ -1,6 +1,6 @@
 import z from "zod";
 import type { Pool as PromisePool } from 'mysql2/promise'
-
+import type { CacheConfig } from "./storageTypes.js";
 
 let mainPool: PromisePool;
 const store = z.strictObject({
@@ -13,6 +13,17 @@ const store = z.strictObject({
   ),
 
 }).required().strict();
+
+const cache = z.custom<CacheConfig>(
+  (val: unknown): val is CacheConfig => {
+    if (typeof val !== 'object' || val === null) {
+      return false;
+    }
+    const obj = val as CacheConfig;
+    return typeof obj.driver === 'string';
+  },
+  { message: 'Storage must be an object with a valid "driver" string' }
+);
 
 export const configSchema = z.object({
     store,
@@ -89,6 +100,8 @@ export const configSchema = z.object({
             maxRetries: z.number().default(3),
         }).prefault({}),
 
+        storage: cache.optional(),
+        
         checkers: z.object({
             localeMapsCheck: z.discriminatedUnion('enable', [
                 z.object({

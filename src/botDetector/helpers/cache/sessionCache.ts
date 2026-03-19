@@ -1,12 +1,39 @@
-import { LRUCache } from 'lru-cache';
+import { getStorage } from '~~/src/botDetector/config/config.js';
 
 export interface SessionEntry {
   lastPath: string;
 }
 
-// 10-minute TTL — long enough to track a navigation session
-export const sessionCache = new LRUCache<string, SessionEntry>({
-  max: 10_000,
-  ttl: 1000 * 60 * 10,
-  updateAgeOnGet: true,
-});
+const SESSION_TTL_SECONDS = 600;
+const PREFIX = 'session:';
+
+export const sessionCache = {
+  async get(sessionId: string): Promise<SessionEntry | null> {
+    const key = `${PREFIX}${sessionId}`;
+    const storage = getStorage();
+    const data = await storage.getItem<SessionEntry>(key);
+
+    if (data) {
+      storage.setItem(key, data, { ttl: SESSION_TTL_SECONDS }).catch(err => {
+        console.warn(`Failed to update session TTL for ${key}`, err);
+      });
+    }
+
+    return data;
+  },
+
+  async set(sessionId: string, entry: SessionEntry): Promise<void> {
+    const key = `${PREFIX}${sessionId}`;
+    await getStorage().setItem(key, entry, { ttl: SESSION_TTL_SECONDS });
+  },
+
+  async delete(sessionId: string): Promise<void> {
+    const key = `${PREFIX}${sessionId}`;
+    await getStorage().removeItem(key);
+  },
+
+  async clear(): Promise<void> {
+    await getStorage().clear();
+  }
+
+};

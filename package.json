@@ -30,17 +30,17 @@
   "dependencies": {
     "@riavzon/shield-base": "^1.6.3",
     "@sergo/utils": "github:Sergo706/utils",
-    "cookie-parser": "^1.4.7",
-    "date-fns": "^4.1.0",
-    "express": "^5.1.0",
-    "lru-cache": "^11.1.0",
     "magic-regexp": "^0.11.0",
     "maxmind": "^5.0.5",
-    "mysql2": "^3.14.0",
     "pino": "^9.7.0",
-    "telegraf": "^4.16.3",
     "ua-parser-js": "^2.0.3",
+    "unstorage": "^1.17.4",
     "zod": "^4.1.11"
+  },
+  "peerDependencies": {
+    "cookie-parser": "^1.4.7",
+    "express": "^5.1.0",
+    "mysql2": "^3.14.0"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.8",

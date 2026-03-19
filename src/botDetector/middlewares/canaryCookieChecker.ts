@@ -3,14 +3,14 @@ import { makeCookie } from '../utils/cookieGenerator.js';
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import { randomBytes, randomUUID } from "crypto";
 import parseUA from '../helpers/UAparser.js';
-import { format } from 'date-fns';
 import { uaAndGeoBotDetector } from '../../botDetector.js';
-import { getVisitorCache } from '../helpers/cache/cannaryCache.js';
+import { visitorCache } from '../helpers/cache/cannaryCache.js';
 import { userReputation } from '../helpers/reputation.js';
 import { getLogger } from '../utils/logger.js';
 import { userValidation } from '../types/fingerPrint.js';
 import { getConfiguration, getBatchQueue } from '../config/config.js';
 import { isInWhiteList } from '../utils/whitelist.js';
+import { nowMysql } from '@utils/nowMysql.js';
 
 declare global {
   namespace Express {
@@ -41,14 +41,14 @@ export function validator<TCustom = Record<string, never>>(
      const whiteList = isInWhiteList(ip!); 
 
     if (canary) {
-      const cached = getVisitorCache().get(canary);
+      const cached = await visitorCache.get(canary);
       if (cached) {
         if (cached.banned && !whiteList) {
           res.sendStatus(403);
-          return; 
-        } 
+          return;
+        }
         req.newVisitorId = cached.visitor_id;
-        if (!checksTimeRateControl.checkEveryReqest){ 
+        if (!checksTimeRateControl.checkEveryReqest){
         return next();
       }
       }
@@ -75,8 +75,7 @@ export function validator<TCustom = Record<string, never>>(
   const parsedUA = parseUA(ua);
   const visitorId = randomUUID()
 
-    const now = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
-    const userValidation = {
+  const userValidation = {
       visitorId,
       cookie: canary,
       userAgent: ua,
@@ -84,8 +83,8 @@ export function validator<TCustom = Record<string, never>>(
       device_type: parsedUA.device,
       browser: parsedUA.browser,
       is_bot: false,
-      first_seen: now,        
-      last_seen: now,       
+      first_seen: nowMysql(),        
+      last_seen: nowMysql(),       
       request_count: 1,       
       deviceVendor: parsedUA.deviceVendor,
       deviceModel: parsedUA.deviceModel,
@@ -103,10 +102,10 @@ export function validator<TCustom = Record<string, never>>(
         log.info(`${ip} is in white list skipping botDetection checks.`);
         
       if (visitorId) {
-        getVisitorCache().set(canary, { 
+        visitorCache.set(canary, {
           banned: false,
-          visitor_id: visitorId 
-        });
+          visitor_id: visitorId
+        }).catch(err => log.error({ err }, 'Failed to save visitorCache in storage'));
       }
       req.botDetection = {
       success: true,
@@ -120,10 +119,10 @@ export function validator<TCustom = Record<string, never>>(
 
   const isBot = await uaAndGeoBotDetector(req, ip!, ua, geo, parsedUA, buildCustomContext);
   
-  getVisitorCache().set(canary, {
-    banned:  isBot,
+  visitorCache.set(canary, {
+    banned: isBot,
     visitor_id: visitorId!
-  });
+  }).catch(err => log.error({ err }, 'Failed to save visitorCache in storage'));
 
   if (isBot) {
     res.sendStatus(403);
