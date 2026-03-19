@@ -1,0 +1,102 @@
+import { userValidation } from "~~/src/main.js";
+import { getBatchQueue } from "~~/src/botDetector/config/config.js";
+import { uid } from "./test-utils.js";
+import { poolConnection } from "../config.js";
+
+const nowMysql = () => new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+export function makeVisitor(cookie: string, visitorId = uid(), overrides?: Partial<userValidation>): userValidation {
+    const defaults: userValidation = {
+        visitorId,
+        cookie,
+        ipAddress: '127.0.0.1',
+        userAgent: 'TestAgent/1.0',
+        country: 'united states',
+        region: 'ca',
+        regionName: 'california',
+        city: 'los angeles',
+        district: null,
+        lat: '34.05',
+        lon: '-118.24',
+        timezone: 'America/Los_Angeles',
+        currency: 'usd',
+        isp: 'test-isp',
+        org: 'AS15169',
+        as: 'AS15169',
+        device_type: 'desktop',
+        browser: 'Chrome',
+        proxy: false,
+        hosting: false,
+        is_bot: false,
+        first_seen: nowMysql(),
+        last_seen: nowMysql(),
+        request_count: 1,
+    };
+    return { ...defaults, ...overrides };
+}
+
+export async function seedVisitor(cookie: string, ip = '127.0.0.1', overrides?: Partial<userValidation>): Promise<void> {
+    await getBatchQueue().addQueue(cookie, ip, 'visitor_upsert', {
+        insert: makeVisitor(cookie, uid(), { ipAddress: ip, ...overrides }),
+    }, 'immediate');
+}
+
+export async function getVisitor(cookie: string) {
+    const [rows]: any = await poolConnection.execute(
+        `SELECT * FROM visitors WHERE canary_id = ? LIMIT 1`,
+        [cookie]
+    );
+    return rows[0] ?? null;
+}
+
+export async function getBanned(cookie: string) {
+    const [rows]: any = await poolConnection.execute(
+        `SELECT * FROM banned WHERE canary_id = ? LIMIT 1`,
+        [cookie]
+    );
+    return rows[0] ?? null;
+}
+
+export async function deleteVisitor(cookie: string): Promise<void> {
+    await poolConnection.execute(`DELETE FROM visitors WHERE canary_id = ?`, [cookie]);
+}
+
+export async function deleteBanned(id: string, deleteBy: 'cookie' | 'ip' = 'cookie'): Promise<void> {
+    if (deleteBy === 'ip') {
+        await poolConnection.execute(`DELETE FROM banned WHERE ip_address = ?`, [id]);
+        await poolConnection.execute(`DELETE FROM visitors WHERE ip_address = ?`, [id]);
+    } else {
+        await poolConnection.execute(`DELETE FROM banned WHERE canary_id = ?`, [id]);
+    }
+}
+
+export async function seedBannedRow(ip: string, country: string, ua: string, reason: string, score: number): Promise<void> {
+    const cookie = `ban-seed-${ip}`;
+    await poolConnection.execute(
+        `INSERT IGNORE INTO visitors (canary_id, ip_address) VALUES (?, ?)`,
+        [cookie, ip]
+    );
+    await poolConnection.execute(
+        `INSERT INTO banned (canary_id, ip_address, country, user_agent, reason, score)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE country = ?, user_agent = ?, reason = ?, score = ?`,
+        [cookie, ip, country, ua, reason, score, country, ua, reason, score]
+    );
+}
+
+export async function seedVisitorWithReputation(cookie: string, isBot: number, score: number, ip = '127.0.0.1'): Promise<void> {
+    const now = nowMysql();
+    await poolConnection.execute(
+        `INSERT INTO visitors
+             (canary_id, ip_address, is_bot, suspicious_activity_score,
+              browser, browserType, os, device_type, proxy, hosting, request_count, first_seen, last_seen)
+         VALUES (?, ?, ?, ?, 'Chrome', 'browser', 'Windows', 'desktop', 0, 0, 3, ?, ?)
+         ON DUPLICATE KEY UPDATE is_bot = ?, suspicious_activity_score = ?, first_seen = ?, last_seen = ?`,
+        [cookie, ip, isBot, score, now, now, isBot, score, now, now]
+    );
+}
+
+export async function fullCleanup(cookie: string): Promise<void> {
+    await deleteBanned(cookie);
+    await deleteVisitor(cookie);
+}
