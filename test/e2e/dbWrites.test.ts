@@ -153,7 +153,7 @@ describe('db writes, clean request, score_update', () => {
         await getBatchQueue().flush();
 
         const banned = await getBanned(cookie);
-        expect(banned).toBeNull();
+        expect(banned).toBeUndefined();
     });
 });
 

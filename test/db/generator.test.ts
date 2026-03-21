@@ -1,8 +1,8 @@
 import { it, describe, expect, beforeAll, afterAll } from 'vitest';
 import { runGeneration } from '~~/src/botDetector/db/generator.js';
 import { DataSources } from '~~/src/botDetector/helpers/mmdbDataReaders.js';
-import { getConfiguration } from '~~/src/botDetector/config/config.js';
-import { poolConnection } from '../config.js';
+import { getConfiguration, getDb } from '~~/src/botDetector/config/config.js';
+import { prep } from '~~/src/botDetector/db/dialectUtils.js';
 import { seedBannedRow, deleteBanned, seedVisitorWithReputation, deleteVisitor } from '../test-utils/database-utils.js';
 import { BANNED_ROWS, BANNED_IPS, HIGH_RISK_IPS, HIGH_RISK_SCORES } from '../test-utils/mmdb-seed.js';
 
@@ -139,9 +139,7 @@ describe('Generator deleteAfterBuild', () => {
         await runGeneration();
         (cfg.generator as any).deleteAfterBuild = false;
 
-        const [rows]: any = await poolConnection.execute(
-            `SELECT ip_address FROM banned WHERE ip_address = ?`, [deleteIp]
-        );
+        const rows = await prep(getDb(), `SELECT ip_address FROM banned WHERE ip_address = ?`).all(deleteIp) as any[];
         expect(rows).toHaveLength(0);
     });
 
@@ -155,9 +153,7 @@ describe('Generator deleteAfterBuild', () => {
         await runGeneration();
         (cfg.generator as any).deleteAfterBuild = false;
 
-        const [rows]: any = await poolConnection.execute(
-            `SELECT ip_address FROM visitors WHERE ip_address = ?`, [deleteIp]
-        );
+        const rows = await prep(getDb(), `SELECT ip_address FROM visitors WHERE ip_address = ?`).all(deleteIp) as any[];
         expect(rows).toHaveLength(0);
     });
 
@@ -169,9 +165,7 @@ describe('Generator deleteAfterBuild', () => {
         (cfg.generator as any).deleteAfterBuild = false;
         await runGeneration();
 
-        const [rows]: any = await poolConnection.execute(
-            `SELECT ip_address, score FROM banned WHERE ip_address = ?`, [keepIp]
-        );
+        const rows = await prep(getDb(), `SELECT ip_address, score FROM banned WHERE ip_address = ?`).all(keepIp) as any[];
         expect(rows).toHaveLength(1);
         expect(rows[0].ip_address).toBe(keepIp);
         expect(rows[0].score).toBe(40);
@@ -188,9 +182,7 @@ describe('Generator deleteAfterBuild', () => {
         (cfg.generator as any).deleteAfterBuild = false;
         await runGeneration();
 
-        const [rows]: any = await poolConnection.execute(
-            `SELECT ip_address, suspicious_activity_score FROM visitors WHERE ip_address = ?`, [keepIp]
-        );
+        const rows = await prep(getDb(), `SELECT ip_address, suspicious_activity_score FROM visitors WHERE ip_address = ?`).all(keepIp) as any[];
         expect(rows).toHaveLength(1);
         expect(rows[0].ip_address).toBe(keepIp);
         expect(rows[0].suspicious_activity_score).toBe(80);

@@ -30,15 +30,12 @@ describe('mmdbDataReaders, DataSources', () => {
         });
 
         it('returns a city record with expected fields when the IP is covered', () => {
-            // Try a few public IPs; this MMDB edition may not cover all of them.
-            // What matters: the DB is open, and any record it returns has the right shape.
             const ips = ['8.8.8.8', '1.1.1.1', '66.249.66.1', '93.184.216.34'];
             const record = ips.map(ip => getDataSources().cityDataBase(ip)).find(r => r !== null) ?? null;
             if (record !== null) {
                 expect(record.timezone).toBeDefined();
                 expect(typeof record.timezone).toBe('string');
             }
-            // If all returned null the "does not throw" test above already confirms the DB loaded.
         });
     });
 

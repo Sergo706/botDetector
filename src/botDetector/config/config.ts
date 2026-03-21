@@ -5,6 +5,8 @@ import { DataSources } from "../helpers/mmdbDataReaders.js";
 import { BatchQueue } from "../db/batchQueue.js";
 import { initStorage } from "./storageAdapter.js";
 import type { Storage } from 'unstorage';
+import { initDb } from "./dbAdapter.js";
+import { type Database } from "db0";
 
 
 const {
@@ -15,7 +17,7 @@ const {
 let globalDataSources: DataSources | undefined;
 let globalBatchQueue: BatchQueue | undefined;
 let globalStorage: Storage | undefined;
-
+let globalDb: Database | undefined;
 
 /**
  * @description
@@ -45,10 +47,17 @@ export async function configuration(config: BotDetectorConfigInput): Promise<voi
     }
   };
 
+  const initDbTask = async () => {
+    if (!globalDb) {
+        globalDb = await initDb(config.store.main); 
+    }
+};
+
   await defineConfiguration(config, [
     initDataSourcesTask,
     initBatchQueueTask,
     initStorageTask,
+    initDbTask
   ]);
 }
 
@@ -69,6 +78,14 @@ export function getStorage(): Storage {
     throw new Error('Storage not ready. Call configuration() first.');
   }
   return globalStorage;
+}
+
+export function getDb(): Database {
+    if (!globalDb) {
+      console.trace("Premature getDb() call");
+      throw new Error('DB not ready. Call configuration() first.');
+    }
+    return globalDb;
 }
 
 export function getDataSources(): DataSources {

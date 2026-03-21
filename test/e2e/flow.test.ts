@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { uaAndGeoBotDetector } from '~~/src/botDetector.js';
 import { CheckerRegistry } from '~~/src/botDetector/checkers/CheckerRegistry.js';
-import { getConfiguration, getBatchQueue } from '~~/src/botDetector/config/config.js';
+import { getConfiguration, getBatchQueue, getDb } from '~~/src/botDetector/config/config.js';
 import { reputationCache } from '~~/src/botDetector/helpers/cache/reputationCache.js';
+import { prep } from '~~/src/botDetector/db/dialectUtils.js';
 import { makeReq, cleanUSGeo, bannedCountryGeo, cleanBrowserUA } from '../test-utils/test-utils.js';
 import { seedVisitor, getVisitor, deleteVisitor } from '../test-utils/database-utils.js';
 import type { IBotChecker } from '~~/src/botDetector/types/checkersTypes.js';
 import type { ValidationContext } from '~~/src/botDetector/types/botDetectorTypes.js';
-import { poolConnection } from '../config.js';
 
 
 const CLEAN_IP = '203.0.113.100';
@@ -55,7 +55,7 @@ describe('legitimate request', () => {
         const req = makeReq({ cookie });
         const ua  = req.get('user-agent') || '';
 
-        const first  = await uaAndGeoBotDetector(req, CLEAN_IP, ua, cleanUSGeo, cleanBrowserUA);
+        const first = await uaAndGeoBotDetector(req, CLEAN_IP, ua, cleanUSGeo, cleanBrowserUA);
         const second = await uaAndGeoBotDetector(req, CLEAN_IP, ua, cleanUSGeo, cleanBrowserUA);
 
         expect(first).toBe(false);
@@ -171,9 +171,7 @@ describe('reputation cache, score_update deduplication', () => {
             const score1 = Number(row1.suspicious_activity_score);
 
             
-            await poolConnection.execute(
-                `UPDATE visitors SET suspicious_activity_score = 0 WHERE canary_id = ?`, [cookie],
-            );
+            await prep(getDb(), `UPDATE visitors SET suspicious_activity_score = 0 WHERE canary_id = ?`).run(cookie);
 
             await uaAndGeoBotDetector(req, CLEAN_IP, ua, cleanUSGeo, cleanBrowserUA);
             await getBatchQueue().flush();

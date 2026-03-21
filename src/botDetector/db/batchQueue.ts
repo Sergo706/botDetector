@@ -10,14 +10,14 @@ import { getLogger } from "@utils/logger.js";
 export class BatchQueue {
     private jobs: Map<string, BatchJob> = new Map();
     private timer: NodeJS.Timeout | null = null;
-    private isFlushing: boolean = false;
-    
-    private get config() { 
-        return getConfiguration().batchQueue; 
+    private flushPromise: Promise<void> | null = null;
+
+    private get config() {
+        return getConfiguration().batchQueue;
     }
 
-    private get log() { 
-        return getLogger().child({service: 'BOT DETECTOR', branch: 'BatchQueue'}); 
+    private get log() {
+        return getLogger().child({service: 'BOT DETECTOR', branch: 'BatchQueue'});
     }
 
     public async addQueue<T extends BatchQueueOps>(
@@ -39,19 +39,31 @@ export class BatchQueue {
 
 
     public async flush(retryCount = 0): Promise<void> {
-        if (this.isFlushing) return;
+        if (this.flushPromise) {
+            await this.flushPromise;
+            if (this.jobs.size > 0) return this.flush(retryCount);
+            return;
+        }
         if (this.timer) {
             clearTimeout(this.timer);
             this.timer = null;
         }
         if (this.jobs.size === 0) return;
 
-        this.isFlushing = true;
         const currentBatch = Array.from(this.jobs.values());
         this.jobs.clear();
 
+        this.flushPromise = this.executeBatch(currentBatch, retryCount);
         try {
-            await Promise.all(currentBatch.map(job => {
+            await this.flushPromise;
+        } finally {
+            this.flushPromise = null;
+        }
+    }
+
+    private async executeBatch(batch: BatchJob[], retryCount: number): Promise<void> {
+        try {
+            await Promise.all(batch.map(job => {
                 switch (job.type) {
                     case 'visitor_upsert':
                         return updateVisitor((job.params as OpParams['visitor_upsert']).insert);
@@ -73,14 +85,12 @@ export class BatchQueue {
             this.log.error({err}, `Batch flush failed (Attempt ${retryCount + 1})`);
 
             if (retryCount < this.config.maxRetries) {
-                this.isFlushing = false;
                 await new Promise(res => setTimeout(res, 1000));
-                currentBatch.forEach(j => this.jobs.set(j.id, j));
+                batch.forEach(j => this.jobs.set(j.id, j));
+                this.flushPromise = null;
                 return this.flush(retryCount + 1);
             }
             this.log.error("Max retries reached. Discarding batch.");
-        } finally {
-            this.isFlushing = false;
         }
     }
 

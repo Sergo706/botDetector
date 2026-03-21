@@ -1,17 +1,22 @@
 import z from "zod";
-import type { Pool as PromisePool } from 'mysql2/promise'
 import type { CacheConfig } from "./storageTypes.js";
+import { DbConfig } from "./dbTypes.js";
 
-let mainPool: PromisePool;
-const store = z.strictObject({
- main: z.custom<PromisePool>(
-    (val): val is typeof mainPool =>
-      typeof val === 'object' &&
-      val !== null &&
-      typeof (val as PromisePool).getConnection === 'function',
-    { message: 'Expected a mysql2/promise Pool (must have getConnection())' }
-  ),
 
+
+const dbConfigStorage = z.custom<DbConfig>(
+  (val: unknown): val is DbConfig => {
+    if (typeof val !== 'object' || val === null) {
+      return false;
+    }
+    const obj = val as DbConfig;
+    return typeof obj.driver === 'string';
+  },
+  { message: 'Database config must be an object with a valid "driver" string' }
+);
+
+const store = z.object({
+  main: dbConfigStorage,
 }).required().strict();
 
 const cache = z.custom<CacheConfig>(

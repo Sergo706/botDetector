@@ -1,17 +1,16 @@
-import { getPool } from "../config/dbConnection.js";
-import type { RowDataPacket } from 'mysql2';
 import { reputationCache } from "./cache/reputationCache.js";
 import { getLogger } from "../utils/logger.js";
-import { getBatchQueue, getConfiguration } from "../config/config.js";
+import { getBatchQueue, getConfiguration, getDb } from "../config/config.js";
+import { prep } from "../db/dialectUtils.js";
 
-interface VisitorRow extends RowDataPacket {
+interface VisitorRow {
   is_bot: number;
   suspicious_activity_score: number;
 }
 
 export async function userReputation(cookie: string): Promise<void> {
   const log = getLogger().child({service: `BOT DETECTOR`, branch: `reputation`})
-  const pool = getPool()
+  const db = getDb()
   const {banScore, restoredReputationPoints, setNewComputedScore} = getConfiguration()
 
   const botScore = banScore
@@ -51,8 +50,7 @@ export async function userReputation(cookie: string): Promise<void> {
           WHERE canary_id = ?
           LIMIT 1`
 
-        const [rows] = await pool.execute<VisitorRow[]>(VisitorQuery,[cookie])
-        const visitor = rows[0];
+        const visitor = await prep(db, VisitorQuery).get(cookie) as VisitorRow | undefined
 
         if (!visitor || visitor === undefined)  {
           log.warn(`no visitor record for canary_id=${cookie}`)

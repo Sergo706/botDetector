@@ -1,10 +1,10 @@
 import { compiler } from '@riavzon/shield-base';
-import { getPool } from '../config/dbConnection.js';
-import { getConfiguration } from '../config/config.js';
+import { getDb, getConfiguration } from '../config/config.js';
 import { getLogger } from '../utils/logger.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BannedRecord, BannedRow, HighRiskRecord, HighRiskRow } from '../types/generator.js';
+import { prep, placeholders } from './dialectUtils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -13,12 +13,13 @@ const MMDB_DIR = path.resolve(__dirname, 'mmdb');
 
 async function buildBannedMmdb(generateTypes: boolean, mmdbctlPath: string): Promise<void> {
     const log = getLogger().child({ service: 'BOT DETECTOR', branch: 'generator', db: 'banned' });
+    const db = getDb();
 
-    const [rows] = await getPool().execute<BannedRow[]>(
+    const rows = await db.prepare(
         `SELECT ip_address, country, user_agent, reason, score
          FROM banned
          WHERE ip_address IS NOT NULL`
-    );
+    ).all() as BannedRow[];
 
     if (rows.length === 0) {
         log.info('No banned IPs — skipping banned.mmdb');
@@ -39,10 +40,8 @@ async function buildBannedMmdb(generateTypes: boolean, mmdbctlPath: string): Pro
 
     if (getConfiguration().generator.deleteAfterBuild) {
         const compiled = rows.map(r => r.ip_address);
-        await getPool().execute(
-            `DELETE FROM banned WHERE ip_address IN (${compiled.map(() => '?').join(',')})`,
-            compiled
-        );
+        const ph = placeholders(db, compiled.length);
+        await prep(db, `DELETE FROM banned WHERE ip_address IN (${ph})`).run(...compiled);
         log.info(`Deleted ${compiled.length} rows from banned after build`);
     }
 }
@@ -50,7 +49,9 @@ async function buildBannedMmdb(generateTypes: boolean, mmdbctlPath: string): Pro
 
 async function buildHighRiskMmdb(scoreThreshold: number, generateTypes: boolean, mmdbctlPath: string): Promise<void> {
     const log = getLogger().child({ service: 'BOT DETECTOR', branch: 'generator', db: 'highRisk' });
-    const [rows] = await getPool().execute<HighRiskRow[]>(
+    const db = getDb();
+
+    const rows = await prep(db,
         `SELECT
            ip_address, visitor_id, suspicious_activity_score,
            country, region, region_name, city, lat, lon, timezone,
@@ -58,9 +59,8 @@ async function buildHighRiskMmdb(scoreThreshold: number, generateTypes: boolean,
            device_type, deviceVendor, deviceModel,
            proxy, hosting, request_count, first_seen, last_seen
          FROM visitors
-         WHERE suspicious_activity_score >= ? AND ip_address IS NOT NULL`,
-        [scoreThreshold]
-    );
+         WHERE suspicious_activity_score >= ? AND ip_address IS NOT NULL`
+    ).all(scoreThreshold) as HighRiskRow[];
 
     if (rows.length === 0) {
         log.info(`No high-risk visitors (score >= ${scoreThreshold}) — skipping highRisk.mmdb`);
@@ -100,10 +100,11 @@ async function buildHighRiskMmdb(scoreThreshold: number, generateTypes: boolean,
 
     if (getConfiguration().generator.deleteAfterBuild) {
         const compiled = rows.map(r => r.ip_address);
-        await getPool().execute(
-            `DELETE FROM visitors WHERE ip_address IN (${compiled.map(() => '?').join(',')}) AND suspicious_activity_score >= ?`,
-            [...compiled, scoreThreshold]
-        );
+        const ph = placeholders(db, compiled.length);
+        const scorePh = placeholders(db, 1, compiled.length);
+        await prep(db,
+            `DELETE FROM visitors WHERE ip_address IN (${ph}) AND suspicious_activity_score >= ${scorePh}`
+        ).run(...compiled, scoreThreshold);
         log.info(`Deleted ${compiled.length} rows from visitors after build`);
     }
 }

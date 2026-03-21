@@ -132,3 +132,34 @@ export const createMockContext = (overrides: Partial<ValidationContext> = {}): V
 };
 
 export const uid = () => crypto.randomUUID();
+
+export const CHROME_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
+
+export const BROWSER_HEADERS: Record<string, string> = {
+    'User-Agent': CHROME_UA,
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Upgrade-Insecure-Requests': '1',
+    'X-Client-Id': 'browser-client-v1',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Dest': 'document',
+    'Sec-Fetch-Site': 'none',
+    'X-Client-Cipher': 'TLS_AES_256_GCM_SHA384',
+    'X-Client-Tls-Version': 'TLS1.3',
+    'Sec-Ch-Ua': '"Chromium";v="124", "Google Chrome";v="124"',
+    'Sec-Ch-Ua-Mobile': '?0',
+    'Sec-Ch-Ua-Platform': '"Windows"',
+};
+
+
+export function extractCanary(res: { headers: Record<string, any> }): string {
+    const raw = res.headers['set-cookie'];
+    if (!raw) return '';
+    const entries = Array.isArray(raw) ? raw : [raw];
+    for (const entry of entries) {
+        const m = entry.match(/canary_id=([^;]+)/);
+        if (m) return m[1];
+    }
+    return '';
+}

@@ -28,7 +28,8 @@ export default defineConfig({
       enabled: true,
       reporter: ['html'],
       cleanOnRerun: true,
-      include: ['src/**/*.ts'],
+      exclude: ['src/types/*.ts'],
+      include: ['src/**/*.ts', 'src/types/configSchema.ts'],
     },
     watch: false,
     projects: [

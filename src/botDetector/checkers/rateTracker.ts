@@ -1,13 +1,13 @@
-import { getPool } from '../config/dbConnection.js';
-import { RowDataPacket } from 'mysql2';
+import { prep } from '../db/dialectUtils.js';
 import { rateCache } from '../helpers/cache/rateLimitarCache.js';
 import { IBotChecker, BanReasonCode } from "../types/checkersTypes.js";
 import { ValidationContext } from "../types/botDetectorTypes.js";
 import { BotDetectorConfig } from "../types/configSchema.js";
 import { CheckerRegistry } from "./CheckerRegistry.js";
 import { getLogger } from "@utils/logger.js";
+import { getDb } from '../config/config.js';
 
-interface VisitorRow extends RowDataPacket {
+interface VisitorRow {
   last_seen: Date;
   request_count: number;
 }
@@ -37,7 +37,7 @@ export class BehavioralDbChecker implements IBotChecker<BanReasonCode> {
     const BEHAVIORAL_WINDOW = checkConfig.behavioral_window;
     const BEHAVIORAL_PENALTY = checkConfig.penalties;
 
-    const pool = getPool();
+    const db = getDb();
     const cached = await rateCache.get(cookie);
 
     if (cached) {
@@ -51,14 +51,13 @@ export class BehavioralDbChecker implements IBotChecker<BanReasonCode> {
     }
 
     try {
-      const [rows] = await pool.execute<VisitorRow[]>(
+      const sql = 
         `SELECT last_seen, request_count
          FROM visitors
          WHERE canary_id = ?
-         LIMIT 1;`,
-        [cookie]
-      );
-      const visitor = rows[0];
+         LIMIT 1;`;
+
+      const visitor = await prep(db, sql).get(cookie) as VisitorRow | undefined
 
       if (!visitor) return { score, reasons };
 

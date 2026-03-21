@@ -17,7 +17,7 @@ export class HeadersBase {
         if (!req.get('Upgrade-Insecure-Requests')) score += this.config.weightPerMustHeader;
         if (!req.get('x-client-id')) score += this.config.weightPerMustHeader;
         if (req.httpVersion === '1.1' || req.get('Connection')) {
-            if(!req.get('Connection') && req.get('Connection') !== 'keep-alive') score += this.config.connectionHeaderIsClose;
+            if(!req.get('Connection') || req.get('Connection') !== 'keep-alive') score += this.config.connectionHeaderIsClose;
         }
         if (!req.get('sec-fetch-mode') || 
             !req.get('sec-fetch-dest') ||

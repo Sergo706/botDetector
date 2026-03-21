@@ -1,8 +1,8 @@
 import { it, describe, expect, beforeEach, afterEach } from 'vitest';
-import { getConfiguration } from '~~/src/botDetector/config/config.js';
+import { getConfiguration, getDb } from '~~/src/botDetector/config/config.js';
 import { BehavioralDbChecker } from '@checkers/rateTracker.js';
 import { rateCache } from '~~/src/botDetector/helpers/cache/rateLimitarCache.js';
-import { poolConnection } from '../config.js';
+import { prep } from '~~/src/botDetector/db/dialectUtils.js';
 import { createMockContext } from '../test-utils/test-utils.js';
 import { deleteVisitor } from '../test-utils/database-utils.js';
 
@@ -12,13 +12,12 @@ const TEST_COOKIE_FAST = 'test-rate-fast-' + Date.now();
 const TEST_COOKIE_SLOW = 'test-rate-slow-' + Date.now();
 
 async function insertVisitor(cookie: string, requestCount: number, lastSeenMsAgo: number) {
-    const lastSeen = new Date(Date.now() - lastSeenMsAgo);
-    await poolConnection.execute(
+    const lastSeen = new Date(Date.now() - lastSeenMsAgo).toISOString().slice(0, 19).replace('T', ' ');
+    await prep(getDb(),
         `INSERT INTO visitors (canary_id, ip_address, request_count, last_seen)
          VALUES (?, '127.0.0.9', ?, ?)
-         ON DUPLICATE KEY UPDATE request_count = ?, last_seen = ?`,
-        [cookie, requestCount, lastSeen, requestCount, lastSeen]
-    );
+         ON DUPLICATE KEY UPDATE request_count = ?, last_seen = ?`
+    ).run(cookie, requestCount, lastSeen, requestCount, lastSeen);
 }
 
 

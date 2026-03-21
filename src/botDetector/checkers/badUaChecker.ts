@@ -1,9 +1,8 @@
-import { getPool } from '../config/dbConnection.js';
-import { RowDataPacket } from 'mysql2';
 import { BanReasonCode, IBotChecker } from '../types/checkersTypes.js';
 import { BotDetectorConfig } from '../types/configSchema.js';
 import { ValidationContext } from '../types/botDetectorTypes.js';
 import { CheckerRegistry } from './CheckerRegistry.js';
+import { getDb } from '../config/config.js';
 
 
 export class BadUaChecker implements IBotChecker<BanReasonCode> {
@@ -13,12 +12,15 @@ export class BadUaChecker implements IBotChecker<BanReasonCode> {
   private patterns: { rx: RegExp; severity: string }[] = [];
 
   public async loadUaPatterns(): Promise<void> {
-      const pool = getPool()
-      const [rows] = await pool.query<RowDataPacket[]>(
+      const db = getDb();
+
+      const sql = 
         `SELECT http_user_agent, metadata_severity
           FROM user_agent_metadata
-          WHERE metadata_severity IN ('low','medium','high','critical');`
-      );
+          WHERE metadata_severity IN ('low','medium','high','critical');`;
+
+      const rows = await db.prepare(sql).all() as { http_user_agent: string; metadata_severity: string }[];
+      
       console.log('Called loadUaPatterns')
       this.patterns = (rows).map(r => {
         const escaped = r.http_user_agent

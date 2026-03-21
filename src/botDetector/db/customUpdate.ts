@@ -1,6 +1,6 @@
-import { getPool } from "../config/dbConnection.js";
 import { getLogger } from "../utils/logger.js";
-import { ResultSetHeader } from 'mysql2';
+import { getDb } from "../config/config.js";
+import { prep } from "./dialectUtils.js";
 
 export interface VisitorFingerPrint {
     userAgent: string;
@@ -34,7 +34,7 @@ export async function updateVisitors(
     cookie: string,
     visitor_id: string,
 ): Promise<{ success: boolean; reason?: string }> {
-    const pool = getPool();
+    const db = getDb();
     const log = getLogger().child({ service: 'BOT DETECTOR', branch: 'customUpdate' });
 
     const params = [
@@ -64,7 +64,7 @@ export async function updateVisitors(
     ].map(v => v === undefined ? null : v);
 
     try {
-        const [result] = await pool.execute<ResultSetHeader>(`
+        const result = await prep(db, `
             UPDATE visitors
             SET
                 user_agent = ?,
@@ -92,9 +92,9 @@ export async function updateVisitors(
                 os = ?
             WHERE canary_id  = ?
               AND visitor_id = ?
-        `, [...params, cookie, visitor_id]);
+        `).run(...params, cookie, visitor_id);
 
-        if (result.affectedRows !== 1) {
+        if (!result.success) {
             log.warn({ cookie, visitor_id }, `updateVisitors: no rows affected`);
             return { success: false, reason: `No visitor found for canary_id=${cookie} visitor_id=${visitor_id}` };
         }
