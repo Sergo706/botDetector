@@ -8,7 +8,7 @@ const UFW = '/usr/sbin/ufw';
 
 export function banIp(ip: string, info: BannedInfo): Promise<void> | void { 
   const log = getLogger().child({service: 'BOT DETECTOR', branch: `banIp`, ipAddress: ip, details: info});
-  const {punishmentType} = getConfiguration()
+  const {punishmentType} = getConfiguration();
 
   if (!punishmentType.enableFireWallBan) {
     log.info(`Firewall punishment ban is disabled, skipping`);
@@ -26,23 +26,23 @@ export function banIp(ip: string, info: BannedInfo): Promise<void> | void {
     let stderr = '';
     const timer = setTimeout(() => {
       child.kill('SIGKILL');
-      log.warn(`ufw hang timeout on ${ip}`)
+      log.warn(`ufw hang timeout on ${ip}`);
       reject(new Error(`ufw hang timeout on ${ip}`));
     }, 5_000);
 
-    child.stderr.on('data', d => (stderr += d.toString()));
+    child.stderr.on('data', (d: Buffer | string) => (stderr += String(d)));
     child.on('error', err => {
       clearTimeout(timer);
-      log.fatal({err},`- CRITICAL - UFW spawn failed`)
+      log.fatal({err},`- CRITICAL - UFW spawn failed`);
       reject(err);
     });
     child.on('close', code => {
       clearTimeout(timer);
       if (code !== 0) {
-        log.fatal({code},`- CRITICAL - UFW ban failed`)
-        return reject(new Error(`ufw exited ${code}`));
+        log.fatal({code},`- CRITICAL - UFW ban failed`);
+        reject(new Error(`ufw exited ${String(code)}`)); return;
       }
-      log.info(`Banning Detected Bot/Malicious User. IP ${ip} banned (score ${info.score})\nReasons:\n- ${info.reasons.join('\n- ')}`)
+      log.info(`Banning Detected Bot/Malicious User. IP ${ip} banned (score ${String(info.score)})\nReasons:\n- ${info.reasons.join('\n- ')}`);
       resolve();
     });
   });

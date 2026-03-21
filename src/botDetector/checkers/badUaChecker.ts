@@ -6,8 +6,8 @@ import { getDb } from '../config/config.js';
 
 
 export class BadUaChecker implements IBotChecker<BanReasonCode> {
-  name = 'Bad User Agent list'
-  phase = 'heavy' as const
+  name = 'Bad User Agent list';
+  phase = 'heavy' as const;
 
   private patterns: { rx: RegExp; severity: string }[] = [];
 
@@ -21,7 +21,7 @@ export class BadUaChecker implements IBotChecker<BanReasonCode> {
 
       const rows = await db.prepare(sql).all() as { http_user_agent: string; metadata_severity: string }[];
       
-      console.log('Called loadUaPatterns')
+      console.log('Called loadUaPatterns');
       this.patterns = (rows).map(r => {
         const escaped = r.http_user_agent
           .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -40,7 +40,7 @@ export class BadUaChecker implements IBotChecker<BanReasonCode> {
     const reasons: 'BAD_UA_DETECTED'[] = [];
     let score = 0;
 
-    if (knownBadUserAgents.enable === false) return { score, reasons };
+    if (!knownBadUserAgents.enable) return { score, reasons };
 
     if (this.patterns.length === 0) {
         await this.loadUaPatterns();

@@ -12,25 +12,25 @@ import { reputationCache } from './botDetector/helpers/cache/reputationCache.js'
 import { getLogger } from './botDetector/utils/logger.js';
 import { getConfiguration, getDataSources, getBatchQueue } from './botDetector/config/config.js';
 
-export async function uaAndGeoBotDetector<TCustom = Record<string, never>>(
+export async function uaAndGeoBotDetector(
   req: Request,
   ipAddress: string,
   userAgent: string,
   geo: GeoResponse,
   parsedUA: ParsedUAResult,
-  buildCustomContext?: (req: Request) => TCustom,
+  buildCustomContext?: (req: Request) => unknown,
 ): Promise<boolean> {
   
   const log = getLogger().child({service: 'BOT DETECTOR', branch: 'main'});
-  const {banScore, maxScore, setNewComputedScore} = getConfiguration()
+  const {banScore, maxScore, setNewComputedScore} = getConfiguration();
   const BAN_THRESHOLD = banScore;
   const MAX_SCORE = maxScore;
 
   const reasons: BanReasonCode[] = [];
-  let botScore: number = 0;
-  const cookie = req.cookies.canary_id 
-  const uaString = req.get("User-Agent") || "";
-  log.info(`BotDetection called for ${req.method} ${req.get('X-Forwarded-Host')}`);
+  let botScore = 0;
+  const cookie: string | undefined = req.cookies.canary_id as string | undefined; 
+  const uaString = req.get("User-Agent") ?? "";
+  log.info(`BotDetection called for ${req.method} ${req.get('X-Forwarded-Host') ?? ''}`);
 
   const threatsLevels = getDataSources().fireholLvl1DataBase(ipAddress) ? 1 :
                       getDataSources().fireholLvl2DataBase(ipAddress) ? 2 :
@@ -38,25 +38,25 @@ export async function uaAndGeoBotDetector<TCustom = Record<string, never>>(
                       getDataSources().fireholLvl4DataBase(ipAddress) ? 4 : null as 1 | 2 | 3 | 4 | null;
 
   const proxy = () => {
-    const isProxy = getDataSources().proxyDataBase(ipAddress)
+    const isProxy = getDataSources().proxyDataBase(ipAddress);
     if (isProxy) {
       return {
         proxy: true,
         proxyType: isProxy.comment
-      }
+      };
     }
-    return { proxy: false }
-  }
+    return { proxy: false };
+  };
   
   const {tor, asn, threatLevel, anon} = {
     tor: getDataSources().torDataBase(ipAddress),
     asn: getDataSources().asnDataBase(ipAddress),
     threatLevel: threatsLevels,
     anon: getDataSources().fireholAnonDataBase(ipAddress) ? true : false,
-  }
+  };
 
   const proxyResult = proxy();
-  const ctx: ValidationContext<TCustom> = {
+  const ctx: ValidationContext<unknown> = {
     req,
     ipAddress,
     parsedUA: parsedUA,
@@ -67,10 +67,10 @@ export async function uaAndGeoBotDetector<TCustom = Record<string, never>>(
       proxyType: proxyResult.proxyType
     },
     anon,
-    bgp: asn || {},
-    tor: tor || {},
+    bgp: asn ?? {},
+    tor: tor ?? {},
     threatLevel,
-    custom: buildCustomContext ? buildCustomContext(req) : ({} as TCustom),
+    custom: buildCustomContext ? buildCustomContext(req) : ({} as unknown),
   };
 
   const cheapChecks = CheckerRegistry.getEnabled('cheap', getConfiguration());
@@ -87,9 +87,9 @@ export async function uaAndGeoBotDetector<TCustom = Record<string, never>>(
       const bannedInfo = { score: BAN_THRESHOLD, reasons: Array.from(reasons) };
       await Promise.all([
         banIp(ipAddress, bannedInfo),
-        getBatchQueue().addQueue(cookie, ipAddress, 'update_banned_ip', { cookie, ipAddress, country: ctx.geoData.country ?? '', user_agent: uaString, info: bannedInfo }, 'immediate'),
+        getBatchQueue().addQueue(cookie ?? '', ipAddress, 'update_banned_ip', { cookie: cookie ?? '', ipAddress, country: ctx.geoData.country ?? '', user_agent: uaString, info: bannedInfo }, 'immediate'),
       ]);
-      getBatchQueue().addQueue(cookie, ipAddress, 'is_bot_update', { isBot: true, cookie }, 'deferred');
+      void getBatchQueue().addQueue(cookie ?? '', ipAddress, 'is_bot_update', { isBot: true, cookie: cookie ?? '' }, 'deferred');
       return true;
     }
     if (error instanceof GoodBotDetected) {
@@ -104,27 +104,27 @@ export async function uaAndGeoBotDetector<TCustom = Record<string, never>>(
     const bannedInfo = { score: botScore, reasons: Array.from(reasons) };
     await Promise.all([
       banIp(ipAddress, bannedInfo),
-      getBatchQueue().addQueue(cookie, ipAddress, 'update_banned_ip', { cookie, ipAddress, country: ctx.geoData.country ?? '', user_agent: uaString, info: bannedInfo }, 'immediate'),
+      getBatchQueue().addQueue(cookie ?? '', ipAddress, 'update_banned_ip', { cookie: cookie ?? '', ipAddress, country: ctx.geoData.country ?? '', user_agent: uaString, info: bannedInfo }, 'immediate'),
     ]);
-    getBatchQueue().addQueue(cookie, ipAddress, 'is_bot_update', { isBot: true, cookie }, 'deferred');
+    void getBatchQueue().addQueue(cookie ?? '', ipAddress, 'is_bot_update', { isBot: true, cookie: cookie ?? '' }, 'deferred');
     return true;
   }
 
 
   if (setNewComputedScore) {
-    getBatchQueue().addQueue(cookie, ipAddress, 'score_update', { score: botScore, cookie }, 'deferred');
+    void getBatchQueue().addQueue(cookie ?? '', ipAddress, 'score_update', { score: botScore, cookie: cookie ?? '' }, 'deferred');
 
-    reputationCache.set(cookie, { isBot: false, score: botScore }).catch((err) => {
-      log.error({err}, 'Failed to set reputationCache in storage')
+    reputationCache.set(cookie ?? '', { isBot: false, score: botScore }).catch((err: unknown) => {
+      log.error({err}, 'Failed to set reputationCache in storage');
     });
 
   } else {
-    const cached = await reputationCache.get(cookie);
+    const cached = await reputationCache.get(cookie ?? '');
     if (!cached || cached.score === 0) {
-      getBatchQueue().addQueue(cookie, ipAddress, 'score_update', { score: botScore, cookie }, 'deferred');
+      void getBatchQueue().addQueue(cookie ?? '', ipAddress, 'score_update', { score: botScore, cookie: cookie ?? '' }, 'deferred');
 
-      reputationCache.set(cookie, { isBot: false, score: botScore }).catch((err) => {
-         log.error({err}, 'Failed to set reputationCache in storage')
+      reputationCache.set(cookie ?? '', { isBot: false, score: botScore }).catch((err: unknown) => {
+         log.error({err}, 'Failed to set reputationCache in storage');
       });
       
     }

@@ -17,7 +17,7 @@ export class BehavioralDbChecker implements IBotChecker<BanReasonCode> {
   phase = 'heavy' as const;
   private _logger?: ReturnType<typeof getLogger>;
   private get logger() {
-    if (!this._logger) this._logger = getLogger().child({ service: 'botDetector', branch: 'checker', type: 'BehavioralDbChecker' });
+    this._logger ??= getLogger().child({ service: 'botDetector', branch: 'checker', type: 'BehavioralDbChecker' });
     return this._logger;
   }
 
@@ -26,12 +26,12 @@ export class BehavioralDbChecker implements IBotChecker<BanReasonCode> {
   }
 
   async run(ctx: ValidationContext, config: BotDetectorConfig) {
-    const cookie = ctx.cookie || '';
+    const cookie = ctx.cookie ?? '';
     let score = 0;
     const reasons: BanReasonCode[] = [];
 
     const checkConfig = config.checkers.enableBehaviorRateCheck;
-    if (checkConfig.enable === false) return { score, reasons };
+    if (!checkConfig.enable) return { score, reasons };
 
     const BEHAVIORAL_THRESHOLD = checkConfig.behavioral_threshold;
     const BEHAVIORAL_WINDOW = checkConfig.behavioral_window;
@@ -57,7 +57,7 @@ export class BehavioralDbChecker implements IBotChecker<BanReasonCode> {
          WHERE canary_id = ?
          LIMIT 1;`;
 
-      const visitor = await prep(db, sql).get(cookie) as VisitorRow | undefined
+      const visitor = await prep(db, sql).get(cookie) as VisitorRow | undefined;
 
       if (!visitor) return { score, reasons };
 
@@ -71,7 +71,7 @@ export class BehavioralDbChecker implements IBotChecker<BanReasonCode> {
         score,
         timestamp: Date.now(),
         request_count: visitor.request_count,
-      }).catch((err) => {
+      }).catch((err: unknown) => {
         this.logger.error({ err }, 'Failed to save rateCache in storage');
       });
 

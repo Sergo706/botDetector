@@ -8,9 +8,10 @@ import type cloudflareKVBindingDriver from "unstorage/drivers/cloudflare-kv-bind
 import type cloudflareKVHTTPDriver from "unstorage/drivers/cloudflare-kv-http";
 
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Opts<T extends (opts?: any) => any> = NonNullable<Parameters<T>[0]>;
 
-export type SupportedDrivers = {
+export interface SupportedDrivers {
     upstash: Opts<typeof upstashDriver>;
     'lru': Opts<typeof lruDriver>;
     redis: Opts<typeof redisDriver>;

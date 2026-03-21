@@ -1,9 +1,9 @@
-import { createRegExp, anyOf, maybe, exactly } from 'magic-regexp'
+import { createRegExp, anyOf, maybe, exactly } from 'magic-regexp';
 
-const startOrSlash = anyOf(exactly('').at.lineStart(), '/').grouped()
-const slashOrEnd = anyOf('/', exactly('').at.lineEnd())
+const startOrSlash = anyOf(exactly('').at.lineStart(), '/').grouped();
+const slashOrEnd = anyOf('/', exactly('').at.lineEnd());
 
-export const pathRules: Array<{ re: RegExp; weight: number }> = [
+export const pathRules: { re: RegExp; weight: number }[] = [
   { re: createRegExp(startOrSlash, '.git', slashOrEnd, ['i']), weight: 10 },
   { re: createRegExp(startOrSlash, '.git/config', slashOrEnd, ['i']), weight: 10 },         
   { re: createRegExp(startOrSlash, '.env', maybe(anyOf('.local', '.example')), slashOrEnd, ['i']), weight: 10 },

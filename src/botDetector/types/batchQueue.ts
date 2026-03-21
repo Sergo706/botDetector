@@ -23,7 +23,7 @@ interface BannedIpParams {
     info: BannedInfo;
 }
 
-export type OpParams = {
+export interface OpParams {
     visitor_upsert: VisitorUpsertParams;
     score_update: ScoreUpdateParams;
     is_bot_update: IsBotUpdateParams;

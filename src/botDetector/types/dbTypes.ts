@@ -4,9 +4,10 @@ import type cloudflareD1Connector from "db0/connectors/cloudflare-d1";
 import planetscale from "db0/connectors/planetscale";
 import type mysql from "mysql2/promise";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Opts<T extends (opts?: any) => any> = NonNullable<Parameters<T>[0]>;
 
-export type SupportedDbDrivers = {
+export interface SupportedDbDrivers {
  'mysql-pool':  mysql.PoolOptions;
   postgresql: Opts<typeof postgresql>;
   sqlite: Opts<typeof betterSqlite3Connector>;

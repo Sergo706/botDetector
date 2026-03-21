@@ -1,3 +1,5 @@
+import type { IResult } from 'ua-parser-js';
+
 export interface ParsedUAResult {
     device: string;
     deviceVendor?: string;
@@ -8,5 +10,5 @@ export interface ParsedUAResult {
     botAI: boolean;
     bot: boolean;
     os?: string;
-    allResults: any;
+    allResults: IResult;
   }

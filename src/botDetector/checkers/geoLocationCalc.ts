@@ -16,12 +16,12 @@ export class GeoLocationChecker implements IBotChecker<BanReasonCode> {
     return !blockedCountries.includes(country.trim().toLowerCase());
   }
 
-  async run(ctx: ValidationContext, config: BotDetectorConfig) {
+   run(ctx: ValidationContext, config: BotDetectorConfig) {
     const checkConfig = config.checkers.enableGeoChecks;
     const reasons: BanReasonCode[] = [];
     let score = 0;
 
-    if (checkConfig.enable === false) return { score, reasons };
+    if (!checkConfig.enable) return { score, reasons };
     const penalties = checkConfig.penalties;
     const banScore = config.banScore;
 

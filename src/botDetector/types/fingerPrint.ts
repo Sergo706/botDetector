@@ -1,4 +1,4 @@
-export type  userValidation = {    
+export interface  userValidation  {    
     cookie: string | null  
     visitorId: string 
     userAgent: string

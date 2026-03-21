@@ -1,18 +1,19 @@
 import { getData } from '../helpers/getIPInformation.js';
 import { makeCookie } from '../utils/cookieGenerator.js';
-import { Request, Response, NextFunction, RequestHandler } from "express";
+import type { Request, Response, NextFunction, RequestHandler } from "express";
 import { randomBytes, randomUUID } from "crypto";
 import parseUA from '../helpers/UAparser.js';
 import { uaAndGeoBotDetector } from '../../botDetector.js';
 import { visitorCache } from '../helpers/cache/cannaryCache.js';
 import { userReputation } from '../helpers/reputation.js';
 import { getLogger } from '../utils/logger.js';
-import { userValidation } from '../types/fingerPrint.js';
+import type { userValidation } from '../types/fingerPrint.js';
 import { getConfiguration, getBatchQueue } from '../config/config.js';
 import { isInWhiteList } from '../utils/whitelist.js';
 import { nowMysql } from '@utils/nowMysql.js';
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     export interface Request {
       newVisitorId?: string;
@@ -27,18 +28,18 @@ declare global {
 }
 
 
-export function validator<TCustom = Record<string, never>>(
-  buildCustomContext?: (req: Request) => TCustom,
+export function validator(
+  buildCustomContext?: (req: Request) => unknown,
 ): RequestHandler {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const {checksTimeRateControl} = getConfiguration()
-    let canary = req.cookies?.canary_id || null;
-    const ua = req.get("User-Agent") || "";
-    const ip = req.ip;
+    const {checksTimeRateControl} = getConfiguration();
+    let canary: string | undefined = req.cookies.canary_id as string | undefined;
+    const ua = req.get("User-Agent") ?? "";
+    const ip = req.ip ?? '';
      const log = getLogger().child({service: 'BOT DETECTOR', branch: `main`, canary: canary});
-     log.info(`Validator entered for ${req.method} ${req.get('X-Forwarded-Host')}`)
+     log.info(`Validator entered for ${req.method} ${req.get('X-Forwarded-Host') ?? ''}`);
      log.info({ cookies: req.cookies },`Incoming cookies`);
-     const whiteList = isInWhiteList(ip!); 
+     const whiteList = isInWhiteList(ip);
 
     if (canary) {
       const cached = await visitorCache.get(canary);
@@ -49,13 +50,13 @@ export function validator<TCustom = Record<string, never>>(
         }
         req.newVisitorId = cached.visitor_id;
         if (!checksTimeRateControl.checkEveryReqest){
-        return next();
+        next(); return;
       }
       }
     }
     
   if (!canary) {
-    log.info(`No canary_id cookie found. Generating a new one.`)
+    log.info(`No canary_id cookie found. Generating a new one.`);
     const cookieValue = randomBytes(32).toString('hex');
     canary = cookieValue;
     
@@ -65,15 +66,14 @@ export function validator<TCustom = Record<string, never>>(
       maxAge: 1000 * 60 * 60 * 24 * 90,
       secure: true,
       path: "/", 
-    })
-    req.cookies = req.cookies || {};
+    });
     req.cookies.canary_id = canary;
-    log.info(`New canary_id cookie set:, ${cookieValue}`)
+    log.info(`New canary_id cookie set:, ${cookieValue}`);
   }
 
-  const geo = getData(ip!);
+  const geo = getData(ip);
   const parsedUA = parseUA(ua);
-  const visitorId = randomUUID()
+  const visitorId = randomUUID();
 
   const userValidation = {
       visitorId,
@@ -95,49 +95,48 @@ export function validator<TCustom = Record<string, never>>(
       ...geo,
     } as userValidation;
 
-  await getBatchQueue().addQueue(canary, ip!, 'visitor_upsert', { insert: userValidation as userValidation }, 'immediate');
-  req.newVisitorId = visitorId
+  await getBatchQueue().addQueue(canary, ip, 'visitor_upsert', { insert: userValidation }, 'immediate');
+  req.newVisitorId = visitorId;
 
     if (whiteList) {
         log.info(`${ip} is in white list skipping botDetection checks.`);
-        
-      if (visitorId) {
-        visitorCache.set(canary, {
-          banned: false,
-          visitor_id: visitorId
-        }).catch(err => log.error({ err }, 'Failed to save visitorCache in storage'));
-      }
+
+      visitorCache.set(canary, {
+        banned: false,
+        visitor_id: visitorId
+      }).catch((err: unknown) => { log.error({ err }, 'Failed to save visitorCache in storage'); });
+
       req.botDetection = {
       success: true,
       banned: false,
       time: new Date().toISOString(),
-      ipAddress: req.ip!
+      ipAddress: ip
       };
-      
-      return next()
+
+      next(); return;
     };
 
-  const isBot = await uaAndGeoBotDetector(req, ip!, ua, geo, parsedUA, buildCustomContext);
-  
+  const isBot = await uaAndGeoBotDetector(req, ip, ua, geo, parsedUA, buildCustomContext);
+
   visitorCache.set(canary, {
     banned: isBot,
-    visitor_id: visitorId!
-  }).catch(err => log.error({ err }, 'Failed to save visitorCache in storage'));
+    visitor_id: visitorId
+  }).catch((err: unknown) => { log.error({ err }, 'Failed to save visitorCache in storage'); });
 
   if (isBot) {
     res.sendStatus(403);
-    return; 
+    return;
   }
-  
+
    req.botDetection = {
     success: true,
     banned: isBot,
     time: new Date().toISOString(),
-    ipAddress: req.ip!
-   }
+    ipAddress: ip
+   };
    
-   userReputation(canary).catch(err => console.error('[BOT DETECTION - MIDDLEWARE] userReputation failed:', err))
+   userReputation(canary).catch((err: unknown) => { console.error('[BOT DETECTION - MIDDLEWARE] userReputation failed:', err); });
 
-  return next();
+  next();
   };
 }

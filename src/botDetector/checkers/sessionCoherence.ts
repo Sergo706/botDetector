@@ -11,7 +11,7 @@ export class SessionCoherenceChecker implements IBotChecker<BanReasonCode> {
     
     private _logger?: ReturnType<typeof getLogger>;
     private get logger() {
-        if (!this._logger) this._logger = getLogger().child({service: 'botDetector', branch: 'checker', type: 'SessionCoherenceChecker'});
+        this._logger ??= getLogger().child({service: 'botDetector', branch: 'checker', type: 'SessionCoherenceChecker'});
         return this._logger;
     }
 
@@ -24,7 +24,7 @@ export class SessionCoherenceChecker implements IBotChecker<BanReasonCode> {
         const reasons: BanReasonCode[] = [];
         let score = 0;
 
-        if (checkConfig.enable === false) return { score, reasons };
+        if (!checkConfig.enable) return { score, reasons };
         if (!ctx.cookie) return { score, reasons };
 
         const currentPath = ctx.req.path;
@@ -60,8 +60,8 @@ export class SessionCoherenceChecker implements IBotChecker<BanReasonCode> {
             }
         }
 
-        sessionCache.set(ctx.cookie, { lastPath: currentPath }).catch((err) => {
-            this.logger.error({err}, 'Failed to save session in storage.')
+        sessionCache.set(ctx.cookie, { lastPath: currentPath }).catch((err: unknown) => {
+            this.logger.error({err}, 'Failed to save session in storage.');
         });
         
         return { score, reasons };

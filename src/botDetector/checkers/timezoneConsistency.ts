@@ -16,7 +16,7 @@ export class TimezoneConsistencyChecker implements IBotChecker<BanReasonCode> {
         const reasons: BanReasonCode[] = [];
         let score = 0;
 
-        if (checkConfig.enable === false) return { score, reasons };
+        if (!checkConfig.enable) return { score, reasons };
 
         const geoTimezone = ctx.geoData.timezone?.toLowerCase();
         if (!geoTimezone) return { score, reasons };

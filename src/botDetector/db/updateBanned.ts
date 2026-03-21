@@ -13,7 +13,7 @@ export async function updateBannedIP(
   const db = getDb();
   const log = getLogger().child({ service: 'BOT DETECTOR', branch: 'db', type: 'updateBannedIP' });
   const reasonPayload = JSON.stringify(info.reasons);
-  const params = [cookie, ipAddress, country, user_agent, reasonPayload, info.score].map(v => v === undefined ? null : v);
+  const params = [cookie, ipAddress, country, user_agent, reasonPayload, info.score] satisfies (string | number)[];
   
   const ex = (col: string) => excluded(db, col);
   const upsert = onUpsert(db, 'canary_id');
@@ -28,8 +28,8 @@ export async function updateBannedIP(
        score = ${ex('score')},
        reason = ${ex('reason')}`
     ).run(...params);
-    log.info(`Updated Database TABLE - banned. A user has been banned for IP ${ipAddress} (score ${info.score})`);
-  } catch (err: any) {
+    log.info(`Updated Database TABLE - banned. A user has been banned for IP ${ipAddress} (score ${String(info.score)})`);
+  } catch (err: unknown) {
     log.error({ error: err }, 'ERROR UPDATING "banned" TABLE');
     throw err;
   }

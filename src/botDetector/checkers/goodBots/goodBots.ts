@@ -4,10 +4,12 @@ import { ValidationContext } from "../../types/botDetectorTypes.js";
 import { BotDetectorConfig } from "../../types/configSchema.js";
 import { CheckerRegistry } from "../CheckerRegistry.js";
 import { GoodBotsBase } from "./base.js";
+import { Suffix } from '../../types/suffixes.js';
 
+const suffixes: Suffix = suffix;
 
-const userAgents: string[] = Object.values(suffix)
-  .flatMap((e: any) =>
+const userAgents: string[] = Object.values(suffixes)
+  .flatMap((e) =>
     Array.isArray(e.useragent) ? e.useragent : [e.useragent]
   )
   .map(u => u.toLowerCase());
@@ -21,15 +23,15 @@ export class GoodBotsChecker extends GoodBotsBase implements IBotChecker<'BAD_BO
   }
 
   async run(ctx: ValidationContext, config: BotDetectorConfig) {
-    const browserType = (ctx.parsedUA.browserType || '').toLowerCase();
-    const browserName = (ctx.parsedUA.browser || '').toLowerCase();
+    const browserType = (ctx.parsedUA.browserType ?? '').toLowerCase();
+    const browserName = (ctx.parsedUA.browser ?? '').toLowerCase();
     const ipAddress = ctx.ipAddress;
     
-    let score = 0;
+    const score = 0;
     const reasons: ('BAD_BOT_DETECTED' | 'GOOD_BOT_IDENTIFIED')[] = [];
 
     const checkersConfig = config.checkers.enableGoodBotsChecks;
-    if (checkersConfig.enable === false) return { score, reasons };
+    if (!checkersConfig.enable) return { score, reasons };
 
     if (browserType !== 'crawler' && browserType !== 'fetcher') {
       return { score: 0, reasons: [] };

@@ -1,5 +1,5 @@
 import maxmind, { Reader } from 'maxmind';
-import type { BgpRecord, CityGeoRecord, GeoRecord, TorRecord, ThreatRecord, CrawlersRecord, ProxyRecord } from '@riavzon/shield-base'
+import type { BgpRecord, CityGeoRecord, GeoRecord, TorRecord, ThreatRecord, CrawlersRecord, ProxyRecord } from '@riavzon/shield-base';
 import type { BannedRecord, HighRiskRecord } from '../types/generator.js';
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -50,7 +50,7 @@ export class DataSources implements DataReaders {
   }
 
   public static async initialize(): Promise<DataSources> {
-    const basePath = path.resolve(__dirname, '..', 'db', 'mmdb')
+    const basePath = path.resolve(__dirname, '..', 'db', 'mmdb');
     const options = { watchForUpdates: process.env.NODE_ENV !== 'test' };
 
     const [asn, city, country, goodBots, tor, proxy, fireholAnon, fireholLvl1, fireholLvl2, fireholLvl3, fireholLvl4] = await Promise.all([

@@ -39,7 +39,9 @@ export default defineConfig({
                 ...sharedTest,
                 name: 'botDetector',
                 include: ['test/**/*.{test,spec}.ts'],
-                exclude: MMDB_WRITERS,
+                exclude: process.env.SKIP_STRESS ?
+                     [...MMDB_WRITERS, 'test/e2e/http.stress.test.ts'] :
+                      MMDB_WRITERS,
             },
         },
         {

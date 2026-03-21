@@ -12,13 +12,13 @@ export function isSQLite(db: Database): boolean {
 export function prep(db: Database, sql: string) {
     if (db.dialect !== 'postgresql') return db.prepare(sql);
     let i = 0;
-    return db.prepare(sql.replace(/\?/g, () => `$${++i}`));
+    return db.prepare(sql.replace(/\?/g, () => `$${String(++i)}`));
 }
 
 /** Generate positional placeholders for a dynamic list of values. */
 export function placeholders(db: Database, count: number, offset = 0): string {
     return Array.from({ length: count }, (_, i) =>
-        db.dialect === 'postgresql' ? `$${offset + i + 1}` : '?'
+        db.dialect === 'postgresql' ? `$${String(offset + i + 1)}` : '?'
     ).join(', ');
 }
 

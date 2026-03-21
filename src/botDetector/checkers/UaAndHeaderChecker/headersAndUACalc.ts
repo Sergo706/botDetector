@@ -19,13 +19,13 @@ export class UaAndHeaderChecker extends UaAndHeaderCheckerBase implements IBotCh
     const reasons: BanReasonCode[] = [];
     let score = 0;
 
-    if (checkConfig.enable === false) return { score, reasons };
+    if (!checkConfig.enable) return { score, reasons };
     const { penalties } = checkConfig;
 
     const req = ctx.req;
-    const uaString = req.get("User-Agent") || "";
+    const uaString = req.get("User-Agent") ?? "";
     const uaLower = uaString.toLowerCase();
-    const regex = createRegExp(anyOf('headless', 'puppeteer', 'selenium', 'playwright', 'phantomjs'))
+    const regex = createRegExp(anyOf('headless', 'puppeteer', 'selenium', 'playwright', 'phantomjs'));
     
     if (regex.test(uaLower)) {
         score += penalties.headlessBrowser;

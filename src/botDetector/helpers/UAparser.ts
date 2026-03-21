@@ -19,13 +19,13 @@ export function parseUA(userAgent: string | number): ParsedUAResult  {
   const result = botParser.setUA(uaString).getResult();
 
   return {
-    device: result.device?.type || 'desktop',
-    deviceVendor: result.device?.vendor,
-    deviceModel: result.device?.model,
-    browser: result.browser?.name,
-    browserType: result.browser?.type,
-    browserVersion: result.browser?.version,
-    os: result.os?.name,
+    device: result.device.type ?? 'desktop',
+    deviceVendor: result.device.vendor,
+    deviceModel: result.device.model,
+    browser: result.browser.name,
+    browserType: result.browser.type,
+    browserVersion: result.browser.version,
+    os: result.os.name,
     botAI: isAIBot(result),
     bot: isBot(result),
     allResults: result,

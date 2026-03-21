@@ -14,7 +14,7 @@ export const sessionCache = {
     const data = await storage.getItem<SessionEntry>(key);
 
     if (data) {
-      storage.setItem(key, data, { ttl: SESSION_TTL_SECONDS }).catch(err => {
+      storage.setItem(key, data, { ttl: SESSION_TTL_SECONDS }).catch((err: unknown) => {
         console.warn(`Failed to update session TTL for ${key}`, err);
       });
     }
