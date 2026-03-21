@@ -1,37 +1,6 @@
-export interface BannedReason {
-    isIPValid: boolean,
-    behavierScore : string,
-    isGoodBot: boolean,
-    isLegitGoogleBot: boolean,
-    shortUserAgent: boolean,
-    isCliOrLibary: boolean,
-    isKaliLinux: boolean,
-    isInternetExplorer: boolean,
-    isCookieDosntExistsAfterSended: boolean,
-    isBannedCountry: boolean,
-    isCountryUnknown: boolean, 
-    isProxy: boolean,
-    isHosting: boolean,
-    isTimeZoneUnknown: boolean,
-    isISPUnknown: boolean,
-    isRegionOrRegionNameUnknown: boolean,
-    isLatAndLotUnknown: boolean,
-    isISPOrgUnknown: boolean,
-    isDeviceTypeUnknown: boolean,
-    isDeviceVendorUnknown: boolean,
-    isBrowserTypeUnknown: boolean,
-    isBrowserVersionUnknown: boolean,
-    isDistrictUnknown: boolean,
-    isCityUnknown: boolean,
-    isOSUnknown: boolean,
-    isBrowserNameUnknown: boolean,
-    isHeadlessBrowser: boolean,
-    isLangsDontMatchCountry: boolean,
-    isTzDontMatchCountry: boolean,
-    isTLSCheckFail: boolean,
-    isHeaderCheckGreaterThen4: boolean,
-    isMetaUAcheckFail: boolean,
-}
+import { BotDetectorConfig } from './configSchema.js';
+import { ValidationContext } from './botDetectorTypes.js';
+
 
 export type BanReasonCode =
   | 'IP_INVALID'
@@ -69,19 +38,45 @@ export type BanReasonCode =
   | 'DESKTOP_WITHOUT_OS'
   | 'NO_MODEL'
   | 'XSS SCRIPTING ATTEMPT'
-  | 'PATH_TRAVELAR_FOUND';
+  | 'PATH_TRAVELER_FOUND'
+  | 'BAD_UA_DETECTED'
+  | 'BAD_BOT_DETECTED'
+  | 'ANONYMITY_NETWORK'
+  | 'FIREHOL_L1_THREAT'
+  | 'FIREHOL_L2_THREAT'
+  | 'FIREHOL_L3_THREAT'
+  | 'FIREHOL_L4_THREAT'
+  | 'ASN_HOSTING_CLASSIFIED'
+  | 'ASN_CLASSIFICATION_UNKNOWN'
+  | 'ASN_LOW_VISIBILITY'
+  | 'ASN_HOSTING_LOW_VISIBILITY_COMBO'
+  | 'TOR_ACTIVE_NODE'
+  | 'TOR_EXIT_NODE'
+  | 'TOR_WEB_EXIT_CAPABLE'
+  | 'TOR_GUARD_NODE'
+  | 'TOR_BAD_EXIT'
+  | 'TOR_OBSOLETE_VERSION'
+  | 'TZ_HEADER_GEO_MISMATCH'
+  | 'HONEYPOT_PATH_HIT'
+  | 'SESSION_COHERENCE_VIOLATION'
+  | 'SESSION_COHERENCE_PATH_MISMATCH' 
+  | 'SESSION_COHERENCE_MISSING_REFERER' 
+  | 'SESSION_COHERENCE_DOMAIN_MISMATCH' 
+  | 'SESSION_COHERENCE_INVALID_REFERER'
+  | 'TIMING_TOO_REGULAR'
+  | 'PREVIOUSLY_BANNED_IP'
+  | 'PREVIOUSLY_HIGH_RISK_IP';
 
-/**
- * Summary of the bot detection outcome: overall score plus detailed reasons.
- */
+
 export interface BannedInfo {
-  /**
-   * Final computed bot score (0–30).
-   */
   score: number;
-
-  /**
-   * List of codes explaining which checks contributed to the score.
-   */
   reasons: BanReasonCode[];
+}
+
+
+export interface IBotChecker<Code, TCustom = Record<string, never>> {
+  name: string;
+  phase: 'cheap' | 'heavy';
+  isEnabled(config: BotDetectorConfig): boolean;
+  run(ctx: ValidationContext<TCustom>, config: BotDetectorConfig): Promise<{ score: number; reasons: Code[] | BanReasonCode[] }> | { score: number; reasons: Code[] | BanReasonCode[] };
 }

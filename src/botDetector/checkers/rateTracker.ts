@@ -1,65 +1,87 @@
-import { getPool } from '../config/dbConnection.js';
-import { RowDataPacket } from 'mysql2';
+import { prep } from '../db/dialectUtils.js';
 import { rateCache } from '../helpers/cache/rateLimitarCache.js';
-import { getConfiguration } from "../config/config.js";
+import { IBotChecker, BanReasonCode } from "../types/checkersTypes.js";
+import { ValidationContext } from "../types/botDetectorTypes.js";
+import { BotDetectorConfig } from "../types/configSchema.js";
+import { CheckerRegistry } from "./CheckerRegistry.js";
+import { getLogger } from "@utils/logger.js";
+import { getDb } from '../config/config.js';
 
-interface VisitorRow extends RowDataPacket {
+interface VisitorRow {
   last_seen: Date;
   request_count: number;
 }
 
- 
+export class BehavioralDbChecker implements IBotChecker<BanReasonCode> {
+  name = 'Behavior Rate Verification';
+  phase = 'heavy' as const;
+  private _logger?: ReturnType<typeof getLogger>;
+  private get logger() {
+    if (!this._logger) this._logger = getLogger().child({ service: 'botDetector', branch: 'checker', type: 'BehavioralDbChecker' });
+    return this._logger;
+  }
 
+  isEnabled(config: BotDetectorConfig): boolean {
+    return config.checkers.enableBehaviorRateCheck.enable;
+  }
 
+  async run(ctx: ValidationContext, config: BotDetectorConfig) {
+    const cookie = ctx.cookie || '';
+    let score = 0;
+    const reasons: BanReasonCode[] = [];
 
-  export async function behaviouralDbScore(cookie: string): Promise<number> {
+    const checkConfig = config.checkers.enableBehaviorRateCheck;
+    if (checkConfig.enable === false) return { score, reasons };
 
-    const {penalties} = getConfiguration()
-    const BEHAVIOURAL_THRESHOLD = penalties.behaviorTooFast.behavioural_threshold;      
-    const BEHAVIOURAL_WINDOW    = penalties.behaviorTooFast.behavioural_window;  
-    const BEHAVIOURAL_PENALTY   = penalties.behaviorTooFast.behaviorPenalty;    
+    const BEHAVIORAL_THRESHOLD = checkConfig.behavioral_threshold;
+    const BEHAVIORAL_WINDOW = checkConfig.behavioral_window;
+    const BEHAVIORAL_PENALTY = checkConfig.penalties;
 
-    let score: number = 0;
-    const pool = getPool()
-    const cached = rateCache.get(cookie);
-    
+    const db = getDb();
+    const cached = await rateCache.get(cookie);
+
     if (cached) {
-      console.log('[CACHE HIT] behaviouralDbScore');
       const ageSinceLastSeen = Date.now() - cached.timestamp;
-        if (cached.request_count > BEHAVIOURAL_THRESHOLD && ageSinceLastSeen <= BEHAVIOURAL_WINDOW) {
-          return cached.score;
-        }
-    } else {  console.log('[CACHE MISS or EXPIRED] behaviouralDbScore');}
-   
+      if (cached.request_count > BEHAVIORAL_THRESHOLD && ageSinceLastSeen <= BEHAVIORAL_WINDOW) {
+        return {
+          score: cached.score,
+          reasons: cached.score ? ['BEHAVIOR_TOO_FAST' as const] : []
+        };
+      }
+    }
+
     try {
-      const [rows] = await pool.execute<VisitorRow[]>(
+      const sql = 
         `SELECT last_seen, request_count
          FROM visitors
          WHERE canary_id = ?
-         LIMIT 1;`,
-        [cookie]
-      );
-      const visitor = rows[0];
-  
-      if (!visitor) return score;
-  
+         LIMIT 1;`;
+
+      const visitor = await prep(db, sql).get(cookie) as VisitorRow | undefined
+
+      if (!visitor) return { score, reasons };
 
       const ageSinceLastSeen = Date.now() - visitor.last_seen.getTime();
-      if (visitor.request_count > BEHAVIOURAL_THRESHOLD && ageSinceLastSeen <= BEHAVIOURAL_WINDOW) {
-        score = BEHAVIOURAL_PENALTY;
+      if (visitor.request_count > BEHAVIORAL_THRESHOLD && ageSinceLastSeen <= BEHAVIORAL_WINDOW) {
+        score = BEHAVIORAL_PENALTY;
+        reasons.push('BEHAVIOR_TOO_FAST');
       }
+
       rateCache.set(cookie, {
         score,
         timestamp: Date.now(),
         request_count: visitor.request_count,
+      }).catch((err) => {
+        this.logger.error({ err }, 'Failed to save rateCache in storage');
       });
 
     } catch (err) {
-      console.error('[ERROR] behaviouralDbScore failed:', err);
+      this.logger.error({ err }, 'behaviouralDbScore failed');
       throw err;
     }
-  
-    return score;
+
+    return { score, reasons };
   }
+}
 
-
+CheckerRegistry.register(new BehavioralDbChecker());

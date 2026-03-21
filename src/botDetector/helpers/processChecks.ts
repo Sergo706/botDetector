@@ -1,14 +1,19 @@
-import { BanReasonCode } from "../types/checkersTypes.js";
+import { BanReasonCode, IBotChecker } from "../types/checkersTypes.js";
 import { getLogger } from "../utils/logger.js";
 import { performance } from 'perf_hooks';
 import { getConfiguration } from "../config/config.js";
+import { ValidationContext } from "../types/botDetectorTypes.js";
+import { BotDetectorConfig } from "../types/configSchema.js";
+import { BadBotDetected, GoodBotDetected } from "./exceptions.js";
 
 export async function processChecks(
- checks: Array<() => Promise<{ score: number; reasons?: BanReasonCode[] }>>,
-    botScore: number,
-    reasons: BanReasonCode[],
-    phaseLabel = 'phase' 
-  ): Promise<number> {
+  checkers: IBotChecker<any>[],
+  ctx: ValidationContext<any>,
+  config: BotDetectorConfig,
+  botScore: number,
+  reasons: BanReasonCode[],
+  phaseLabel = 'phase' 
+): Promise<number> {
 
     const {banScore} = getConfiguration()
     const log = getLogger().child({service: `BOT DETECTOR`, branch: 'checks'})
@@ -17,22 +22,25 @@ export async function processChecks(
     const phaseStart = performance.now()
     log.info({ phase: phaseLabel, reqId, event: 'start' });
                  
-    let banLimit = banScore
+    const banLimit = banScore
 
-    for (const runCheck of checks) {
-      const label = runCheck.name || 'anon';
+    for (const checker of checkers) {
+      const label = checker.name;
 
       const checkStart = performance.now()
       log.info({ reqId, check: label, event: 'start' })
 
-      const { score, reasons: rs = [] } = await runCheck();
+      const { score, reasons: rs = [] } = await checker.run(ctx, config);
 
       const checkEnd = performance.now()
       log.info({reqId,check: label,event: 'end',durationMs: +(checkEnd - checkStart).toFixed(3),score,reasons: rs,})
 
       botScore += score;
-      rs.forEach(r => reasons.push(r));
+      rs.forEach(r => reasons.push(r as BanReasonCode));
   
+      if (rs.includes('GOOD_BOT_IDENTIFIED')) throw new GoodBotDetected();
+      if (rs.includes('BAD_BOT_DETECTED')) throw new BadBotDetected();
+
       if (botScore >= banLimit) {
       log.warn({ reqId, botScore }, 'Bot detected — aborting checks');
         break;
@@ -47,4 +55,4 @@ export async function processChecks(
     Score: botScore
   })
     return botScore;
-  }
+}

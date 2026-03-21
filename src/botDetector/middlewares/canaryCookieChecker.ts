@@ -1,22 +1,21 @@
-import { getdata } from '../helpers/getIPInformation.js';
+import { getData } from '../helpers/getIPInformation.js';
 import { makeCookie } from '../utils/cookieGenerator.js';
-import { Request, Response, NextFunction } from "express";
-import { randomBytes } from "crypto";
+import { Request, Response, NextFunction, RequestHandler } from "express";
+import { randomBytes, randomUUID } from "crypto";
 import parseUA from '../helpers/UAparser.js';
-import { format } from 'date-fns';
-import { updateVisitor } from '../db/updateVisitors.js';
 import { uaAndGeoBotDetector } from '../../botDetector.js';
-import { getVisitorCache } from '../helpers/cache/cannaryCache.js';
-import { userReputaion } from '../helpers/reputation.js';
+import { visitorCache } from '../helpers/cache/cannaryCache.js';
+import { userReputation } from '../helpers/reputation.js';
 import { getLogger } from '../utils/logger.js';
 import { userValidation } from '../types/fingerPrint.js';
-import { getConfiguration } from '../config/config.js';
+import { getConfiguration, getBatchQueue } from '../config/config.js';
 import { isInWhiteList } from '../utils/whitelist.js';
+import { nowMysql } from '@utils/nowMysql.js';
 
 declare global {
   namespace Express {
     export interface Request {
-      newVisitorId?: number;
+      newVisitorId?: string;
       botDetection: {
         success: boolean,
         banned: boolean,
@@ -28,7 +27,10 @@ declare global {
 }
 
 
-export const validator = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export function validator<TCustom = Record<string, never>>(
+  buildCustomContext?: (req: Request) => TCustom,
+): RequestHandler {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const {checksTimeRateControl} = getConfiguration()
     let canary = req.cookies?.canary_id || null;
     const ua = req.get("User-Agent") || "";
@@ -39,14 +41,14 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
      const whiteList = isInWhiteList(ip!); 
 
     if (canary) {
-      const cached = getVisitorCache().get(canary);
+      const cached = await visitorCache.get(canary);
       if (cached) {
         if (cached.banned && !whiteList) {
           res.sendStatus(403);
-          return; 
-        } 
+          return;
+        }
         req.newVisitorId = cached.visitor_id;
-        if (!checksTimeRateControl.checkEveryReqest){ 
+        if (!checksTimeRateControl.checkEveryReqest){
         return next();
       }
       }
@@ -69,33 +71,20 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
     log.info(`New canary_id cookie set:, ${cookieValue}`)
   }
 
-  const [geo] = await Promise.all([ getdata(ip!) ]);
+  const geo = getData(ip!);
   const parsedUA = parseUA(ua);
-  
-    const now = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
-    const userValidation = {
+  const visitorId = randomUUID()
+
+  const userValidation = {
+      visitorId,
       cookie: canary,
       userAgent: ua,
-      ipAddress: ip || 'unknown',
-      country: geo.country  ?? 'unknown',
-      region: geo.region ?? 'unknown',
-      regionName: geo.regionName ?? 'unknown',
-      city: geo.city ?? 'unknown',
-      district: geo.district ?? 'unknown',
-      lat: geo.lat != null ? String(geo.lat) : 'unknown',
-      lon: geo.lon != null ? String(geo.lon) : 'unknown',
-      timezone: geo.timezone ?? 'unknown',
-      currency: geo.currency ?? 'unknown',
-      isp: geo.isp ?? 'unknown',
-      org: geo.org ?? 'unknown',
-      as: geo.as_org ?? 'unknown',
+      ipAddress: ip,
       device_type: parsedUA.device,
       browser: parsedUA.browser,
-      proxy: geo.proxy ?? false,
-      hosting: geo.hosting ?? false,
       is_bot: false,
-      first_seen: now,        
-      last_seen: now,       
+      first_seen: nowMysql(),        
+      last_seen: nowMysql(),       
       request_count: 1,       
       deviceVendor: parsedUA.deviceVendor,
       deviceModel: parsedUA.deviceModel,
@@ -103,19 +92,20 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
       browserVersion: parsedUA.browserVersion,
       os: parsedUA.os,
       activity_score: '0',
+      ...geo,
     } as userValidation;
 
-  const visitorId = await updateVisitor(userValidation);
+  await getBatchQueue().addQueue(canary, ip!, 'visitor_upsert', { insert: userValidation as userValidation }, 'immediate');
   req.newVisitorId = visitorId
 
     if (whiteList) {
         log.info(`${ip} is in white list skipping botDetection checks.`);
         
       if (visitorId) {
-        getVisitorCache().set(canary, { 
+        visitorCache.set(canary, {
           banned: false,
-          visitor_id: visitorId 
-        });
+          visitor_id: visitorId
+        }).catch(err => log.error({ err }, 'Failed to save visitorCache in storage'));
       }
       req.botDetection = {
       success: true,
@@ -127,17 +117,18 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
       return next()
     };
 
-  const isBot = await uaAndGeoBotDetector(req, ip!, ua, geo, parsedUA);
+  const isBot = await uaAndGeoBotDetector(req, ip!, ua, geo, parsedUA, buildCustomContext);
   
-  getVisitorCache().set(canary, {
-    banned:  isBot,
+  visitorCache.set(canary, {
+    banned: isBot,
     visitor_id: visitorId!
-  });
+  }).catch(err => log.error({ err }, 'Failed to save visitorCache in storage'));
 
   if (isBot) {
     res.sendStatus(403);
     return; 
   }
+  
    req.botDetection = {
     success: true,
     banned: isBot,
@@ -145,7 +136,8 @@ export const validator = async (req: Request, res: Response, next: NextFunction)
     ipAddress: req.ip!
    }
    
-   userReputaion(canary).catch(err => console.error('[BOT DETECTION - MIDDLEWARE] userReputaion failed:', err))
-     
+   userReputation(canary).catch(err => console.error('[BOT DETECTION - MIDDLEWARE] userReputation failed:', err))
+
   return next();
+  };
 }

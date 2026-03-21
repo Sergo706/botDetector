@@ -1,7 +1,7 @@
-import { getPool } from '../config/dbConnection.js';
-import { sendLog } from '../utils/telegramLogger.js';
+import { getLogger } from '../utils/logger.js';
 import type { BannedInfo } from '../types/checkersTypes.js';
-
+import { getDb } from '../config/config.js';
+import { prep, onUpsert, excluded } from './dialectUtils.js';
 
 export async function updateBannedIP(
   cookie: string,
@@ -10,26 +10,27 @@ export async function updateBannedIP(
   user_agent: string,
   info: BannedInfo
 ) {
-  const pool = getPool()
+  const db = getDb();
+  const log = getLogger().child({ service: 'BOT DETECTOR', branch: 'db', type: 'updateBannedIP' });
   const reasonPayload = JSON.stringify(info.reasons);
-  const params = [ cookie, ipAddress, country, user_agent, reasonPayload, info.score ].map(v => v === undefined ? null : v);
+  const params = [cookie, ipAddress, country, user_agent, reasonPayload, info.score].map(v => v === undefined ? null : v);
   
-  try { 
-  await pool.execute(
-    `INSERT INTO banned (canary_id, ip_address, country, user_agent, reason, score)
-     VALUES (?, ?, ?, ?, ?, ?)
-     
-     ON DUPLICATE KEY UPDATE
-     ip_address = VALUES(ip_address),
-     country = VALUES(country),
-     user_agent = VALUES(user_agent),
-     score = VALUES(score),
-     reason = VALUES(reason)`,
-    params
-  );
-  await sendLog('Updated Database TABLE - banned', `A user been banned and the "banned" table has been updated. New ban saved for IP ${ipAddress} (score ${info.score}`)
-} catch(err: any) {
-  await sendLog('ERROR UPDATING "banned" TABLE', err)
-  throw err;
-}
+  const ex = (col: string) => excluded(db, col);
+  const upsert = onUpsert(db, 'canary_id');
+  try {
+    await prep(db,
+      `INSERT INTO banned (canary_id, ip_address, country, user_agent, reason, score)
+       VALUES (?, ?, ?, ?, ?, ?)
+       ${upsert}
+       ip_address = ${ex('ip_address')},
+       country = ${ex('country')},
+       user_agent = ${ex('user_agent')},
+       score = ${ex('score')},
+       reason = ${ex('reason')}`
+    ).run(...params);
+    log.info(`Updated Database TABLE - banned. A user has been banned for IP ${ipAddress} (score ${info.score})`);
+  } catch (err: any) {
+    log.error({ error: err }, 'ERROR UPDATING "banned" TABLE');
+    throw err;
+  }
 }

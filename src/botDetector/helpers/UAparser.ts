@@ -20,12 +20,12 @@ export function parseUA(userAgent: string | number): ParsedUAResult  {
 
   return {
     device: result.device?.type || 'desktop',
-    deviceVendor: result.device?.vendor || 'unknown',
-    deviceModel: result.device?.model || 'unknown',
-    browser: result.browser?.name || 'unknown',
-    browserType: result.browser?.type || 'unknown',
-    browserVersion: result.browser?.version || 'unknown',
-    os: result.os?.name || 'unknown',
+    deviceVendor: result.device?.vendor,
+    deviceModel: result.device?.model,
+    browser: result.browser?.name,
+    browserType: result.browser?.type,
+    browserVersion: result.browser?.version,
+    os: result.os?.name,
     botAI: isAIBot(result),
     bot: isBot(result),
     allResults: result,

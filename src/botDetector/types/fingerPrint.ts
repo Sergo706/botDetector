@@ -1,5 +1,6 @@
 export type  userValidation = {    
-    cookie: string | null   
+    cookie: string | null  
+    visitorId: string 
     userAgent: string
     ipAddress: string
     country: string | null
@@ -22,11 +23,11 @@ export type  userValidation = {
     first_seen: string | null
     last_seen: string | null
     request_count: number
-    deviceVendor: string | 'unknown'
-    deviceModel: string | 'unknown'
-    browserType: string | 'unknown'
-    browserVersion: string | 'unknown'
-    os: string | 'unknown'
-    activity_score: string | 'unknown'
+    deviceVendor?: string
+    deviceModel?: string
+    browserType?: string
+    browserVersion?: string
+    os?: string
+    activity_score?: string
     }
     

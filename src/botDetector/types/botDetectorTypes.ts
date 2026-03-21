@@ -1,28 +1,22 @@
-export interface VisitorTrackingData {
-  cookie: string | null;
-  device: string;
+import { BgpRecord, TorRecord } from "@riavzon/shield-base";
+import { GeoResponse } from "./geoTypes.js";
+import { ParsedUAResult } from "./UAparserTypes.js";
+import { Request } from 'express';
+
+
+export interface ValidationContext<TCustom = Record<string, never>> {
+  req: Request;
   ipAddress: string;
-  country: string;
-  countryCode: string;
-  region: string;
-  regionName: string;
-  city: string;
-  district: string;
-  lat: string;
-  lon: string;
-  timezone: string;
-  currency: string;
-  isp: string;
-  org: string;
-  as: string;
-  browser: string;
-  proxy: boolean;
-  hosting: boolean;
-  is_bot: boolean;
-  is_ai_bot: boolean;
-  deviceVendor: string;
-  deviceModel: string;
-  browserType: string;
-  browserVersion: string;
-  os: string;
+  parsedUA: Partial<ParsedUAResult>;
+  geoData: Partial<GeoResponse>;
+  cookie?: string;
+  proxy: {
+      isProxy: boolean;
+      proxyType?: string;
+  };
+  anon: boolean;
+  bgp: Partial<Omit<BgpRecord, 'range'>>
+  tor: Partial<Omit<TorRecord, 'range'>>
+  threatLevel: 1 | 2 | 3 | 4 | null;
+  custom: TCustom;
 }

@@ -1,15 +1,18 @@
-import { getPool } from '../config/dbConnection.js';
-import { sendLog } from '../utils/telegramLogger.js';
+import { getLogger } from '../utils/logger.js';
+import { getDb } from '../config/config.js';
+import { prep } from './dialectUtils.js';
 
-export async function updateScore( score: number, cookie: string) {
-   const params = [ score, cookie ].map(v => v === undefined ? null : v);
-   const pool = getPool()
-    try { 
- await pool.execute(`UPDATE visitors SET suspicious_activity_score = ? WHERE canary_id = ?`, params);
- } catch(err) {
-    sendLog('ERROR UPDATING SCORE', `An error occurred when trying to update the score column in the visitors table. ${err}`)
+export async function updateScore(score: number, cookie: string) {
+  const params = [score, cookie].map(v => v === undefined ? null : v);
+  const db = getDb();
+  const log = getLogger().child({ service: 'BOT DETECTOR', branch: 'db', type: 'updateScore' });
+
+  try {
+    await prep(db, `UPDATE visitors SET suspicious_activity_score = ? WHERE canary_id = ?`).run(...params)
+  } catch (err: any) {
+    log.error({ error: err }, 'ERROR UPDATING SCORE');
     throw err;
- }
+  }
 }
 
   

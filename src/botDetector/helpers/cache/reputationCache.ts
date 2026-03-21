@@ -1,18 +1,27 @@
-import { LRUCache } from "lru-cache";
-import { getConfiguration } from "../../config/config.js";
+import { getStorage, getConfiguration } from '../../config/config.js';
 
 export interface CachedResult {
-    isBot: boolean;
-    score: number;
+  isBot: boolean;
+  score: number;
+}
+
+const PREFIX = 'reputation:';
+
+export const reputationCache = {
+  async get(cookie: string): Promise<CachedResult | null> {
+    return getStorage().getItem<CachedResult>(`${PREFIX}${cookie}`);
+  },
+
+  async set(cookie: string, entry: CachedResult): Promise<void> {
+    const { checksTimeRateControl } = getConfiguration();
+    await getStorage().setItem(`${PREFIX}${cookie}`, entry, { ttl: Math.floor(checksTimeRateControl.checkEvery / 1000) });
+  },
+
+  async delete(cookie: string): Promise<void> {
+    await getStorage().removeItem(`${PREFIX}${cookie}`);
+  },
+
+  async clear(): Promise<void> {
+    await getStorage().clear();
   }
-  
-let cache: LRUCache<string, CachedResult> | undefined;
-
-export function getReputationCache() {
-    if (cache) return cache;
-
-    const {checksTimeRateControl} = getConfiguration()
-
-    cache = new LRUCache({ max: 10_000, ttl: checksTimeRateControl.checkEvery }); 
-    return cache; 
-  }
+};

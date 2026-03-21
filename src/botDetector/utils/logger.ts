@@ -1,23 +1,20 @@
-import pinoNS from 'pino';
+import pino, { Logger } from 'pino';
 import { existsSync, mkdirSync } from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { getConfiguration } from '../config/config.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
-const LOG_DIR = path.resolve(__dirname, '..', '..', '..', 'logs');
+const LOG_DIR = path.resolve(process.cwd(), process.env.LOG_DIR || 'bot-detector-logs');
 if (!existsSync(LOG_DIR)) mkdirSync(LOG_DIR, { recursive: true });
 
-const transport = pinoNS.transport({
+const transport = pino.transport({
   targets: [
     {
       target: 'pino/file',
       level:  'info',
       options: {
         destination: `${LOG_DIR}/info.log`,
-        mkdir:       true
+        mkdir: true
       }
     },
     {
@@ -25,7 +22,7 @@ const transport = pinoNS.transport({
       level:  'warn',
       options: {
         destination: `${LOG_DIR}/warn.log`,
-        mkdir:       true
+        mkdir: true
       }
     },
     {
@@ -33,37 +30,40 @@ const transport = pinoNS.transport({
       level:  'error',
       options: {
         destination: `${LOG_DIR}/errors.log`,
-        mkdir:       true
+        mkdir:true
       }
     }
   ]
 });
 
-let logger: pinoNS.Logger;  
+let logger: pino.Logger;  
 
-export function getLogger() {
-  if (logger) return logger;       
-  const {logLevel} = getConfiguration()
-
-  logger = (pinoNS as any)(
+export function getLogger(): Logger {
+  if (logger) return logger;      
+  const { logLevel } = getConfiguration();
+  logger = (pino) (
     {
-      level: logLevel,             
-      timestamp: pinoNS.stdTimeFunctions.isoTime,
-      mixin() { return { uptime: process.uptime() }; },
-      redact: {
-        paths: [
-          'req.headers.authorization',
-          'user.password',
-          'accessToken',
-          'refresh_token',
-          '*.secret'
-        ],
-        censor: '[SECRET]'
-      }
+    level: logLevel,
+    timestamp: pino.stdTimeFunctions.isoTime,
+    mixin() { return { uptime: process.uptime() }; },
+    redact: {
+      paths: [
+      '*.password',
+       '*.email',
+        'name',
+        'Name',
+        '*.cookies',
+        '*.cookie',
+        'cookies',
+        'cookie',
+        '*.accessToken',
+        '*.refresh_token',
+        '*.secret'
+      ],
+      censor: '[SECRET]'
+     }
     },
-    transport
-  );
-
+  transport
+  )
   return logger;
 }
-

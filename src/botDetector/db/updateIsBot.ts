@@ -1,13 +1,16 @@
-import { getPool } from '../config/dbConnection.js';
-import { sendLog } from '../utils/telegramLogger.js';
+import { getLogger } from '../utils/logger.js';
+import { getDb } from '../config/config.js';
+import { prep } from './dialectUtils.js';
 
 export async function updateIsBot(isBot: boolean, cookie: string) {
     const params = [isBot, cookie].map(v => v === undefined ? null : v);
-    const pool =  getPool()
+    const db = getDb();
+    const log = getLogger().child({ service: 'BOT DETECTOR', branch: 'db', type: 'updateIsBot' });
+
     try { 
-        await pool.execute(`UPDATE visitors SET is_bot = ? WHERE canary_id = ?`, params);
-    } catch (err) {
-        sendLog('ERROR UPDATING IS_BOT', `An error occurred when trying to update the is_bot column in the visitors table. ${err}`);
+        await prep(db, `UPDATE visitors SET is_bot = ? WHERE canary_id = ?`).run(...params)
+    } catch (err: any) {
+        log.error({ error: err }, 'ERROR UPDATING IS_BOT');
         throw err;
     }
 }
