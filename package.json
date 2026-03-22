@@ -27,7 +27,7 @@
     "detect bots"
   ],
   "bin": {
-    "bot-detector": "./dist/botDetector/cli/index.mjs"
+    "bot-detector": "./dist/index.mjs"
   },
   "files": [
     "dist"

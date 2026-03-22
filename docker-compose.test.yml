@@ -9,7 +9,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ${PWD}/src/botDetector/db/useragent.csv:${PWD}/src/botDetector/db/useragent.csv:ro
+      - ${PWD}/_data-sources/useragent.csv:${PWD}/_data-sources/useragent.csv:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U botdetector -d testdb"]
       interval: 2s

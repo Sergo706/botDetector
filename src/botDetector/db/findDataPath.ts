@@ -18,16 +18,16 @@ export function resolveDataPath(fileName: string): string {
   const root = getLibraryRoot();
   
   const possiblePaths = [
-    path.resolve(root, 'dist', fileName), 
+    path.resolve(root, '_data-sources', fileName),
     path.resolve(root, 'dist', '_data-sources', fileName),
-    path.resolve(root, '_data-sources', fileName)
   ];
 
-  for (const targetPath of possiblePaths) {
-    if (fs.existsSync(targetPath)) {
-      return targetPath;
-    }
+  for (const path of possiblePaths) {
+    if (fs.existsSync(path)) return path;
   }
 
-  throw new Error(`Could not find data file ${fileName}.`);
+  throw new Error(
+    `[Bot Detector] Data file "${fileName}" not found. ` +
+    `Run 'bot-detector init' to download required data files.`
+  );
 }

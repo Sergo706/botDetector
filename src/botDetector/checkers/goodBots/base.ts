@@ -24,9 +24,16 @@ export class GoodBotsBase {
   }
 
   private domains: string[];
-  constructor(protected suffixes: Suffix, protected logger: ReturnType<typeof getLogger>) { 
-        this.domains = this.getDomains(this.suffixes).map(d => `.${d.toLowerCase()}`);
-   }
+
+  private _logger?: ReturnType<typeof getLogger>;
+  protected get logger(): ReturnType<typeof getLogger> {
+    this._logger ??= getLogger().child({ service: 'botDetector', branch: 'checker', type: 'GoodBotsBase' });
+    return this._logger;
+  }
+
+  constructor(protected suffixes: Suffix) {
+    this.domains = this.getDomains(this.suffixes).map(d => `.${d.toLowerCase()}`);
+  }
 
   protected async isBotFromTrustedDomain(ip: string): Promise<boolean> {
         const cached = await dnsCache.get(ip);

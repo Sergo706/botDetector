@@ -5,7 +5,6 @@ import type { BotDetectorConfig } from "../../types/configSchema.js";
 import { CheckerRegistry } from "../CheckerRegistry.js";
 import { GoodBotsBase } from "./base.js";
 import type { Suffix } from '../../types/suffixes.js';
-import { getLogger } from '@utils/logger.js';
 import { resolveDataPath } from '@db/findDataPath.js';
 
 const suffixPath = resolveDataPath('suffix.json');
@@ -22,13 +21,7 @@ export class GoodBotsChecker extends GoodBotsBase implements IBotChecker<'BAD_BO
   phase = 'cheap' as const;
 
   constructor() {
-    const logger = getLogger().child({ 
-      service: 'botDetector', 
-      branch: 'checker', 
-      type: 'GoodBotsBase' 
-    });
-
-    super(suffixes, logger); 
+    super(suffixes);
   }
 
   isEnabled(config: BotDetectorConfig): boolean {
