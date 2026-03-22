@@ -61,7 +61,7 @@ export async function updateVisitors(
         data.browserType,
         data.browserVersion,
         data.os,
-    ].map(v => v === undefined ? null : v);
+    ] satisfies (string | boolean)[];
 
     try {
         const result = await prep(db, `

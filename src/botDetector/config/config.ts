@@ -28,30 +28,24 @@ let globalDb: Database | undefined;
  */
 export async function configuration(config: BotDetectorConfigInput): Promise<void> {
   const initDataSourcesTask = async () => {
-    if (!globalDataSources) {
-      globalDataSources = await DataSources.initialize();
-    }
+    globalDataSources ??= await DataSources.initialize();
   };
 
   const initBatchQueueTask = () => {
     if (!globalBatchQueue) {
       globalBatchQueue = new BatchQueue();
-      process.on('SIGTERM', () => globalBatchQueue!.shutdown());
-      process.on('SIGINT',  () => globalBatchQueue!.shutdown());
+      process.on('SIGTERM', () => { void globalBatchQueue?.shutdown(); });
+      process.on('SIGINT', () => { void globalBatchQueue?.shutdown(); });
     }
   };
 
   const initStorageTask = async () => {
-    if (!globalStorage) {
-      globalStorage = await initStorage(config.storage);
-    }
+    globalStorage ??= await initStorage(config.storage);
   };
 
   const initDbTask = async () => {
-    if (!globalDb) {
-        globalDb = await initDb(config.store.main); 
-    }
-};
+    globalDb ??= await initDb(config.store.main);
+  };
 
   await defineConfiguration(config, [
     initDataSourcesTask,

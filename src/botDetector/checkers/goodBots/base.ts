@@ -1,35 +1,32 @@
 import { dnsCache } from '@helpers/cache/dnsLookupCache.js';
-import suffix from '~~/src/botDetector/db/json/suffix.json' with { type: 'json' };
 import dns from 'node:dns/promises';
 import { getDataSources } from '../../config/config.js';
 import { getLogger } from '@utils/logger.js';
+import type { Suffix } from '../../types/suffixes.js';
 
 export class GoodBotsBase {
- private getDomains(suffix: Record<string, any>): string[] {
+ private getDomains(suffix: Suffix): string[] {
         const allDomains: string[] = [];
 
         for (const key in suffix) {
 
-        const entry = suffix[key]
-        const entrySuffix = entry.suffix
+        const entry = suffix[key];
+        const entrySuffix = entry.suffix;
 
         if (Array.isArray(entrySuffix)) {
             allDomains.push(...entrySuffix);
 
         } else if (typeof entrySuffix === 'string') {
-            allDomains.push(entrySuffix)
+            allDomains.push(entrySuffix);
         }
         }
         return allDomains;
   }
 
-  private domains = this.getDomains(suffix).map(d => `.${d.toLowerCase()}`);
-
-  private _logger?: ReturnType<typeof getLogger>;
-  private get logger() {
-    if (!this._logger) this._logger = getLogger().child({ service: 'botDetector', branch: 'checker', type: 'GoodBotsBase' });
-    return this._logger;
-  }
+  private domains: string[];
+  constructor(protected suffixes: Suffix, protected logger: ReturnType<typeof getLogger>) { 
+        this.domains = this.getDomains(this.suffixes).map(d => `.${d.toLowerCase()}`);
+   }
 
   protected async isBotFromTrustedDomain(ip: string): Promise<boolean> {
         const cached = await dnsCache.get(ip);
@@ -46,7 +43,7 @@ export class GoodBotsBase {
             );
 
             if (matchingHosts.length === 0) {
-                dnsCache.set(ip, { ip, trustedBot: false }).catch((err) => {
+                dnsCache.set(ip, { ip, trustedBot: false }).catch((err: unknown) => {
                     this.logger.error({ err }, 'Failed to save dnsCache in storage');
                 });
                 return false;
@@ -55,17 +52,17 @@ export class GoodBotsBase {
                 const addresses = await dns.lookup(host, { all: true });
 
                 if (addresses.some(a => a.address === ip)) {
-                    dnsCache.set(ip, { ip, trustedBot: true }).catch((err) => {
+                    dnsCache.set(ip, { ip, trustedBot: true }).catch((err: unknown) => {
                         this.logger.error({ err }, 'Failed to save dnsCache in storage');
                     });
 
                     return true;
                 }
             }
-        } catch(err) {
+        } catch(err: unknown) {
             this.logger.error({ err }, 'DNS reverse lookup failed');
         }
-            dnsCache.set(ip, { ip, trustedBot: false }).catch((err) => {
+            dnsCache.set(ip, { ip, trustedBot: false }).catch((err: unknown) => {
                 this.logger.error({ err }, 'Failed to save dnsCache in storage');
             });
             return false;

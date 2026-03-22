@@ -17,6 +17,6 @@ package-lock.json
 dist/
 tsconfig.tsbuildinfo
 docs/
-mmdb/
+*.mmdb
 coverage/
 CUSTOM.md

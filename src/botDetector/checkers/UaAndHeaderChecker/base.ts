@@ -6,14 +6,15 @@ import { BotDetectorConfig } from '../../types/configSchema.js';
 
 export class UaAndHeaderCheckerBase {
     protected pathScore(req: Request, config: BotDetectorConfig): number {
-        const settings = config.pathTraveler
+        const settings = config.pathTraveler;
         const MAX_DECODE_ITERATIONS = settings.maxIterations;
         const MAX_PATH_LENGTH = settings.maxPathLength;
         
         let score = 0;
         const hostHeader = req.get('x-forwarded-host');
-        const base = `${req.protocol}://${hostHeader || req.get('host')}`;
+        const base = `${req.protocol}://${hostHeader ?? req.get('host') ?? ''}`;
         
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const rawPath = req.get('x-original-path') || req.originalUrl;
 
         const traversalRe = /(?:\.\.[\\/]|\.\.%2f|\.\.%5c|%2e%2e[\\/]|%2e%2e%2f|%2e%2e%5c)/i;
@@ -73,7 +74,7 @@ export class UaAndHeaderCheckerBase {
 
     protected tlsBotScore(req: Request, config: BotDetectorConfig): number {
       const settings = config.checkers.enableUaAndHeaderChecks;
-      if (settings.enable === false) return 0;
+      if (!settings.enable) return 0;
       const { penalties } = settings;
 
       let score = 0;
@@ -81,11 +82,12 @@ export class UaAndHeaderCheckerBase {
                    : req.httpVersion === '1.1' ? 'http/1.1'
                    : '';
     
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (!proto || (proto !== 'h2' && proto !== 'http/1.1')) {
         score += penalties.tlsCheckFailed;
       }
     
-      const cipher = req.get('x-client-cipher') || '';
+      const cipher = req.get('x-client-cipher') ?? '';
     
       const browserCiphers = new Set([
         'TLS_AES_128_GCM_SHA256', 'TLS_AES_256_GCM_SHA384',
@@ -103,7 +105,7 @@ export class UaAndHeaderCheckerBase {
     
       if (!browserCiphers.has(cipher)) score += penalties.tlsCheckFailed;;
                                               
-      const tlsVersion = (req.get('x-client-tls-version') || '').toLowerCase();
+      const tlsVersion = (req.get('x-client-tls-version') ?? '').toLowerCase();
       if (
         tlsVersion &&
         !tlsVersion.startsWith('tls1.3') &&

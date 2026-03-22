@@ -13,7 +13,7 @@ export class VelocityFingerprintChecker implements IBotChecker<BanReasonCode> {
     phase = 'heavy' as const;
     private _logger?: ReturnType<typeof getLogger>;
     private get logger() {
-        if (!this._logger) this._logger = getLogger().child({service: 'botDetector', branch: 'checker', type: 'VelocityFingerprintChecker'});
+        this._logger ??= getLogger().child({service: 'botDetector', branch: 'checker', type: 'VelocityFingerprintChecker'});
         return this._logger;
     }
 
@@ -26,14 +26,14 @@ export class VelocityFingerprintChecker implements IBotChecker<BanReasonCode> {
         const reasons: BanReasonCode[] = [];
         let score = 0;
 
-        if (checkConfig.enable === false || !ctx.cookie) return { score, reasons };
+        if (!checkConfig.enable || !ctx.cookie) return { score, reasons };
 
         const now = Date.now();
         const existing = await timingCache.get(ctx.cookie) ?? [];
         const timestamps = [...existing, now].slice(-MAX_SAMPLES);
 
-        timingCache.set(ctx.cookie, timestamps).catch((err) => {
-            this.logger.error({err}, 'Failed to save timingCache in storage')
+        timingCache.set(ctx.cookie, timestamps).catch((err: unknown) => {
+            this.logger.error({err}, 'Failed to save timingCache in storage');
         });
 
         if (timestamps.length < MIN_SAMPLES_TO_EVALUATE) return { score, reasons };

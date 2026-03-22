@@ -6,8 +6,8 @@ import { getDataSources } from "../config/config.js";
 
 
 export class KnownBadIps implements IBotChecker<BanReasonCode> {
-    name = 'KnownBadIps'
-    phase = 'cheap' as const
+    name = 'KnownBadIps';
+    phase = 'cheap' as const;
 
     isEnabled(config: BotDetectorConfig) {
         return config.checkers.enableKnownBadIpsCheck.enable;
@@ -18,7 +18,7 @@ export class KnownBadIps implements IBotChecker<BanReasonCode> {
         const reasons: BanReasonCode[] = [];
         let score = 0;
 
-        if (enableKnownBadIpsCheck.enable === false) return { score, reasons };
+        if (!enableKnownBadIpsCheck.enable) return { score, reasons };
 
         const ds = getDataSources();
         const ip = ctx.ipAddress;

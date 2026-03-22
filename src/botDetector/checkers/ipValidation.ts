@@ -12,7 +12,7 @@ export class IpChecker implements IBotChecker<'IP_INVALID'> {
     return config.checkers.enableIpChecks.enable;
   }
 
-  async run(ctx: ValidationContext, config: BotDetectorConfig) {
+   run(ctx: ValidationContext, config: BotDetectorConfig) {
     const isValid = isIP(ctx.ipAddress) !== 0;
     if (!isValid) {
       console.log('Entered Ban from ip validation Helper');

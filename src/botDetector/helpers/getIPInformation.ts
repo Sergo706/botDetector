@@ -4,7 +4,7 @@ import { getDataSources } from "../config/config.js";
 const norm = (string?: string) => string?.trim().toLowerCase();
   
 export function getData(ip: string): GeoResponse {
-  const dataSource = getDataSources()
+  const dataSource = getDataSources();
   const countryLvl = dataSource.countryDataBase(ip);
   const cityLvl = dataSource.cityDataBase(ip);
   const asn = dataSource.asnDataBase(ip);
@@ -42,5 +42,5 @@ export function getData(ip: string): GeoResponse {
     as_org: norm(asn?.asn_name),
     proxy: proxy ? true : false,
     hosting: asn?.classification === "Content" || Boolean(tor?.exit_addresses),
-  }
+  };
 }

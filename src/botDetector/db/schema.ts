@@ -1,8 +1,9 @@
 import type { Database } from 'db0';
 import { uploadCsv } from '@sergo/utils/server';
-import { join } from 'path';
 import { isMySQL, isSQLite } from './dialectUtils.js';
 import type { Pool } from 'mysql2/promise';
+import type { Pool as PgPool } from 'pg';
+import { resolveDataPath } from './findDataPath.js';
 
 function visitorIdDefault(db: Database): string {
     if (isMySQL(db)) return 'NOT NULL DEFAULT (UUID())';
@@ -102,22 +103,23 @@ export async function createTables(db: Database): Promise<void> {
         await db.exec(createVisitorsTable);
         await db.exec(createBannedTable);
         await db.exec(userAgentMetadataSQL);
-
-        const csvPath = join(import.meta.dirname, 'useragent.csv');
+        
+        const csvPath = resolveDataPath('useragent.csv');
         if (isMySQL(db)) {
             const pool = await db.getInstance() as Pool;
             const up = await uploadCsv(csvPath, 'user_agent_metadata', pool, 'mysql');
             if (!up.ok) throw new Error(up.reason);
 
         } else if (db.dialect === 'postgresql') {
-            const client = await db.getInstance() as any;
+            const client = await db.getInstance() as PgPool;
             const pool = {
+                // eslint-disable-next-line @typescript-eslint/require-await
                 connect: async () => ({
-                    query: (sql: string, params?: any[]) => client.query(sql, params),
-                    release: () => {},
+                    query: (sql: string, params?: unknown[]) => client.query(sql, params),
+                    release: () => { /* empty */ },
                 }),
             };
-            const up = await uploadCsv(csvPath, 'user_agent_metadata', pool as any, 'pg');
+            const up = await uploadCsv(csvPath, 'user_agent_metadata', pool as PgPool, 'pg');
             if (!up.ok) throw new Error(up.reason);
         }
 

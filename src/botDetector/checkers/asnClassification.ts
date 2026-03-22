@@ -16,7 +16,7 @@ export class AsnClassificationChecker implements IBotChecker<BanReasonCode> {
         const reasons: BanReasonCode[] = [];
         let score = 0;
 
-        if (checkConfig.enable === false) return { score, reasons };
+        if (!checkConfig.enable) return { score, reasons };
         const { penalties } = checkConfig;
         const { classification, hits } = ctx.bgp;
 

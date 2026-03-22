@@ -4,8 +4,8 @@ import { getDb } from '../config/config.js';
 import { prep, onUpsert, excluded, now } from './dialectUtils.js';
 
 export async function updateVisitor(u: userValidation) {
-  const db = getDb()
-  const log = getLogger().child({service: 'BOT DETECTOR', branch: 'db', type: 'updateVisitors'})
+  const db = getDb();
+  const log = getLogger().child({service: 'BOT DETECTOR', branch: 'db', type: 'updateVisitors'});
   const {
     visitorId,
     cookie,
@@ -136,9 +136,9 @@ export async function updateVisitor(u: userValidation) {
          os = ${ex('os')}`
     ).run(...params);
 
-    log.info(`Updated visitors table, Visitor row for canary_id=${cookie} inserted/updated successfully.`)
+    log.info(`Updated visitors table, Visitor row for canary_id=${cookie ?? ''} inserted/updated successfully.`);
     return;
-  } catch (err: any) {
-    log.error({error: err},`ERROR UPDATING visitors TABLE`)
+  } catch (err: unknown) {
+    log.error({error: err},`ERROR UPDATING visitors TABLE`);
   }
 }

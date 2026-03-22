@@ -2,14 +2,11 @@ import { compiler } from '@riavzon/shield-base';
 import { getDb, getConfiguration } from '../config/config.js';
 import { getLogger } from '../utils/logger.js';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { BannedRecord, BannedRow, HighRiskRecord, HighRiskRow } from '../types/generator.js';
 import { prep, placeholders } from './dialectUtils.js';
+import { getLibraryRoot } from './findDataPath.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname  = path.dirname(__filename);
-const MMDB_DIR = path.resolve(__dirname, 'mmdb');
-
+const MMDB_DIR = path.resolve(getLibraryRoot(), '_data-sources');
 
 async function buildBannedMmdb(generateTypes: boolean, mmdbctlPath: string): Promise<void> {
     const log = getLogger().child({ service: 'BOT DETECTOR', branch: 'generator', db: 'banned' });
@@ -36,13 +33,13 @@ async function buildBannedMmdb(generateTypes: boolean, mmdbctlPath: string): Pro
     }));
 
     await compiler<BannedRecord>({ data, dataBaseName: 'banned', outputPath: MMDB_DIR, mmdbPath: mmdbctlPath, generateTypes });
-    log.info(`banned.mmdb compiled — ${data.length} entries`);
+    log.info(`banned.mmdb compiled — ${String(data.length)} entries`);
 
     if (getConfiguration().generator.deleteAfterBuild) {
         const compiled = rows.map(r => r.ip_address);
         const ph = placeholders(db, compiled.length);
         await prep(db, `DELETE FROM banned WHERE ip_address IN (${ph})`).run(...compiled);
-        log.info(`Deleted ${compiled.length} rows from banned after build`);
+        log.info(`Deleted ${(String(compiled.length))} rows from banned after build`);
     }
 }
 
@@ -63,7 +60,7 @@ async function buildHighRiskMmdb(scoreThreshold: number, generateTypes: boolean,
     ).all(scoreThreshold) as HighRiskRow[];
 
     if (rows.length === 0) {
-        log.info(`No high-risk visitors (score >= ${scoreThreshold}) — skipping highRisk.mmdb`);
+        log.info(`No high-risk visitors (score >= ${String(scoreThreshold)}) — skipping highRisk.mmdb`);
         return;
     }
 
@@ -87,7 +84,9 @@ async function buildHighRiskMmdb(scoreThreshold: number, generateTypes: boolean,
         deviceType: r.device_type,
         deviceVendor: r.deviceVendor,
         deviceModel: r.deviceModel,
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-conversion
         proxy: Boolean(r.proxy),
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-conversion
         hosting: Boolean(r.hosting),
         requestCount: r.request_count,
         firstSeen: r.first_seen ? r.first_seen.toISOString() : null,
@@ -96,7 +95,7 @@ async function buildHighRiskMmdb(scoreThreshold: number, generateTypes: boolean,
     }));
 
     await compiler<HighRiskRecord>({ data, dataBaseName: 'highRisk', outputPath: MMDB_DIR, mmdbPath: mmdbctlPath, generateTypes });
-    log.info(`highRisk.mmdb compiled — ${data.length} entries`);
+    log.info(`highRisk.mmdb compiled — ${String(data.length)} entries`);
 
     if (getConfiguration().generator.deleteAfterBuild) {
         const compiled = rows.map(r => r.ip_address);
@@ -105,7 +104,7 @@ async function buildHighRiskMmdb(scoreThreshold: number, generateTypes: boolean,
         await prep(db,
             `DELETE FROM visitors WHERE ip_address IN (${ph}) AND suspicious_activity_score >= ${scorePh}`
         ).run(...compiled, scoreThreshold);
-        log.info(`Deleted ${compiled.length} rows from visitors after build`);
+        log.info(`Deleted ${String(compiled.length)} rows from visitors after build`);
     }
 }
 

@@ -11,20 +11,20 @@ export class ProxyIspAndCookieChecker implements IBotChecker<BanReasonCode> {
     return config.checkers.enableProxyIspCookiesChecks.enable;
   }
 
-  async run(ctx: ValidationContext, config: BotDetectorConfig) {
+   run(ctx: ValidationContext, config: BotDetectorConfig) {
     const checkConfig = config.checkers.enableProxyIspCookiesChecks;
     const reasons: BanReasonCode[] = [];
     let score = 0;
 
-    if (checkConfig.enable === false) return { score, reasons };
+    if (!checkConfig.enable) return { score, reasons };
     const { penalties } = checkConfig;
 
-    const cookie = ctx.cookie || '';
+    const cookie = ctx.cookie ?? '';
     const proxy = ctx.proxy.isProxy;
-    const proxyType = ctx.proxy.proxyType || '';
-    const hosting = ctx.geoData.hosting || false;
-    const isp = ctx.geoData.isp || '';
-    const org = ctx.geoData.org || '';
+    const proxyType = ctx.proxy.proxyType ?? '';
+    const hosting = ctx.geoData.hosting ?? false;
+    const isp = ctx.geoData.isp ?? '';
+    const org = ctx.geoData.org ?? '';
 
     if (!cookie) {
       score += penalties.cookieMissing;

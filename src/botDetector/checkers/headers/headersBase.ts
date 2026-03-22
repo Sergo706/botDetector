@@ -1,12 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { Request } from "express";
 import { UAParser } from "ua-parser-js";
 import { getConfiguration } from "../../config/config.js";
 
 export class HeadersBase {
-    private readonly config = getConfiguration().headerOptions
+    private readonly config = getConfiguration().headerOptions;
 
     protected mustHaveHeadersChecker(req: Request) {
-        req.rawHeaders
         let score = 0;
         if (req.httpVersion === '1.0') return score += 40;
         if(!req.get('User-Agent')) score += this.config.weightPerMustHeader;
@@ -31,12 +31,12 @@ export class HeadersBase {
 
     protected async engineHeaders(req: Request) {
         let score = 0;
-        const ua = req.get('User-Agent')
-        const hints = req.headers as Record<string, string>
+        const ua = req.get('User-Agent');
+        const hints = req.headers as Record<string, string>;
         const { name } = await new UAParser(ua, hints).getEngine().withClientHints();
 
         if (!name) return score += this.config.missingBrowserEngine;
-        const headers = Object.keys(hints)
+        const headers = Object.keys(hints);
         const containsCh = headers.some(sec => sec.toLowerCase().startsWith('sec-ch-ua'));
         const containsTe = headers.some(te => te.toLowerCase() === 'te');
 

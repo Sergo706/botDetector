@@ -5,14 +5,14 @@ export class HeaderAnalysis extends HeadersBase {
     private readonly req: Request;
 
     constructor(req: Request) {
-        super()
+        super();
         this.req = req;
     }
 
     public async scoreHeaders() {
-        const missing = this.mustHaveHeadersChecker(this.req)
-        const engines = await this.engineHeaders(this.req)
-        const weird = this.weirdHeaders(this.req)
+        const missing = this.mustHaveHeadersChecker(this.req);
+        const engines = await this.engineHeaders(this.req);
+        const weird = this.weirdHeaders(this.req);
         return missing + engines + weird;
     }
 

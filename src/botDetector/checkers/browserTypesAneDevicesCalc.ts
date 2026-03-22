@@ -11,18 +11,18 @@ export class BrowserDetailsAndDeviceChecker implements IBotChecker<BanReasonCode
     return config.checkers.enableBrowserAndDeviceChecks.enable;
   }
 
-  async run(ctx: ValidationContext, config: BotDetectorConfig) {
+   run(ctx: ValidationContext, config: BotDetectorConfig) {
     const checkConfig = config.checkers.enableBrowserAndDeviceChecks;
     const reasons: BanReasonCode[] = [];
     let score = 0;
 
-    if (checkConfig.enable === false) return { score, reasons };
+    if (!checkConfig.enable) return { score, reasons };
     const penalties = checkConfig.penalties;
 
     const bType = ctx.parsedUA.browserType;
-    const bName = ctx.parsedUA.browser || "";
-    const bOS = ctx.parsedUA.os || "";
-    const dType = ctx.parsedUA.device || "desktop";
+    const bName = ctx.parsedUA.browser ?? "";
+    const bOS = ctx.parsedUA.os ?? "";
+    const dType = ctx.parsedUA.device ?? "desktop";
 
     if (bType === 'cli' || bType === 'library') {
         score += penalties.cliOrLibrary;

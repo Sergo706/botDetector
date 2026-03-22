@@ -1,6 +1,6 @@
-import { Response, request } from "express";
+import { Response } from "express";
 
-type cookies = {
+interface cookies {
     httpOnly: boolean,
     sameSite: boolean | "lax" | "strict" | "none";
     maxAge: number; 
@@ -8,7 +8,7 @@ type cookies = {
     expires?: Date;
     domain?: string;
     path?: string; 
-  };
+  }
 
 
 

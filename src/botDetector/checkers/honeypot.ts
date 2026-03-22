@@ -15,7 +15,7 @@ export class HoneypotChecker implements IBotChecker<BanReasonCode> {
         const checkConfig = config.checkers.honeypot;
         const reasons: BanReasonCode[] = [];
 
-        if (checkConfig.enable === false || checkConfig.paths.length === 0) {
+        if (!checkConfig.enable || checkConfig.paths.length === 0) {
             return { score: 0, reasons };
         }
 

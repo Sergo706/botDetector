@@ -2,7 +2,7 @@ import { getDb } from '../config/config.js';
 import { prep } from './dialectUtils.js';
 
 export async function warmUp() {
-const db = getDb()
+const db = getDb();
 await Promise.all(
   Array.from({ length: 10 }, () => db.sql`SELECT 1`)
 );

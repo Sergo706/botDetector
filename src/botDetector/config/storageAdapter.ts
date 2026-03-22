@@ -7,10 +7,12 @@ import type { CacheConfig } from '../types/storageTypes.js';
 export async function initStorage(config?: CacheConfig) {
 
     if (!config) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         return createStorage({ driver: memoryDriver() });
     }
 
     const { driver, ...opts } = config;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let mod: { default: (opts?: any) => Driver };
 
     switch (driver) {
@@ -40,6 +42,7 @@ export async function initStorage(config?: CacheConfig) {
             break;
         default:
             driver satisfies never;
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             throw new Error(`Unsupported storage driver: ${driver}`);
     }
 

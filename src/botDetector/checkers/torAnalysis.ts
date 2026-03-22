@@ -48,7 +48,8 @@ export class TorAnalysisChecker implements IBotChecker<BanReasonCode> {
         const reasons: BanReasonCode[] = [];
         let score = 0;
 
-        if (checkConfig.enable === false) return { score, reasons };
+        if (!checkConfig.enable) return { score, reasons };
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!ctx.tor || Object.keys(ctx.tor).length === 0) return { score, reasons };
 
         const { penalties } = checkConfig;
@@ -70,7 +71,7 @@ export class TorAnalysisChecker implements IBotChecker<BanReasonCode> {
             reasons.push('TOR_ACTIVE_NODE');
         }
 
-        const isExitNode = (exit_addresses && exit_addresses.length > 0) || flagSet.has('Exit');
+        const isExitNode = (exit_addresses && exit_addresses.length > 0) ?? flagSet.has('Exit');
         if (isExitNode) {
             score += penalties.exitNode + Math.ceil((exit_probability ?? 0) * 30);
             reasons.push('TOR_EXIT_NODE');

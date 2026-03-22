@@ -8,7 +8,7 @@ import { getLogger } from "@utils/logger.js";
 
 
 export class BatchQueue {
-    private jobs: Map<string, BatchJob> = new Map();
+    private jobs = new Map<string, BatchJob>();
     private timer: NodeJS.Timeout | null = null;
     private flushPromise: Promise<void> | null = null;
 
@@ -32,9 +32,7 @@ export class BatchQueue {
 
         if (priority === 'immediate' || this.jobs.size >= this.config.maxBufferSize) {
             await this.flush();
-        } else if (!this.timer) {
-            this.timer = setTimeout(() => this.flush(), this.config.flushIntervalMs);
-        }
+        } else this.timer ??= setTimeout(() => void this.flush(), this.config.flushIntervalMs);
     }
 
 
@@ -82,7 +80,7 @@ export class BatchQueue {
                 }
             }));
         } catch (err) {
-            this.log.error({err}, `Batch flush failed (Attempt ${retryCount + 1})`);
+            this.log.error({err}, `Batch flush failed (Attempt ${String(retryCount + 1)})`);
 
             if (retryCount < this.config.maxRetries) {
                 await new Promise(res => setTimeout(res, 1000));

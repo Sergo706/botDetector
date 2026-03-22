@@ -64,6 +64,6 @@ export function getLogger(): Logger {
      }
     },
   transport
-  )
+  );
   return logger;
 }

@@ -37,7 +37,7 @@ const query: InternalQuery = async (sql, params) => {
     exec: (sql) => query(sql),
     prepare: (sql) => new StatementWrapper(sql, query),
     dispose: async () => {
-      await _pool?.end?.();
+      await _pool?.end();
       _pool = undefined;
     },
   };
@@ -59,11 +59,8 @@ class StatementWrapper extends BoundableStatement<void> {
   }
 
   async run(...params: Primitive[]) {
-    const res = (await this.#query(this.#sql, params)) as mysql.RowDataPacket[];
-    return {
-      success: true,
-      ...res,
-    };
+    await this.#query(this.#sql, params);
+    return { success: true };
   }
 
   async get(...params: Primitive[]) {

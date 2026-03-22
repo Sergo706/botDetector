@@ -4,6 +4,7 @@ import type { DbConfig } from '../types/dbTypes.js';
 
 export async function initDb(config: DbConfig): Promise<Database> {
     const { driver, ...opts } = config;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let mod: { default: (opts?: any) => Connector };
 
     switch (driver) {
@@ -23,6 +24,7 @@ export async function initDb(config: DbConfig): Promise<Database> {
             mod = await import('db0/connectors/planetscale');
             break;
         default:
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             throw new Error(`Unsupported database driver: ${driver}`);
     }
 

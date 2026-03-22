@@ -12,14 +12,14 @@ export class LocaleMapChecker implements IBotChecker<BanReasonCode> {
     return config.checkers.localeMapsCheck.enable;
   }
 
-  async run(ctx: ValidationContext, config: BotDetectorConfig) {
+   run(ctx: ValidationContext, config: BotDetectorConfig) {
     const settings = config.checkers.localeMapsCheck;
     const reasons: BanReasonCode[] = [];
     let score = 0;
 
-    if (settings.enable === false) return { score, reasons };
+    if (!settings.enable) return { score, reasons };
 
-    const AccHeader = ctx.req.get('Accept-Language') || '';
+    const AccHeader = ctx.req.get('Accept-Language') ?? '';
     if (!AccHeader) {
       score += settings.penalties.missingHeader;
       if (score > 0) reasons.push('LOCALE_MISMATCH');
