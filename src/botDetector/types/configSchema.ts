@@ -95,7 +95,7 @@ export const configSchema = z.object({
         setNewComputedScore: z.boolean().default(false),
         whiteList: z.array(z.union([z.ipv4(), z.ipv6(), z.string()])).optional().default([]),
         checksTimeRateControl: z.object({
-              checkEveryReqest: z.boolean().default(true),
+              checkEveryRequest: z.boolean().default(true),
               checkEvery: z.number().default(1000 * 60 * 5),
         }).prefault({}),
 

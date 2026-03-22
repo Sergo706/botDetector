@@ -49,7 +49,7 @@ export function validator(
           return;
         }
         req.newVisitorId = cached.visitor_id;
-        if (!checksTimeRateControl.checkEveryReqest){
+        if (!checksTimeRateControl.checkEveryRequest){
         next(); return;
       }
       }

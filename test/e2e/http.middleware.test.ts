@@ -105,8 +105,8 @@ describe('visitor cache', () => {
 
     it('skips detection checks when checkEveryRequest is false and cache exists', async () => {
         const cfg = getConfiguration();
-        const savedCheckEvery = cfg.checksTimeRateControl.checkEveryReqest;
-        (cfg.checksTimeRateControl as any).checkEveryReqest = false;
+        const savedCheckEvery = cfg.checksTimeRateControl.checkEveryRequest;
+        (cfg.checksTimeRateControl as any).checkEveryRequest = false;
 
         try {
             const first = await request(app)
