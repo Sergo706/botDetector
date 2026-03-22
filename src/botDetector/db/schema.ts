@@ -1,9 +1,9 @@
 import type { Database } from 'db0';
 import { uploadCsv } from '@sergo/utils/server';
-import { join } from 'path';
 import { isMySQL, isSQLite } from './dialectUtils.js';
 import type { Pool } from 'mysql2/promise';
 import type { Pool as PgPool } from 'pg';
+import { resolveDataPath } from './findDataPath.js';
 
 function visitorIdDefault(db: Database): string {
     if (isMySQL(db)) return 'NOT NULL DEFAULT (UUID())';
@@ -103,8 +103,8 @@ export async function createTables(db: Database): Promise<void> {
         await db.exec(createVisitorsTable);
         await db.exec(createBannedTable);
         await db.exec(userAgentMetadataSQL);
-
-        const csvPath = join(import.meta.dirname, 'useragent.csv');
+        
+        const csvPath = resolveDataPath('useragent.csv');
         if (isMySQL(db)) {
             const pool = await db.getInstance() as Pool;
             const up = await uploadCsv(csvPath, 'user_agent_metadata', pool, 'mysql');

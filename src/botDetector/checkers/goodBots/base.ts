@@ -1,9 +1,8 @@
 import { dnsCache } from '@helpers/cache/dnsLookupCache.js';
-import suffix from '~~/src/botDetector/db/json/suffix.json' with { type: 'json' };
 import dns from 'node:dns/promises';
 import { getDataSources } from '../../config/config.js';
 import { getLogger } from '@utils/logger.js';
-import { Suffix } from '../../types/suffixes.js';
+import type { Suffix } from '../../types/suffixes.js';
 
 export class GoodBotsBase {
  private getDomains(suffix: Suffix): string[] {
@@ -24,14 +23,10 @@ export class GoodBotsBase {
         return allDomains;
   }
 
-  private suffixes: Suffix = suffix;
-  private domains = this.getDomains(this.suffixes).map(d => `.${d.toLowerCase()}`);
-
-  private _logger?: ReturnType<typeof getLogger>;
-  private get logger() {
-    this._logger ??= getLogger().child({ service: 'botDetector', branch: 'checker', type: 'GoodBotsBase' });
-    return this._logger;
-  }
+  private domains: string[];
+  constructor(protected suffixes: Suffix, protected logger: ReturnType<typeof getLogger>) { 
+        this.domains = this.getDomains(this.suffixes).map(d => `.${d.toLowerCase()}`);
+   }
 
   protected async isBotFromTrustedDomain(ip: string): Promise<boolean> {
         const cached = await dnsCache.get(ip);

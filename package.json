@@ -2,8 +2,8 @@
   "name": "@riavzon/bot-detector",
   "version": "1.0.0",
   "type": "module",
-  "main": "./dist/main.js",
-  "types": "./dist/main.d.ts",
+  "main": "./dist/main.cjs",
+  "types": "./dist/main.d.cts",
   "author": "Sergio contact@riavzon.com",
   "license": "MIT",
   "description": "Express middleware for multi layered bot detection. Runs a two-phase pipeline of 17 pluggable checkers (IP reputation, UA analysis, geo, TLS fingerprint, behavioral rate, Tor, ASN, Firehol threat feeds, and more) with a cumulative scoring system, pluggable cache, and multi DB support via.",
@@ -26,38 +26,47 @@
     "bot detector",
     "detect bots"
   ],
+  "bin": {
+    "bot-detector": "./dist/botDetector/cli/index.mjs"
+  },
   "files": [
-    "dist",
-    "README.md"
+    "dist"
   ],
   "exports": {
     ".": {
-      "types": "./dist/main.d.ts",
-      "import": "./dist/main.js",
-      "default": "./dist/main.js"
+      "import": {
+        "types": "./dist/main.d.mts",
+        "default": "./dist/main.mjs"
+      },
+      "require": {
+        "types": "./dist/main.d.cts",
+        "default": "./dist/main.cjs"
+      }
     }
   },
   "scripts": {
-    "update-data": "npx @riavzon/shield-base --refreshAll --path=src/botDetector/db/mmdb",
-    "build": "tsup",
+    "update-data": "npx @riavzon/shield-base --refreshAll --path=_data-sources",
+    "build": "tsdown",
     "lint": "eslint .",
     "build:tables": "node ./dist/botDetector/db/schema.js",
     "test:exs": "SKIP_STRESS=1 vitest run",
     "test": "vitest run --coverage",
-    "prepare": "npm run build && npm run update-data",
+    "prepare": "npm run build",
+    "postinstall": "bot-detector init",
+    "prepublishOnly": "npm run build",
     "docs:markdown": "typedoc --options ./typedoc.json"
   },
   "dependencies": {
     "@riavzon/shield-base": "^1.6.3",
     "@sergo/utils": "github:Sergo706/utils",
+    "citty": "^0.2.1",
+    "consola": "3.4.2",
     "db0": "0.3.4",
-    "eslint": "^10.1.0",
     "magic-regexp": "0.11.0",
+    "unstorage": "1.17.4",
     "maxmind": "5.0.5",
     "pino": "9.7.0",
-    "typescript-eslint": "^8.57.1",
     "ua-parser-js": "2.0.3",
-    "unstorage": "1.17.4",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
@@ -71,6 +80,7 @@
     }
   },
   "devDependencies": {
+    "@arethetypeswrong/core": "^0.18.2",
     "@planetscale/database": "^1.19.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/cookie-parser": "^1.4.8",
@@ -83,11 +93,14 @@
     "better-sqlite3": "^12.8.0",
     "mysql2": "^3.14.0",
     "pg": "^8.20.0",
+    "publint": "^0.3.18",
     "supertest": "^7.2.2",
-    "tsup": "^8.5.1",
+    "tsdown": "^0.21.4",
     "typedoc": "^0.28.9",
     "typedoc-plugin-markdown": "^4.8.0",
     "typescript": "^5.4.0",
+    "eslint": "^10.1.0",
+    "typescript-eslint": "^8.57.1",
     "vitest": "^4.1.0"
   }
 }

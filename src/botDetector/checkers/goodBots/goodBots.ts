@@ -1,12 +1,15 @@
-import suffix from '../../db/json/suffix.json' with { type: 'json' };
-import { IBotChecker } from "../../types/checkersTypes.js";
-import { ValidationContext } from "../../types/botDetectorTypes.js";
-import { BotDetectorConfig } from "../../types/configSchema.js";
+import fs from 'node:fs';
+import type { IBotChecker } from "../../types/checkersTypes.js";
+import type { ValidationContext } from "../../types/botDetectorTypes.js";
+import type { BotDetectorConfig } from "../../types/configSchema.js";
 import { CheckerRegistry } from "../CheckerRegistry.js";
 import { GoodBotsBase } from "./base.js";
-import { Suffix } from '../../types/suffixes.js';
+import type { Suffix } from '../../types/suffixes.js';
+import { getLogger } from '@utils/logger.js';
+import { resolveDataPath } from '@db/findDataPath.js';
 
-const suffixes: Suffix = suffix;
+const suffixPath = resolveDataPath('suffix.json');
+const suffixes = JSON.parse(fs.readFileSync(suffixPath, 'utf-8')) as Suffix;
 
 const userAgents: string[] = Object.values(suffixes)
   .flatMap((e) =>
@@ -17,6 +20,16 @@ const userAgents: string[] = Object.values(suffixes)
 export class GoodBotsChecker extends GoodBotsBase implements IBotChecker<'BAD_BOT_DETECTED' | 'GOOD_BOT_IDENTIFIED'> {
   name = 'Good/Bad Bot Verification';
   phase = 'cheap' as const;
+
+  constructor() {
+    const logger = getLogger().child({ 
+      service: 'botDetector', 
+      branch: 'checker', 
+      type: 'GoodBotsBase' 
+    });
+
+    super(suffixes, logger); 
+  }
 
   isEnabled(config: BotDetectorConfig): boolean {
     return config.checkers.enableGoodBotsChecks.enable;

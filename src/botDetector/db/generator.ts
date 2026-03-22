@@ -2,14 +2,11 @@ import { compiler } from '@riavzon/shield-base';
 import { getDb, getConfiguration } from '../config/config.js';
 import { getLogger } from '../utils/logger.js';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { BannedRecord, BannedRow, HighRiskRecord, HighRiskRow } from '../types/generator.js';
 import { prep, placeholders } from './dialectUtils.js';
+import { getLibraryRoot } from './findDataPath.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname  = path.dirname(__filename);
-const MMDB_DIR = path.resolve(__dirname, 'mmdb');
-
+const MMDB_DIR = path.resolve(getLibraryRoot(), '_data-sources');
 
 async function buildBannedMmdb(generateTypes: boolean, mmdbctlPath: string): Promise<void> {
     const log = getLogger().child({ service: 'BOT DETECTOR', branch: 'generator', db: 'banned' });

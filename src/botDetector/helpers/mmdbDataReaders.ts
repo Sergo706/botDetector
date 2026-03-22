@@ -1,12 +1,8 @@
 import maxmind, { Reader } from 'maxmind';
 import type { BgpRecord, CityGeoRecord, GeoRecord, TorRecord, ThreatRecord, CrawlersRecord, ProxyRecord } from '@riavzon/shield-base';
 import type { BannedRecord, HighRiskRecord } from '../types/generator.js';
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { resolveDataPath } from '@db/findDataPath.js';
 
 export type ThreatRecordModified = ThreatRecord & { network: string }
 
@@ -50,25 +46,24 @@ export class DataSources implements DataReaders {
   }
 
   public static async initialize(): Promise<DataSources> {
-    const basePath = path.resolve(__dirname, '..', 'db', 'mmdb');
     const options = { watchForUpdates: process.env.NODE_ENV !== 'test' };
-
+    
     const [asn, city, country, goodBots, tor, proxy, fireholAnon, fireholLvl1, fireholLvl2, fireholLvl3, fireholLvl4] = await Promise.all([
-      maxmind.open<BgpRecord & maxmind.Response>(path.join(basePath, 'asn.mmdb'), options),
-      maxmind.open<CityGeoRecord & maxmind.Response>(path.join(basePath, 'city.mmdb'), options),
-      maxmind.open<GeoRecord & maxmind.Response>(path.join(basePath, 'country.mmdb'), options),
-      maxmind.open<CrawlersRecord& maxmind.Response>(path.join(basePath, 'goodBots.mmdb'), options),
-      maxmind.open<TorRecord & maxmind.Response>(path.join(basePath, 'tor.mmdb'), options),
-      maxmind.open<ProxyRecord & maxmind.Response>(path.join(basePath, 'proxy.mmdb'), options),
-      maxmind.open<ThreatRecordModified & maxmind.Response>(path.join(basePath, 'firehol_anonymous.mmdb'), options),
-      maxmind.open<ThreatRecordModified & maxmind.Response>(path.join(basePath, 'firehol_l1.mmdb'), options),
-      maxmind.open<ThreatRecordModified & maxmind.Response>(path.join(basePath, 'firehol_l2.mmdb'), options),
-      maxmind.open<ThreatRecordModified & maxmind.Response>(path.join(basePath, 'firehol_l3.mmdb'), options),
-      maxmind.open<ThreatRecordModified & maxmind.Response>(path.join(basePath, 'firehol_l4.mmdb'), options),
+      maxmind.open<BgpRecord & maxmind.Response>(resolveDataPath('asn.mmdb'), options),
+      maxmind.open<CityGeoRecord & maxmind.Response>(resolveDataPath('city.mmdb'), options),
+      maxmind.open<GeoRecord & maxmind.Response>(resolveDataPath('country.mmdb'), options),
+      maxmind.open<CrawlersRecord& maxmind.Response>(resolveDataPath('goodBots.mmdb'), options),
+      maxmind.open<TorRecord & maxmind.Response>(resolveDataPath('tor.mmdb'), options),
+      maxmind.open<ProxyRecord & maxmind.Response>(resolveDataPath('proxy.mmdb'), options),
+      maxmind.open<ThreatRecordModified & maxmind.Response>(resolveDataPath('firehol_anonymous.mmdb'), options),
+      maxmind.open<ThreatRecordModified & maxmind.Response>(resolveDataPath('firehol_l1.mmdb'), options),
+      maxmind.open<ThreatRecordModified & maxmind.Response>(resolveDataPath('firehol_l2.mmdb'), options),
+      maxmind.open<ThreatRecordModified & maxmind.Response>(resolveDataPath('firehol_l3.mmdb'), options),
+      maxmind.open<ThreatRecordModified & maxmind.Response>(resolveDataPath('firehol_l4.mmdb'), options),
     ]);
 
-    const bannedPath   = path.join(basePath, 'banned.mmdb');
-    const highRiskPath = path.join(basePath, 'highRisk.mmdb');
+    const bannedPath = resolveDataPath('banned.mmdb');
+    const highRiskPath = resolveDataPath('highRisk.mmdb');
 
     const [banned, highRisk] = await Promise.all([
       existsSync(bannedPath) ? maxmind.open<BannedRecord & maxmind.Response>(bannedPath, options): Promise.resolve(undefined),
