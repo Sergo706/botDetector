@@ -52,12 +52,12 @@
     "test:exs": "SKIP_STRESS=1 vitest run",
     "test": "vitest run --coverage",
     "prepare": "npm run build",
-    "postinstall": "bot-detector init",
+    "postinstall": "npm run build && bot-detector init",
     "prepublishOnly": "npm run build",
     "docs:markdown": "typedoc --options ./typedoc.json"
   },
   "dependencies": {
-    "@riavzon/shield-base": "^1.6.3",
+    "@riavzon/shield-base": "^1.8.0",
     "@sergo/utils": "github:Sergo706/utils",
     "citty": "0.2.1",
     "consola": "3.4.2",

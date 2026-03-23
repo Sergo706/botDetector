@@ -28,7 +28,7 @@ export default defineConfig({
       enabled: true,
       reporter: ['html'],
       cleanOnRerun: true,
-      exclude: ['src/types/*.ts'],
+      exclude: ['src/types/*.ts', 'src/botDetector/cli/*.ts'],
       include: ['src/**/*.ts', 'src/types/configSchema.ts'],
     },
     watch: false,
