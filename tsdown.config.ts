@@ -20,10 +20,12 @@ export default defineConfig([
     clean: true,
     publint: {
       level: 'error',
+      enabled: 'ci-only',
       strict: true,
     },
     attw: {
       level: 'error',
+      enabled: 'ci-only'
     },
     copy: [
       { from: '_data-sources/**', to: 'dist/_data-sources', flatten: false }
