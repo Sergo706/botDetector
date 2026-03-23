@@ -46,7 +46,7 @@
   },
   "scripts": {
     "update-data": "npx @riavzon/shield-base --refreshAll --path=_data-sources",
-    "build": "tsdown",
+    "build": "npx tsdown",
     "lint": "eslint .",
     "build:tables": "node ./dist/botDetector/db/schema.js",
     "test:exs": "SKIP_STRESS=1 vitest run",
