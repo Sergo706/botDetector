@@ -1,4 +1,4 @@
-import { createConfigManager } from "@sergo/utils";
+import { createConfigManager } from "@riavzon/utils";
 import type { BotDetectorConfig as Configuration, BotDetectorConfigInput } from "../types/configSchema.js";
 import { configSchema } from "../types/configSchema.js";
 import { DataSources } from "../helpers/mmdbDataReaders.js";

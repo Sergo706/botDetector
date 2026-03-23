@@ -1,4 +1,4 @@
-import { defineStrictTSConfig } from '@sergo/utils/eslint/strict';
+import { defineStrictTSConfig } from '@riavzon/utils/eslint/strict';
 
 export default defineStrictTSConfig({
     rootDir: import.meta.dirname,

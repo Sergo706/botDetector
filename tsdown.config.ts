@@ -7,7 +7,7 @@ const shared = {
   sourcemap: true,
   minify: false,
   deps: {
-    onlyBundle: ['@sergo/utils', '@types/express-serve-static-core'],
+    onlyBundle: ['@types/express-serve-static-core'],
   },
 };
 

@@ -1,6 +1,6 @@
 import { excluded, insertIgnore, isMySQL, isSQLite, now, onConflictDoNothing, onUpsert, placeholders, prep } from "@db/dialectUtils.js";
 import { createTables } from "@db/schema.js";
-import { run } from "@sergo/utils/server";
+import { run } from "@riavzon/utils/server";
 import { randomUUID } from "crypto";
 import { Database } from "db0";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";

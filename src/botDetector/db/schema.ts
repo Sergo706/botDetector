@@ -1,5 +1,5 @@
 import type { Database } from 'db0';
-import { uploadCsv } from '@sergo/utils/server';
+import { uploadCsv } from '@riavzon/utils/server';
 import { isMySQL, isSQLite } from './dialectUtils.js';
 import type { Pool } from 'mysql2/promise';
 import type { Pool as PgPool } from 'pg';

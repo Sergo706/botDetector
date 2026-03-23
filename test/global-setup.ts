@@ -1,4 +1,4 @@
-import { run } from '@sergo/utils/server';
+import { run } from '@riavzon/utils/server';
 import mysql2 from 'mysql2/promise';
 import { createTables } from '../src/botDetector/db/schema.js';
 import { mysqlOpts, defaultSettings } from './config.js';

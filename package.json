@@ -45,8 +45,7 @@
     }
   },
   "scripts": {
-    "update-data": "npx @riavzon/shield-base --refreshAll --path=_data-sources",
-    "build": "npx tsdown",
+    "build": "tsdown",
     "lint": "eslint .",
     "build:tables": "node ./dist/botDetector/db/schema.js",
     "test:exs": "SKIP_STRESS=1 vitest run",
@@ -57,15 +56,15 @@
   },
   "dependencies": {
     "@riavzon/shield-base": "^1.8.0",
-    "@sergo/utils": "github:Sergo706/utils",
+    "@riavzon/utils": "^1.0.5",
     "citty": "0.2.1",
     "consola": "3.4.2",
     "db0": "0.3.4",
     "magic-regexp": "0.11.0",
-    "unstorage": "1.17.4",
     "maxmind": "5.0.5",
     "pino": "9.7.0",
     "ua-parser-js": "2.0.3",
+    "unstorage": "1.17.4",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
@@ -90,6 +89,7 @@
     "@types/supertest": "^7.2.0",
     "@vitest/coverage-v8": "^4.1.0",
     "better-sqlite3": "^12.8.0",
+    "eslint": "^10.1.0",
     "mysql2": "^3.14.0",
     "pg": "^8.20.0",
     "publint": "^0.3.18",
@@ -98,7 +98,6 @@
     "typedoc": "^0.28.9",
     "typedoc-plugin-markdown": "^4.8.0",
     "typescript": "^5.4.0",
-    "eslint": "^10.1.0",
     "typescript-eslint": "^8.57.1",
     "vitest": "^4.1.0"
   }
