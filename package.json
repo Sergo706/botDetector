@@ -52,7 +52,7 @@
     "test:exs": "SKIP_STRESS=1 vitest run",
     "test": "vitest run --coverage",
     "prepare": "npm run build",
-    "postinstall": "npm run build && bot-detector init",
+    "postinstall": "npm run build && node ./dist/index.mjs init",
     "prepublishOnly": "npm run build",
     "docs:markdown": "typedoc --options ./typedoc.json"
   },
