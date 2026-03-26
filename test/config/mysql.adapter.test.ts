@@ -42,11 +42,6 @@ describe('MySQL adapter', () => {
     await expect(createTables(db)).resolves.not.toThrow();
   });
 
-  it('user_agent_metadata was seeded with UA rows from CSV', async () => {
-    const row = await db.prepare('SELECT COUNT(*) AS n FROM user_agent_metadata').get() as any;
-    expect(Number(row.n)).toBeGreaterThan(0);
-  });
-
   it('INSERT and SELECT', async () => {
     const canaryId = `dbadapter-test-${randomUUID()}`;
     const visitorId = randomUUID();

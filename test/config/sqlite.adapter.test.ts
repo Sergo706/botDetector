@@ -40,8 +40,8 @@ describe('SQLite adapter', () => {
     expect(result.n).toBe(1);
   });
 
-  it('createTables() created visitors, banned, user_agent_metadata', async () => {
-    for (const table of ['visitors', 'banned', 'user_agent_metadata']) {
+  it('createTables() created visitors and banned', async () => {
+    for (const table of ['visitors', 'banned']) {
       const rows = await db.prepare(`SELECT 1 AS ok FROM ${table} LIMIT 0`).all() as any[];
       expect(Array.isArray(rows)).toBe(true);
     }

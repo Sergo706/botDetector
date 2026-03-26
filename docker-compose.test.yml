@@ -8,8 +8,6 @@ services:
       TZ: UTC
     ports:
       - "5433:5432"
-    volumes:
-      - ${PWD}/_data-sources/useragent.csv:${PWD}/_data-sources/useragent.csv:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U botdetector -d testdb"]
       interval: 2s

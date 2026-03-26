@@ -50,12 +50,12 @@
     "build:tables": "node ./dist/botDetector/db/schema.js",
     "test:exs": "SKIP_STRESS=1 vitest run",
     "test": "vitest run --coverage",
-    "postinstall": "npm run build",
+    "postinstall": "node ./dist/index.mjs init",
     "prepublishOnly": "npm run build",
     "docs:markdown": "typedoc --options ./typedoc.json"
   },
   "dependencies": {
-    "@riavzon/shield-base": "^1.8.0",
+    "@riavzon/shield-base": "^2.0.3",
     "@riavzon/utils": "^1.0.5",
     "citty": "0.2.1",
     "consola": "3.4.2",

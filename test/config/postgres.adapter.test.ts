@@ -39,7 +39,6 @@ describe('PostgreSQL adapter', () => {
   afterAll(async () => {
     await db.exec('DROP TABLE IF EXISTS banned CASCADE');
     await db.exec('DROP TABLE IF EXISTS visitors CASCADE');
-    await db.exec('DROP TABLE IF EXISTS user_agent_metadata CASCADE');
     await (db as any).dispose?.();
   });
 
@@ -59,16 +58,11 @@ describe('PostgreSQL adapter', () => {
     expect(result.rows[0].n).toBe(1);
   });
 
-  it('createTables() created visitors, banned, user_agent_metadata', async () => {
-    for (const table of ['visitors', 'banned', 'user_agent_metadata']) {
+  it('createTables() created visitors and banned', async () => {
+    for (const table of ['visitors', 'banned']) {
       const rows = await db.prepare(`SELECT 1 AS ok FROM ${table} LIMIT 0`).all() as any[];
       expect(Array.isArray(rows)).toBe(true);
     }
-  });
-
-  it('user_agent_metadata was seeded with UA rows from CSV', async () => {
-    const row = await db.prepare('SELECT COUNT(*) AS n FROM user_agent_metadata').get() as any;
-    expect(Number(row.n)).toBeGreaterThan(0);
   });
 
   it('INSERT and SELECT', async () => {

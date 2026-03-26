@@ -7,8 +7,8 @@ import { __ensureMmdbctl } from "@riavzon/shield-base/internal";
 
 export const cleanUp = defineCommand({
     meta: {
-        name: 'Clean up',
-        description: 'Perform a database clean up (based on your configurations in generator), and compile the banned and high risk visitors into an optimized binary'
+        name: 'generate',
+        description: 'Run the generator: reads banned and high-risk visitors from your database and compiles them into an optimized binary (based on your generator configuration)'
     },
 
     async run() {    

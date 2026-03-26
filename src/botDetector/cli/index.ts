@@ -14,7 +14,7 @@ export const main = defineCommand({
   subCommands: {
     init: startCommand,
     refresh: refreshData,
-    clean: cleanUp
+    generate: cleanUp
   },
 
 });

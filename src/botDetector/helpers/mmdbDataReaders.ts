@@ -1,5 +1,6 @@
 import maxmind, { Reader } from 'maxmind';
-import type { BgpRecord, CityGeoRecord, GeoRecord, TorRecord, ThreatRecord, CrawlersRecord, ProxyRecord } from '@riavzon/shield-base';
+import type { BgpRecord, CityGeoRecord, GeoRecord, TorRecord, ThreatRecord, CrawlersRecord, ProxyRecord, UserAgentRecord, JA4 } from '@riavzon/shield-base';
+import { getByKey } from '@riavzon/shield-base';
 import type { BannedRecord, HighRiskRecord } from '../types/generator.js';
 import { existsSync } from "node:fs";
 import { resolveDataPath } from '@db/findDataPath.js';
@@ -20,6 +21,8 @@ export interface DataReaders {
     fireholLvl4DataBase(ip: string): ThreatRecordModified | null;
     bannedDataBase(ip: string): BannedRecord | null;
     highRiskDataBase(ip: string): HighRiskRecord | null;
+    lmdbUserAgentDataBase(ua: string): UserAgentRecord | null;
+    lmdbJa4DataBase(fp: string): JA4 | null;
 }
 
 export interface AppReaders {
@@ -148,6 +151,24 @@ export class DataSources implements DataReaders {
 
   public highRiskDataBase(ip: string): HighRiskRecord | null {
     return this.readers.highRisk?.get(ip) ?? null;
+  }
+
+  public lmdbUserAgentDataBase(ua: string): UserAgentRecord | null {
+    try {
+      const dbPath = resolveDataPath('useragent-db/useragent.mdb');
+      return getByKey<UserAgentRecord>(dbPath, 'useragent', ua) ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  public lmdbJa4DataBase(fp: string): JA4 | null {
+    try {
+      const dbPath = resolveDataPath('ja4-db/ja4.mdb');
+      return getByKey<JA4>(dbPath, 'ja4', fp) ?? null;
+    } catch {
+      return null;
+    }
   }
 
 }

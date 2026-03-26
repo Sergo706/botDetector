@@ -44,11 +44,18 @@ describe('resolveDataPath', () => {
     expect(fs.existsSync(paths)).toBe(true);
   })
 
-  it('finds the csv file', () => {
-    const paths = resolveDataPath('useragent.csv')
+  it('finds the useragent lmdb directory', () => {
+    const paths = resolveDataPath('useragent-db/useragent.mdb')
     expect(path.isAbsolute(paths)).toBe(true);
     expect(paths).toContain('_data-sources');
     expect(fs.existsSync(paths)).toBe(true);
+  })
+
+  it('finds the ja4 lmdb directory', () => {
+    const p = resolveDataPath('ja4-db/ja4.mdb');
+    expect(path.isAbsolute(p)).toBe(true);
+    expect(p).toContain('_data-sources');
+    expect(fs.existsSync(p)).toBe(true);
   })
 
   it('throws with an informative message when the file does not exist', () => {

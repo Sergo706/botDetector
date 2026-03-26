@@ -2,40 +2,35 @@ import { BanReasonCode, IBotChecker } from '../types/checkersTypes.js';
 import { BotDetectorConfig } from '../types/configSchema.js';
 import { ValidationContext } from '../types/botDetectorTypes.js';
 import { CheckerRegistry } from './CheckerRegistry.js';
-import { getDb } from '../config/config.js';
+import { getRange, UserAgentRecord } from '@riavzon/shield-base';
+import { resolveDataPath } from '../db/findDataPath.js';
 
 
 export class BadUaChecker implements IBotChecker<BanReasonCode> {
   name = 'Bad User Agent list';
-  phase = 'heavy' as const;
+  phase = 'cheap' as const;
 
   private patterns: { rx: RegExp; severity: string }[] = [];
 
-  public async loadUaPatterns(): Promise<void> {
-      const db = getDb();
+  public loadUaPatterns(): void {
+      const dbPath = resolveDataPath('useragent-db/useragent.mdb');
+      const rows = getRange<UserAgentRecord>(dbPath, 'useragent', 10_000);
 
-      const sql = 
-        `SELECT http_user_agent, metadata_severity
-          FROM user_agent_metadata
-          WHERE metadata_severity IN ('low','medium','high','critical');`;
-
-      const rows = await db.prepare(sql).all() as { http_user_agent: string; metadata_severity: string }[];
-      
       console.log('Called loadUaPatterns');
-      this.patterns = (rows).map(r => {
-        const escaped = r.http_user_agent
-          .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-          .replace(/\\\*/g, '.*'); 
-        return { rx: new RegExp(`^${escaped}$`, 'i'), severity: r.metadata_severity };
-      });
-}
+      this.patterns = rows
+          .filter(({ data }) => data.metadata_severity !== 'none')
+          .map(({ data }) => ({
+              rx: new RegExp(data.useragent_rx, 'i'),
+              severity: data.metadata_severity,
+          }));
+  }
 
   isEnabled(config: BotDetectorConfig) {
     return config.checkers.knownBadUserAgents.enable;
   }
 
 
-  async run(ctx: ValidationContext, config: BotDetectorConfig) {
+  run(ctx: ValidationContext, config: BotDetectorConfig) {
     const { knownBadUserAgents } = config.checkers;
     const reasons: 'BAD_UA_DETECTED'[] = [];
     let score = 0;
@@ -43,7 +38,7 @@ export class BadUaChecker implements IBotChecker<BanReasonCode> {
     if (!knownBadUserAgents.enable) return { score, reasons };
 
     if (this.patterns.length === 0) {
-        await this.loadUaPatterns();
+        this.loadUaPatterns();
     }
     
     const rawUa = ctx.req.get('User-Agent') ?? '';

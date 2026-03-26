@@ -1,9 +1,5 @@
 import type { Database } from 'db0';
-import { uploadCsv } from '@riavzon/utils/server';
 import { isMySQL, isSQLite } from './dialectUtils.js';
-import type { Pool } from 'mysql2/promise';
-import type { Pool as PgPool } from 'pg';
-import { resolveDataPath } from './findDataPath.js';
 
 function visitorIdDefault(db: Database): string {
     if (isMySQL(db)) return 'NOT NULL DEFAULT (UUID())';
@@ -66,27 +62,6 @@ export async function createTables(db: Database): Promise<void> {
         ) ${tblOpts}
     `;
 
-    const userAgentMetadataSQL = `
-        CREATE TABLE IF NOT EXISTS user_agent_metadata (
-            http_user_agent VARCHAR(255) NOT NULL,
-            metadata_description TEXT,
-            metadata_tool VARCHAR(255) DEFAULT NULL,
-            metadata_category VARCHAR(255) DEFAULT NULL,
-            metadata_link TEXT,
-            metadata_priority VARCHAR(1000) DEFAULT NULL,
-            metadata_fp_risk VARCHAR(50) DEFAULT NULL,
-            metadata_severity VARCHAR(50) DEFAULT NULL,
-            metadata_usage VARCHAR(255) DEFAULT NULL,
-            metadata_flow_from_external VARCHAR(1000) DEFAULT NULL,
-            metadata_flow_from_internal VARCHAR(1000) DEFAULT NULL,
-            metadata_flow_to_internal VARCHAR(1000) DEFAULT NULL,
-            metadata_flow_to_external VARCHAR(1000) DEFAULT NULL,
-            metadata_for_successful_external_login_events VARCHAR(1000) DEFAULT NULL,
-            metadata_comment TEXT,
-            PRIMARY KEY (http_user_agent)
-        ) ${tblOpts}
-    `;
-
     const createBannedTable = `
         CREATE TABLE IF NOT EXISTS banned (
             canary_id VARCHAR(64) PRIMARY KEY,
@@ -102,26 +77,6 @@ export async function createTables(db: Database): Promise<void> {
     try {
         await db.exec(createVisitorsTable);
         await db.exec(createBannedTable);
-        await db.exec(userAgentMetadataSQL);
-        
-        const csvPath = resolveDataPath('useragent.csv');
-        if (isMySQL(db)) {
-            const pool = await db.getInstance() as Pool;
-            const up = await uploadCsv(csvPath, 'user_agent_metadata', pool, 'mysql');
-            if (!up.ok) throw new Error(up.reason);
-
-        } else if (db.dialect === 'postgresql') {
-            const client = await db.getInstance() as PgPool;
-            const pool = {
-                // eslint-disable-next-line @typescript-eslint/require-await
-                connect: async () => ({
-                    query: (sql: string, params?: unknown[]) => client.query(sql, params),
-                    release: () => { /* empty */ },
-                }),
-            };
-            const up = await uploadCsv(csvPath, 'user_agent_metadata', pool as PgPool, 'pg');
-            if (!up.ok) throw new Error(up.reason);
-        }
 
         console.log('Tables created successfully.');
     } catch (error) {
