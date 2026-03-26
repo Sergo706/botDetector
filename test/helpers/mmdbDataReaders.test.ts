@@ -125,18 +125,18 @@ describe('mmdbDataReaders, DataSources', () => {
     });
 
     describe('lmdbUserAgentDataBase', () => {
-        it('returns null for an unknown UA string', () => {
-            const record = getDataSources().lmdbUserAgentDataBase('completely-unknown-ua-xyz-123');
-            expect(record).toBeNull();
+        it('returns undefined for an unknown UA string', () => {
+            const record = getDataSources().getUserAgentLmdb().get('completely-unknown-ua-xyz-123');
+            expect(record).toBeUndefined();
         });
 
         it('returns a record for a known malicious UA key', () => {
-            const record = getDataSources().lmdbUserAgentDataBase('*DecoyLoader*');
-            expect(record).not.toBeNull();
+            const record = getDataSources().getUserAgentLmdb().get('*DecoyLoader*');
+            expect(record).not.toBeUndefined();
         });
 
         it('returned record has the expected metadata fields', () => {
-            const record = getDataSources().lmdbUserAgentDataBase('*DecoyLoader*');
+            const record = getDataSources().getUserAgentLmdb().get('*DecoyLoader*');
             expect(record!.metadata_tool).toBe('DecoyLoader');
             expect(record!.metadata_category).toBe('Malware');
             expect(record!.metadata_severity).toBe('high');
@@ -147,24 +147,24 @@ describe('mmdbDataReaders, DataSources', () => {
         it('does not throw for arbitrary input strings', () => {
             const inputs = ['', 'Mozilla/5.0', ';;;', '\x00\xff'];
             for (const input of inputs) {
-                expect(() => getDataSources().lmdbUserAgentDataBase(input)).not.toThrow();
+                expect(() => getDataSources().getUserAgentLmdb().get(input)).not.toThrow();
             }
         });
     });
 
     describe('lmdbJa4DataBase', () => {
-        it('returns null for an unknown fingerprint', () => {
-            const record = getDataSources().lmdbJa4DataBase('nonexistent_fp_zzz');
-            expect(record).toBeNull();
+        it('returns undefined for an unknown fingerprint', () => {
+            const record = getDataSources().getJa4Lmdb().get('nonexistent_fp_zzz');
+            expect(record).toBeUndefined();
         });
 
         it('returns a record for a known JA4T fingerprint', () => {
-            const record = getDataSources().lmdbJa4DataBase('1024_2_1460_00');
-            expect(record).not.toBeNull();
+            const record = getDataSources().getJa4Lmdb().get('1024_2_1460_00');
+            expect(record).not.toBeUndefined();
         });
 
         it('returned record identifies Nmap with expected fields', () => {
-            const record = getDataSources().lmdbJa4DataBase('1024_2_1460_00');
+            const record = getDataSources().getJa4Lmdb().get('1024_2_1460_00');
             expect(record!.application).toBe('Nmap');
             expect(record!.verified).toBe(true);
             expect(record!.ja4t_fingerprint).toBe('1024_2_1460_00');
@@ -173,7 +173,7 @@ describe('mmdbDataReaders, DataSources', () => {
         it('does not throw for arbitrary input strings', () => {
             const inputs = ['', 'not_a_fp', ';;;', 'a_b_c_d'];
             for (const input of inputs) {
-                expect(() => getDataSources().lmdbJa4DataBase(input)).not.toThrow();
+                expect(() => getDataSources().getJa4Lmdb().get(input)).not.toThrow();
             }
         });
     });

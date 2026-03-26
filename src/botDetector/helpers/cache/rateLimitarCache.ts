@@ -6,7 +6,7 @@ export interface CachedResult {
   request_count: number;
 }
 
-const RATE_TTL_SECONDS = 60 * 2;
+const RATE_TTL_SECONDS_FALLBACK = 60 * 2;
 const PREFIX = 'rate:';
 
 export const rateCache = {
@@ -14,8 +14,8 @@ export const rateCache = {
     return getStorage().getItem<CachedResult>(`${PREFIX}${cookie}`);
   },
 
-  async set(cookie: string, entry: CachedResult): Promise<void> {
-    await getStorage().setItem(`${PREFIX}${cookie}`, entry, { ttl: RATE_TTL_SECONDS });
+  async set(cookie: string, entry: CachedResult, ttlSeconds?: number): Promise<void> {
+    await getStorage().setItem(`${PREFIX}${cookie}`, entry, { ttl: ttlSeconds ?? RATE_TTL_SECONDS_FALLBACK });
   },
 
   async delete(cookie: string): Promise<void> {

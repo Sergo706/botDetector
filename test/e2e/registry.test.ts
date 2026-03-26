@@ -12,18 +12,18 @@ beforeAll(async () => {
 
 describe('CheckerRegistry', () => {
     describe('phase distribution', () => {
-        it('registers at least 11 cheap phase checkers', () => {
+        it('registers at least 10 cheap phase checkers', () => {
             const cheap = CheckerRegistry.getEnabled('cheap', getConfiguration());
-            expect(cheap.length).toBe(11);
+            expect(cheap.length).toBe(10);
         });
 
-        it('registers at least 6 heavy phase checkers', () => {
+        it('registers at least 7 heavy phase checkers', () => {
             const heavy = CheckerRegistry.getEnabled('heavy', getConfiguration());
-            expect(heavy.length).toBe(6);
+            expect(heavy.length).toBe(7);
         });
 
-        it('Bad User Agent list is in the cheap phase', () => {
-            const names = CheckerRegistry.getEnabled('cheap', getConfiguration()).map(c => c.name);
+        it('Bad User Agent list is in the heavy phase', () => {
+            const names = CheckerRegistry.getEnabled('heavy', getConfiguration()).map(c => c.name);
             expect(names).toContain('Bad User Agent list');
         });
 

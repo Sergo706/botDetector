@@ -85,10 +85,10 @@ export async function uaAndGeoBotDetector(
   } catch (error) {
     if (error instanceof BadBotDetected) {
       const bannedInfo = { score: BAN_THRESHOLD, reasons: Array.from(reasons) };
-      await Promise.all([
-        banIp(ipAddress, bannedInfo),
-        getBatchQueue().addQueue(cookie ?? '', ipAddress, 'update_banned_ip', { cookie: cookie ?? '', ipAddress, country: ctx.geoData.country ?? '', user_agent: uaString, info: bannedInfo }, 'immediate'),
-      ]);
+
+      void banIp(ipAddress, bannedInfo);
+      void getBatchQueue().addQueue(cookie ?? '', ipAddress, 'update_banned_ip', { cookie: cookie ?? '', ipAddress, country: ctx.geoData.country ?? '', user_agent: uaString, info: bannedInfo }, 'deferred');
+
       void getBatchQueue().addQueue(cookie ?? '', ipAddress, 'is_bot_update', { isBot: true, cookie: cookie ?? '' }, 'deferred');
       return true;
     }
@@ -102,10 +102,10 @@ export async function uaAndGeoBotDetector(
   if (botScore >= BAN_THRESHOLD) {
     log.info(`Starting Ban for ${ipAddress} ${userAgent}`);
     const bannedInfo = { score: botScore, reasons: Array.from(reasons) };
-    await Promise.all([
-      banIp(ipAddress, bannedInfo),
-      getBatchQueue().addQueue(cookie ?? '', ipAddress, 'update_banned_ip', { cookie: cookie ?? '', ipAddress, country: ctx.geoData.country ?? '', user_agent: uaString, info: bannedInfo }, 'immediate'),
-    ]);
+
+    void banIp(ipAddress, bannedInfo);
+    void getBatchQueue().addQueue(cookie ?? '', ipAddress, 'update_banned_ip', { cookie: cookie ?? '', ipAddress, country: ctx.geoData.country ?? '', user_agent: uaString, info: bannedInfo }, 'deferred');
+
     void getBatchQueue().addQueue(cookie ?? '', ipAddress, 'is_bot_update', { isBot: true, cookie: cookie ?? '' }, 'deferred');
     return true;
   }

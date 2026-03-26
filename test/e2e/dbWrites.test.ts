@@ -45,7 +45,7 @@ describe('db writes cheap phase score ban, CLI/library UA', () => {
         const req = makeReq({ ua: 'curl/7.0', cookie });
         const result = await uaAndGeoBotDetector(req, BOT_IP, 'curl/7.0', cleanUSGeo, cliUA);
         expect(result).toBe(true);
-
+        await getBatchQueue().flush();
         const banned = await getBanned(cookie);
         expect(banned).not.toBeNull();
         expect(banned.canary_id).toBe(cookie);
@@ -59,7 +59,7 @@ describe('db writes cheap phase score ban, CLI/library UA', () => {
 
         const req = makeReq({ ua: 'curl/7.0', cookie });
         await uaAndGeoBotDetector(req, BOT_IP, 'curl/7.0', cleanUSGeo, cliUA);
-
+        await getBatchQueue().flush();
         const banned = await getBanned(cookie);
         expect(banned).not.toBeNull();
         const reasons = JSON.parse(banned.reason);
@@ -96,7 +96,8 @@ describe('db writes score-based ban, banned country', () => {
             req, BOT_IP, req.get('user-agent') || '', bannedCountryGeo, cleanBrowserUA,
         );
         expect(result).toBe(true);
-
+        await getBatchQueue().flush();
+        
         const banned = await getBanned(cookie);
         expect(banned).not.toBeNull();
         expect(banned.canary_id).toBe(cookie);

@@ -5,6 +5,7 @@ import { randomBytes, randomUUID } from "crypto";
 import parseUA from '../helpers/UAparser.js';
 import { uaAndGeoBotDetector } from '../../botDetector.js';
 import { visitorCache } from '../helpers/cache/cannaryCache.js';
+import { rateCache } from '../helpers/cache/rateLimitarCache.js';
 import { userReputation } from '../helpers/reputation.js';
 import { getLogger } from '../utils/logger.js';
 import type { userValidation } from '../types/fingerPrint.js';
@@ -95,7 +96,7 @@ export function validator(
       ...geo,
     } as userValidation;
 
-  await getBatchQueue().addQueue(canary, ip, 'visitor_upsert', { insert: userValidation }, 'immediate');
+  void getBatchQueue().addQueue(canary, ip, 'visitor_upsert', { insert: userValidation }, 'deferred');
   req.newVisitorId = visitorId;
 
     if (whiteList) {
@@ -115,6 +116,16 @@ export function validator(
 
       next(); return;
     };
+
+  const brvConfig = getConfiguration().checkers.enableBehaviorRateCheck;
+  if (brvConfig.enable) {
+    const existing = await rateCache.get(canary);
+    if (!existing) {
+      const ttlSeconds = Math.ceil(brvConfig.behavioral_window / 1000);
+      rateCache.set(canary, { score: 0, timestamp: Date.now(), request_count: 1 }, ttlSeconds)
+        .catch((err: unknown) => { log.error({ err }, 'Failed to pre seed rateCache'); });
+    }
+  }
 
   const isBot = await uaAndGeoBotDetector(req, ip, ua, geo, parsedUA, buildCustomContext);
 

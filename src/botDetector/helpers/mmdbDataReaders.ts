@@ -1,6 +1,6 @@
 import maxmind, { Reader } from 'maxmind';
+import { open, type RootDatabase } from 'lmdb';
 import type { BgpRecord, CityGeoRecord, GeoRecord, TorRecord, ThreatRecord, CrawlersRecord, ProxyRecord, UserAgentRecord, JA4 } from '@riavzon/shield-base';
-import { getByKey } from '@riavzon/shield-base';
 import type { BannedRecord, HighRiskRecord } from '../types/generator.js';
 import { existsSync } from "node:fs";
 import { resolveDataPath } from '@db/findDataPath.js';
@@ -21,8 +21,8 @@ export interface DataReaders {
     fireholLvl4DataBase(ip: string): ThreatRecordModified | null;
     bannedDataBase(ip: string): BannedRecord | null;
     highRiskDataBase(ip: string): HighRiskRecord | null;
-    lmdbUserAgentDataBase(ua: string): UserAgentRecord | null;
-    lmdbJa4DataBase(fp: string): JA4 | null;
+    getUserAgentLmdb(): RootDatabase<UserAgentRecord, string>;
+    getJa4Lmdb(): RootDatabase<JA4, string>;
 }
 
 export interface AppReaders {
@@ -39,6 +39,8 @@ export interface AppReaders {
     fireholLvl4: Reader<ThreatRecordModified & maxmind.Response>;
     banned?: Reader<BannedRecord & maxmind.Response>;
     highRisk?: Reader<HighRiskRecord & maxmind.Response>;
+    userAgentLmdb: RootDatabase<UserAgentRecord, string>;
+    ja4Lmdb: RootDatabase<JA4, string>;
 }
 
 
@@ -73,6 +75,36 @@ export class DataSources implements DataReaders {
       existsSync(highRiskPath) ? maxmind.open<HighRiskRecord & maxmind.Response>(highRiskPath, options): Promise.resolve(undefined),
     ]);
 
+    const userAgentLmdb = open<UserAgentRecord, string>({
+      path: resolveDataPath('useragent-db/useragent.mdb'),
+      name: 'useragent',
+      compression: true,
+      readOnly: true,
+      useVersions: true,
+      sharedStructuresKey: Symbol.for('structures'),
+      pageSize: 4096,
+      cache: {
+          validated: true
+      },
+      noReadAhead: true,
+      maxReaders: 2024,
+    });
+
+    const ja4Lmdb = open<JA4, string>({
+      path: resolveDataPath('ja4-db/ja4.mdb'),
+      name: 'ja4',
+      compression: true,
+      readOnly: true,
+      useVersions: true,
+      sharedStructuresKey: Symbol.for('structures'),
+      pageSize: 4096,
+      cache: {
+          validated: true
+      },
+      noReadAhead: true,
+      maxReaders: 2024,
+    });
+
     return new DataSources({
        asn,
        city,
@@ -87,6 +119,8 @@ export class DataSources implements DataReaders {
        fireholLvl4,
        banned,
        highRisk,
+       userAgentLmdb,
+       ja4Lmdb,
     });
   }
     
@@ -153,22 +187,12 @@ export class DataSources implements DataReaders {
     return this.readers.highRisk?.get(ip) ?? null;
   }
 
-  public lmdbUserAgentDataBase(ua: string): UserAgentRecord | null {
-    try {
-      const dbPath = resolveDataPath('useragent-db/useragent.mdb');
-      return getByKey<UserAgentRecord>(dbPath, 'useragent', ua) ?? null;
-    } catch {
-      return null;
-    }
+  public getUserAgentLmdb(): RootDatabase<UserAgentRecord, string> {
+    return this.readers.userAgentLmdb;
   }
 
-  public lmdbJa4DataBase(fp: string): JA4 | null {
-    try {
-      const dbPath = resolveDataPath('ja4-db/ja4.mdb');
-      return getByKey<JA4>(dbPath, 'ja4', fp) ?? null;
-    } catch {
-      return null;
-    }
+  public getJa4Lmdb(): RootDatabase<JA4, string> {
+    return this.readers.ja4Lmdb;
   }
 
 }

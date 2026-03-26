@@ -36,57 +36,61 @@ export class BatchQueue {
     }
 
 
-    public async flush(retryCount = 0): Promise<void> {
-        if (this.flushPromise) {
-            await this.flushPromise;
-            if (this.jobs.size > 0) return this.flush(retryCount);
-            return;
+    public async flush(): Promise<void> {
+        while (this.flushPromise || this.jobs.size > 0) {
+            if (this.flushPromise) {
+                await this.flushPromise;
+            }
+            if (this.jobs.size > 0) {
+                if (this.timer) {
+                    clearTimeout(this.timer);
+                    this.timer = null;
+                }
+                const currentBatch = Array.from(this.jobs.values());
+                this.jobs.clear();
+                this.flushPromise = this.executeBatch(currentBatch, 0);
+                try {
+                    await this.flushPromise;
+                } finally {
+                    this.flushPromise = null;
+                }
+            }
         }
-        if (this.timer) {
-            clearTimeout(this.timer);
-            this.timer = null;
-        }
-        if (this.jobs.size === 0) return;
+    }
 
-        const currentBatch = Array.from(this.jobs.values());
-        this.jobs.clear();
-
-        this.flushPromise = this.executeBatch(currentBatch, retryCount);
-        try {
-            await this.flushPromise;
-        } finally {
-            this.flushPromise = null;
+    private runJob(job: BatchJob): Promise<void> {
+        switch (job.type) {
+            case 'visitor_upsert':
+                return updateVisitor((job.params as OpParams['visitor_upsert']).insert);
+            case 'score_update': {
+                const {score, cookie} = job.params as OpParams['score_update'];
+                return updateScore(score, cookie);
+            }
+            case 'is_bot_update': {
+                const {isBot, cookie} = job.params as OpParams['is_bot_update'];
+                return updateIsBot(isBot, cookie);
+            }
+            case 'update_banned_ip': {
+                const {cookie, ipAddress, country, user_agent, info} = job.params as OpParams['update_banned_ip'];
+                return updateBannedIP(cookie, ipAddress, country, user_agent, info);
+            }
         }
     }
 
     private async executeBatch(batch: BatchJob[], retryCount: number): Promise<void> {
         try {
-            await Promise.all(batch.map(job => {
-                switch (job.type) {
-                    case 'visitor_upsert':
-                        return updateVisitor((job.params as OpParams['visitor_upsert']).insert);
-                    case 'score_update': {
-                        const {score, cookie} = job.params as OpParams['score_update'];
-                        return updateScore(score, cookie);
-                    }
-                    case 'is_bot_update': {
-                        const {isBot, cookie} = job.params as OpParams['is_bot_update'];
-                        return updateIsBot(isBot, cookie);
-                    }
-                    case 'update_banned_ip': {
-                        const {cookie, ipAddress, country, user_agent, info} = job.params as OpParams['update_banned_ip'];
-                        return updateBannedIP(cookie, ipAddress, country, user_agent, info);
-                    }
-                }
-            }));
+            const visitors = batch.filter(j => j.type === 'visitor_upsert');
+            const others = batch.filter(j => j.type !== 'visitor_upsert');
+            if (visitors.length > 0) {
+                await Promise.all(visitors.map(j => this.runJob(j)));
+            }
+            await Promise.all(others.map(j => this.runJob(j)));
         } catch (err) {
             this.log.error({err}, `Batch flush failed (Attempt ${String(retryCount + 1)})`);
 
             if (retryCount < this.config.maxRetries) {
                 await new Promise(res => setTimeout(res, 1000));
-                batch.forEach(j => this.jobs.set(j.id, j));
-                this.flushPromise = null;
-                return this.flush(retryCount + 1);
+                return this.executeBatch(batch, retryCount + 1);
             }
             this.log.error("Max retries reached. Discarding batch.");
         }

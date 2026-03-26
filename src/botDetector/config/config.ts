@@ -7,6 +7,7 @@ import { initStorage } from "./storageAdapter.js";
 import type { Storage } from 'unstorage';
 import { initDb } from "./dbAdapter.js";
 import { type Database } from "db0";
+import { loadUaPatterns } from "../checkers/badUaChecker.js";
 
 
 const {
@@ -29,6 +30,7 @@ let globalDb: Database | undefined;
 export async function configuration(config: BotDetectorConfigInput): Promise<void> {
   const initDataSourcesTask = async () => {
     globalDataSources ??= await DataSources.initialize();
+    loadUaPatterns();
   };
 
   const initBatchQueueTask = () => {

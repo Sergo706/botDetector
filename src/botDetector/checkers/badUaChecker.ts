@@ -2,33 +2,42 @@ import { BanReasonCode, IBotChecker } from '../types/checkersTypes.js';
 import { BotDetectorConfig } from '../types/configSchema.js';
 import { ValidationContext } from '../types/botDetectorTypes.js';
 import { CheckerRegistry } from './CheckerRegistry.js';
-import { getRange, UserAgentRecord } from '@riavzon/shield-base';
-import { resolveDataPath } from '../db/findDataPath.js';
+import { getDataSources } from '../config/config.js';
 
+const SEVERITY_ORDER = ['critical', 'high', 'medium', 'low'] as const;
+type Severity = typeof SEVERITY_ORDER[number];
+let patterns: { rx: RegExp; severity: Severity }[] = [];
+
+export function loadUaPatterns(): void {
+    const db = getDataSources().getUserAgentLmdb();
+    const bucketStrings = new Map<Severity, string[]>(
+        SEVERITY_ORDER.map(sev => [sev, []])
+    );
+
+    for (const { value } of db.getRange({ limit: 10_000 })) {
+        const sev = value.metadata_severity as Severity;
+        bucketStrings.get(sev)?.push(value.useragent_rx);
+    }
+
+    patterns = SEVERITY_ORDER.map(severity => {
+        const patterns = bucketStrings.get(severity) ?? [];
+        if (patterns.length === 0) return null;
+        
+        const combined = patterns.map(p => `(?:${p})`).join('|');
+        return {
+            rx: new RegExp(combined, 'i'),
+            severity
+        };
+    }).filter((p): p is { rx: RegExp; severity: Severity } => p !== null);
+}
 
 export class BadUaChecker implements IBotChecker<BanReasonCode> {
   name = 'Bad User Agent list';
-  phase = 'cheap' as const;
-
-  private patterns: { rx: RegExp; severity: string }[] = [];
-
-  public loadUaPatterns(): void {
-      const dbPath = resolveDataPath('useragent-db/useragent.mdb');
-      const rows = getRange<UserAgentRecord>(dbPath, 'useragent', 10_000);
-
-      console.log('Called loadUaPatterns');
-      this.patterns = rows
-          .filter(({ data }) => data.metadata_severity !== 'none')
-          .map(({ data }) => ({
-              rx: new RegExp(data.useragent_rx, 'i'),
-              severity: data.metadata_severity,
-          }));
-  }
+  phase = 'heavy' as const;
 
   isEnabled(config: BotDetectorConfig) {
     return config.checkers.knownBadUserAgents.enable;
   }
-
 
   run(ctx: ValidationContext, config: BotDetectorConfig) {
     const { knownBadUserAgents } = config.checkers;
@@ -37,19 +46,18 @@ export class BadUaChecker implements IBotChecker<BanReasonCode> {
 
     if (!knownBadUserAgents.enable) return { score, reasons };
 
-    if (this.patterns.length === 0) {
-        this.loadUaPatterns();
+    if (patterns.length === 0) {
+        loadUaPatterns();
     }
-    
+
     const rawUa = ctx.req.get('User-Agent') ?? '';
-    for (const { rx, severity } of this.patterns) {
+    for (const { rx, severity } of patterns) {
       if (rx.test(rawUa)) {
         reasons.push('BAD_UA_DETECTED');
-        
-        switch(severity) {
+        switch (severity) {
           case 'critical': score += knownBadUserAgents.penalties.criticalSeverity; break;
           case 'high': score += knownBadUserAgents.penalties.highSeverity; break;
-          case 'medium': score += knownBadUserAgents.penalties.mediumSeverity; break; 
+          case 'medium': score += knownBadUserAgents.penalties.mediumSeverity; break;
           case 'low': score += knownBadUserAgents.penalties.lowSeverity; break;
         }
         break;
