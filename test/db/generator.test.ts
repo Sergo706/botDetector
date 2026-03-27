@@ -6,7 +6,6 @@ import { prep } from '~~/src/botDetector/db/dialectUtils.js';
 import { seedBannedRow, deleteBanned, seedVisitorWithReputation, deleteVisitor } from '../test-utils/database-utils.js';
 import { BANNED_ROWS, BANNED_IPS, HIGH_RISK_IPS, HIGH_RISK_SCORES } from '../test-utils/mmdb-seed.js';
 import { defaultSettings } from '../config.js';
-import { sleep } from '../test-utils/test-utils.js';
 
 
 
@@ -15,7 +14,6 @@ const BELOW_THRESHOLD_COOKIE = 'gen-test-below-' + Date.now();
 const BELOW_THRESHOLD_IP = '203.0.113.210';
 const BELOW_THRESHOLD_SCORE = 30;
 let fresh: DataSources;
-const isCi = Boolean(process.env.ci);
 
 beforeAll(async () => {
     const db = getDb();
@@ -140,7 +138,7 @@ describe('Generator deleteAfterBuild', () => {
         await configuration(defaultSettings);
     });
 
-    it('banned rows are removed after generation when deleteAfterBuild=true', { skip: isCi }, async () => {
+    it('banned rows are removed after generation when deleteAfterBuild=true', async () => {
         await configuration({
             ...defaultSettings,
             generator: {
