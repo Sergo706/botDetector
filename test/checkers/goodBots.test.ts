@@ -2,6 +2,7 @@ import { it, describe, expect } from 'vitest';
 import { getConfiguration, getDataSources } from '~~/src/botDetector/config/config.js';
 import { GoodBotsChecker } from '@checkers/goodBots/goodBots.js';
 import { createMockContext } from '../test-utils/test-utils.js';
+import consola from 'consola';
 
 const checker = new GoodBotsChecker();
 
@@ -127,7 +128,7 @@ describe('GoodBotsChecker', () => {
                     return; 
                 }
             }
-            console.warn('No Googlebot IPs found in goodBots.mmdb');
+            consola.warn('No Googlebot IPs found in goodBots.mmdb');
         });
     });
 

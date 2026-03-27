@@ -1,3 +1,4 @@
+import consola from 'consola';
 import { getDb } from '../config/config.js';
 import { prep } from './dialectUtils.js';
 
@@ -14,5 +15,5 @@ await prep(db,
     LIMIT 1`
 ).get('00000000‑warm‑up‑row');
 
-console.info('botDetector is ready!');
+consola.info('botDetector is ready!');
 }

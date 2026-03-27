@@ -4,6 +4,7 @@ import { defineCommand, runMain } from 'citty';
 import { startCommand } from './commands/start.js';
 import { refreshData } from './commands/refresh.js';
 import { cleanUp } from './commands/cleanUp.js';
+import { makeTables } from './commands/makeTables.js';
 
 export const main = defineCommand({
   meta: {
@@ -14,8 +15,9 @@ export const main = defineCommand({
   subCommands: {
     init: startCommand,
     refresh: refreshData,
-    generate: cleanUp
+    generate: cleanUp,
+    'load-schema': makeTables
   },
-
 });
+
 await runMain(main);

@@ -12,6 +12,7 @@ import type { userValidation } from '../types/fingerPrint.js';
 import { getConfiguration, getBatchQueue } from '../config/config.js';
 import { isInWhiteList } from '../utils/whitelist.js';
 import { nowMysql } from '@utils/nowMysql.js';
+import consola from 'consola';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -146,7 +147,7 @@ export function validator(
     ipAddress: ip
    };
    
-   userReputation(canary).catch((err: unknown) => { console.error('[BOT DETECTION - MIDDLEWARE] userReputation failed:', err); });
+   userReputation(canary).catch((err: unknown) => { consola.error('[BOT DETECTION - MIDDLEWARE] userReputation failed:', err); });
 
   next();
   };

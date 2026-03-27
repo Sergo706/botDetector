@@ -1,3 +1,4 @@
+import consola from 'consola';
 import type { IBotChecker, BanReasonCode } from '../types/checkersTypes.js';
 import type { BotDetectorConfig } from '../types/configSchema.js';
 
@@ -5,7 +6,7 @@ let registeredCheckers: IBotChecker<BanReasonCode>[] = [];
 
 export const CheckerRegistry = {
   register(checker: IBotChecker<BanReasonCode>) {
-    console.log(`Loaded plugin: ${checker.name}`);
+    consola.log(`Loaded plugin: ${checker.name}`);
     registeredCheckers.push(checker);
   },
 

@@ -1,3 +1,4 @@
+import consola from 'consola';
 import { getStorage } from '~~/src/botDetector/config/config.js';
 
 export interface SessionEntry {
@@ -15,7 +16,7 @@ export const sessionCache = {
 
     if (data) {
       storage.setItem(key, data, { ttl: SESSION_TTL_SECONDS }).catch((err: unknown) => {
-        console.warn(`Failed to update session TTL for ${key}`, err);
+        consola.warn(`Failed to update session TTL for ${key}`, err);
       });
     }
 

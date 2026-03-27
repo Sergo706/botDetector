@@ -1,5 +1,6 @@
 import type { Database } from 'db0';
 import { isMySQL, isSQLite } from './dialectUtils.js';
+import consola from 'consola';
 
 function visitorIdDefault(db: Database): string {
     if (isMySQL(db)) return 'NOT NULL DEFAULT (UUID())';
@@ -78,9 +79,9 @@ export async function createTables(db: Database): Promise<void> {
         await db.exec(createVisitorsTable);
         await db.exec(createBannedTable);
 
-        console.log('Tables created successfully.');
+        consola.success('Tables created successfully.');
     } catch (error) {
-        console.error('Error creating tables:', error);
+        consola.error('Error creating tables:', error);
         throw error;
     }
 }
