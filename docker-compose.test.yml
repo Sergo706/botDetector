@@ -1,6 +1,6 @@
 services:
   postgres-test:
-    image: postgres:16-alpine
+    image: mirror.gcr.io/library/postgres:16-alpine
     environment:
       POSTGRES_DB: testdb
       POSTGRES_USER: botdetector
@@ -15,7 +15,7 @@ services:
       retries: 15
 
   mysql-test:
-    image: mysql:8
+    image: mirror.gcr.io/library/mysql:8
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
       MYSQL_DATABASE: testdb

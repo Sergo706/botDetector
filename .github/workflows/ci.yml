@@ -32,7 +32,33 @@ jobs:
           restore-keys: |
             lfs-${{ hashFiles('.gitattributes') }}-
 
-      - name: 'Install mmdbctl'
+      - name: Cache Docker images
+        id: docker-cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/docker-cache
+          key: docker-mysql-8
+
+      - name: Load Docker images
+        if: steps.docker-cache.outputs.cache-hit == 'true'
+        run: docker load < /tmp/docker-cache/mysql.tar
+
+      - name: Pull and save Docker images
+        if: steps.docker-cache.outputs.cache-hit != 'true'
+        run: |
+          docker pull mysql:8
+          mkdir -p /tmp/docker-cache
+          docker save mysql:8 > /tmp/docker-cache/mysql.tar
+
+      - name: Cache mmdbctl
+        id: mmdbctl-cache
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/mmdbctl
+          key: mmdbctl-1.4.9
+
+      - name: Install mmdbctl
+        if: steps.mmdbctl-cache.outputs.cache-hit != 'true'
         run: curl -Ls https://github.com/ipinfo/mmdbctl/releases/download/mmdbctl-1.4.9/deb.sh | sh
       
       - name: Dependencies
