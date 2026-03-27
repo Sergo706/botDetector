@@ -25,9 +25,6 @@ jobs:
       - name: 'Install mmdbctl'
         run: curl -Ls https://github.com/ipinfo/mmdbctl/releases/download/mmdbctl-1.4.9/deb.sh | sh
       
-      - name: Data sources
-        run: npx @riavzon/shield-base --all --parallel --contact="Riavzon - contact@riavzon.com" --path=./_data-sources
-
       - name: Dependencies
         run: npm ci
 

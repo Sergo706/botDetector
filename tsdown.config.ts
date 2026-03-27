@@ -29,7 +29,7 @@ export default defineConfig([
       enabled: 'ci-only'
     },
     copy: [
-      { from: '_data-sources/**', to: 'dist/_data-sources', flatten: false }
+      { from: '_data-sources/suffix.json', to: 'dist/_data-sources', flatten: false }
     ],
     failOnWarn: true,
   },

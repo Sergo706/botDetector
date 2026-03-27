@@ -3,7 +3,5 @@ build/Release
 node_modules/
 dist/
 docs/
-*.mmdb
 coverage/
-_data-sources/*-db
 bot-detector-logs/
