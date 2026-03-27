@@ -64,7 +64,7 @@
     "maxmind": "5.0.5",
     "pino": "9.7.0",
     "ua-parser-js": "2.0.3",
-    "unstorage": "1.17.4",
+    "unstorage": "1.17.5",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
