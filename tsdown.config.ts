@@ -1,6 +1,6 @@
-import { defineConfig } from 'tsdown'
+import { defineConfig, type UserConfig } from 'tsdown'
 
-const shared = {
+const shared: UserConfig = {
   target: 'node18',
   tsconfig: 'tsconfig.build.json',
   treeshake: true,
@@ -8,6 +8,7 @@ const shared = {
   minify: false,
   deps: {
     onlyBundle: ['@types/express-serve-static-core'],
+    neverBundle: 'lmdb'
   },
 };
 
