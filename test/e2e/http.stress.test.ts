@@ -3,7 +3,7 @@ import request from 'supertest';
 import { createApp } from './http-app.js';
 import { getBatchQueue } from '~~/src/botDetector/config/config.js';
 import { getBanned } from '../test-utils/database-utils.js';
-import { BROWSER_HEADERS, extractCanary } from '../test-utils/test-utils.js';
+import { BROWSER_HEADERS, extractCanary, sleep } from '../test-utils/test-utils.js';
 import { defaultSettings } from '../config.js';
 import { configuration } from '~~/src/botDetector/config/config.js';
 import { run } from '@riavzon/utils/server';
@@ -27,7 +27,7 @@ afterAll(async () => {
     await run('python3 scripts/benchmark.py')
 });
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 async function fireRequests(
     count: number,
     buildReq: (i: number) => request.Test,

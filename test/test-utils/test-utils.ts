@@ -152,7 +152,7 @@ export const BROWSER_HEADERS: Record<string, string> = {
     'Sec-Ch-Ua-Platform': '"Windows"',
 };
 
-
+export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export function extractCanary(res: { headers: Record<string, any> }): string {
     const raw = res.headers['set-cookie'];
     if (!raw) return '';

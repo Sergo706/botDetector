@@ -6,6 +6,7 @@ import { prep } from '~~/src/botDetector/db/dialectUtils.js';
 import { seedBannedRow, deleteBanned, seedVisitorWithReputation, deleteVisitor } from '../test-utils/database-utils.js';
 import { BANNED_ROWS, BANNED_IPS, HIGH_RISK_IPS, HIGH_RISK_SCORES } from '../test-utils/mmdb-seed.js';
 import { defaultSettings } from '../config.js';
+import { sleep } from '../test-utils/test-utils.js';
 
 
 
@@ -142,10 +143,14 @@ describe('Generator deleteAfterBuild', () => {
                 deleteAfterBuild: true
             }
         });
-        const deleteIp = '192.0.2.50';
+        const deleteIp = '192.12.2.50';
         await seedBannedRow(deleteIp, 'testland', 'Bot/1.0', '["FIREHOL_L1_THREAT"]', 40);
+        
+        const currentCfg = getConfiguration();
+        console.log('DEBUG: Config deleteAfterBuild is:', currentCfg.generator.deleteAfterBuild);
         await runGeneration();
 
+        await sleep(2000)
         const rows = await prep(getDb(), `SELECT ip_address FROM banned WHERE ip_address = ?`).all(deleteIp) as any[];
         expect(rows).toHaveLength(0);
     });
@@ -158,12 +163,15 @@ describe('Generator deleteAfterBuild', () => {
             }
         });
         
-        const deleteIp = '192.0.2.52';
+        const deleteIp = '192.1.2.52';
         const deleteCookie = 'gen-del-hr-' + Date.now();
         await seedVisitorWithReputation(deleteCookie, 0, 80, deleteIp);
 
+        const currentCfg = getConfiguration();
+        console.log('DEBUG: Config deleteAfterBuild is:', currentCfg.generator.deleteAfterBuild);
         await runGeneration();
 
+        await sleep(2000)
         const rows = await prep(getDb(), `SELECT ip_address FROM visitors WHERE ip_address = ?`).all(deleteIp) as any[];
         expect(rows).toHaveLength(0);
     });
