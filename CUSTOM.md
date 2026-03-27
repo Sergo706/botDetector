@@ -80,91 +80,139 @@ Prefer `cheap` for anything that does not require I/O. All MMDB lookups (geo, AS
 The `ValidationContext` object contains everything the pipeline resolves before your checker runs. All fields are pre-populated; your checker only reads them.
 
 ```ts
-ctx.req          // Express Request — full access to headers, path, cookies, method
-ctx.ipAddress    // string: the resolved client IP
-ctx.cookie       // string | undefined: canary_id cookie value (visitor identifier)
+ctx.req       // Express Request — full access to headers, path, cookies, method
+ctx.ipAddress // string: the resolved client IP
+ctx.cookie    // string | undefined: canary_id cookie value (visitor identifier)
 ```
 
 ### Geo and IP Intelligence
 
-All fields come from MMDB databases loaded at startup. They are already resolved before any checker runs.
+All fields are sourced from three MMDB databases merged at request time: `country.mmdb` (country-level), `city.mmdb` (city-level), `asn.mmdb` (BGP/network), and `proxy.mmdb`. City-level data takes precedence where both exist. All string values are normalized to lowercase.
 
 ```ts
-ctx.geoData                // Partial<GeoResponse>
-  .country                 //   "united states"
-  .countryCode             //   "US"
-  .city                    //   "new york"
-  .region                  //   "ny"
-  .timezone                //   "america/new_york"
-  .utc_offset              //   "-05:00"
-  .isp                     //   ASN name ("cloudflare, inc.")
-  .org                     //   ASN ID  ("AS13335")
-  .proxy                   //   boolean, matched in proxy.mmdb
-  .hosting                 //   boolean, ASN classified as Content or confirmed Tor exit node
+ctx.geoData     // Partial<GeoResponse> — all fields optional
+  .country      //   country name, "united states"
+  .countryCode  //   ISO 3166-1 alpha-2, "us"
+  .continent    //   "north america"  (city.mmdb only)
+  .region       //   region/province code, "ny"
+  .regionName   //   continent ?? subregion fallback
+  .subregion    //   "northern america"
+  .state        //   "new york"
+  .city         //   "new york city"
+  .capital      //   country capital, "washington d.c."
+  .district     //   mirrors .state (city.mmdb state field)
+  .zipCode      //   postal code, "10001"
+  .lat          //   latitude string, "40.7128"
+  .lon          //   longitude string, "-74.0059"
+  .timezone     //   IANA timezone, "america/new_york"
+  .timeZoneName //   human-readable, "eastern standard time"
+  .utc_offset   //   "-05:00"
+  .isp          //   ASN org name (asn.mmdb → asn_name), "cloudflare, inc."
+  .org          //   ASN ID (asn.mmdb → asn_id), "as13335"
+  .as_org       //   same as .isp (asn_name duplicate)
+  .proxy        //   boolean, IP matched in proxy.mmdb
+  .hosting      //   boolean, true when asn.classification === "Content"
+  .tld          //   country TLD, ".us"
+  .nationality  //   "american"
+  .currency     //   "usd"
+  .iso639       //   primary language code, "en"
+  .languages    //   all languages, "en-us"
+  .native       //   native country name, "united states"
+  .phone        //   country calling code, "1"
+  .numericCode  //   ISO 3166-1 numeric, "840"
+```
 
+```ts
 ctx.proxy
-  .isProxy                 // boolean
-  .proxyType               // string | undefined, comma-separated list of source databases that flagged this IP
+  .isProxy   // boolean, true if proxy.mmdb matched this IP
+  .proxyType // string | undefined, ProxyRecord.comment field:
+             // comma-separated source list names, e.g. "firehol_proxies,xroxy"
 ```
 
 ### Tor Analysis
 
-`ctx.tor` is an empty object when the IP is not a known Tor relay.
+`ctx.tor` is `Partial<Omit<TorRecord, 'range'>>`, an empty object when the IP is not a known Tor relay. All fields are sourced directly from `tor.mmdb` via the Onionoo dataset.
 
 ```ts
-ctx.tor                    // Partial<TorRecord>
-  .running                 //   boolean
-  .flags                   //   "Exit,Fast,Guard,Running,Stable,Valid" (comma-separated)
-  .exit_probability        //   number
-  .guard_probability       //   number
-  .exit_addresses          //   string, non-empty means confirmed exit node
-  .recommended_version     //   boolean
-  .version_status          //   "recommended" | "obsolete" | etc.
+ctx.tor
+  .running                   //   boolean, relay is currently running
+  .flags                     //   comma-separated flag string, e.g. "Exit,Fast,Guard,Running,Stable,Valid"
+  .exit_addresses            //   string, non-empty means this is a confirmed exit node
+  .exit_probability          //   number, probability this relay is chosen as exit (0–1)
+  .guard_probability         //   number, probability this relay is chosen as guard (0–1)
+  .middle_probability        //   number, probability chosen as middle relay (0–1)
+  .recommended_version       //   boolean, running a Tor-project-recommended version
+  .version_status            //   "recommended" | "obsolete" | "new" | "unrecommended" | etc.
+  .exit_policy               //   string, serialized exit policy rules
+  .exit_policy_summary       //   string, serialized accept/reject summary
+  .exit_policy_v6_summary    //   string | undefined, IPv6 exit policy summary
+  .country                   //   2-letter country code of the relay, e.g. "de"
+  .country_name              //   e.g. "germany"
+  .as                        //   ASN of the relay, e.g. "AS24940"
+  .as_name                   //   ASN org name of the relay, e.g. "hetzner online gmbh"
+  .or_addresses              //   string, onion router address(es)
+  .contact                   //   string, operator contact info (often obfuscated)
+  .first_seen                //   ISO date string, when this relay first appeared
+  .last_seen                 //   ISO date string, last time relay was observed
+  .last_restarted            //   ISO date string
+  .last_changed_address_or_port // ISO date string
+  .measured                  //   boolean, whether bandwidth has been measured
 ```
 
 ### BGP / ASN
 
-`ctx.bgp` is an empty object when the ASN is not found.
+`ctx.bgp` is `Partial<Omit<BgpRecord, 'range'>>`, an empty object when the ASN is not found.
 
 ```ts
-ctx.bgp                    // Partial<BgpRecord>
-  .asn_id                  //   "AS13335"
-  .asn_name                //   "cloudflare, inc."
-  .classification          //   "ISP" | "Content" | "Enterprise" | "Education" | "Government" | ...
-  .hits                    //   string, BGP route announcement count (parse with parseInt)
+ctx.bgp
+  .asn_id                    //   string, ASN identifier, e.g. "AS13335"
+  .asn_name                  //   string, org name, e.g. "cloudflare, inc."
+  .classification            //   string, "Content" | "Eyeballs" | "Unknown"
+  .hits                      //   string, BGP route announcement count
 ```
+
+`classification` is the key field here. `"Content"` means CDN/hosting (sets `ctx.geoData.hosting = true`). `"Eyeballs"` means residential/business internet.
 
 ### Threat Level and Anonymity
 
 ```ts
-ctx.anon                   // boolean, true if IP appears in Firehol anonymous database
-ctx.threatLevel            // 1 | 2 | 3 | 4 | null, Firehol threat level (1 = most severe)
+ctx.anon        // boolean — true if IP is in firehol_anonymous.mmdb
+ctx.threatLevel // 1 | 2 | 3 | 4 | null — highest Firehol level matched (1 = most severe)
+                //   1 = firehol_l1 (confirmed malicious, no false positives)
+                //   2 = firehol_l2 (abuse + scanning)
+                //   3 = firehol_l3 (web attacks)
+                //   4 = firehol_l4 (aggressive but broader)
 ```
+
+The levels are mutually exclusive in `ctx`, if an IP matches `firehol_l1`, `threatLevel` is `1` and levels 2–4 are not checked. A `null` value means no match.
 
 ### Parsed User Agent
 
-`ua-parser-js` resolves all UA fields before any checker runs.
+`ua-parser-js` resolves all fields synchronously before any checker runs. The result is `Partial<ParsedUAResult>` so every field may be undefined.
 
 ```ts
 ctx.parsedUA
-  .browser                 //   "chrome"
-  .browserType             //   "browser" | "crawler" | "fetcher" | "cli" | "library"
-  .browserVersion          //   "120.0.0"
-  .os                      //   "windows"
-  .device                  //   "desktop" | "mobile" | "tablet"
-  .deviceVendor            //   "apple"
-  .deviceModel             //   "iphone"
-  .bot                     //   boolean, ua-parser-js bot classification
-  .botAI                   //   boolean, known AI crawler
+  .browser        //   "chrome", "safari", "firefox"
+  .browserType    //   "browser" | "crawler" | "fetcher" | "cli" | "library"
+  .browserVersion //   "120.0.0"
+  .os             //   "windows", "macos", "android"
+  .device         //   "desktop", "mobile", "tablet"
+  .deviceVendor   //   "apple", "samsung"
+  .deviceModel    //   "iphone", "galaxy s24"
+  .bot            //   boolean, ua-parser-js considers this a bot UA
+  .botAI          //   boolean, known AI crawler (GPTBot, ClaudeBot, etc.)
+  .allResults     //   IResult, raw ua-parser-js output, for advanced access
 ```
+
+`browserType` is the fastest signal for bot intent. `"crawler"` and `"fetcher"` trigger the good-bot DNS verification path. `"cli"` and `"library"` are penalised by the built-in `BrowserDetailsAndDeviceChecker`.
 
 ### Custom Data
 
 ```ts
-ctx.custom                 // TCustom, data returned by your buildCustomContext function
+ctx.custom // TCustom, populated by your buildCustomContext function, {} by default
 ```
 
-See [Custom Context](#custom-context--passing-your-own-data-into-checkers) for how to populate and type this field.
+See [Custom Context](#custom-context--passing-your-own-data-into-checkers) below for how to populate and type this field.
 
 ---
 
