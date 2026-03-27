@@ -1,4 +1,4 @@
-import pino, { Logger } from 'pino';
+import { pino, Logger } from 'pino';
 import { existsSync, mkdirSync } from 'fs';
 import path from 'path';
 import { getConfiguration } from '../config/config.js';
