@@ -230,7 +230,8 @@ def main():
 
     md = []
     md.append("# Bot Detector — Benchmark Report\n")
-    md.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}  ")
+    md.append(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}  ")
+    md.append(f"By: [benchmark.py](scripts/benchmark.py)  ")
     md.append(f"Based on: [http.stress.test.ts](test/e2e/http.stress.test.ts)  ")
     md.append(f"Log file: `{LOG_FILE}`  ")
     md.append(f"Log span: {span_str}  \n")
