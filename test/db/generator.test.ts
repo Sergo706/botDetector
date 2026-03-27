@@ -18,6 +18,10 @@ let fresh: DataSources;
 const isCi = Boolean(process.env.ci);
 
 beforeAll(async () => {
+    const db = getDb();
+    await prep(db, 'DELETE FROM banned').run();
+    await prep(db, 'DELETE FROM visitors').run();
+
     for (const [ip, country, ua, reason, score] of BANNED_ROWS) {
         await seedBannedRow(ip, country, ua, reason, score);
     }
@@ -145,12 +149,9 @@ describe('Generator deleteAfterBuild', () => {
         });
         const deleteIp = '192.12.2.50';
         await seedBannedRow(deleteIp, 'testland', 'Bot/1.0', '["FIREHOL_L1_THREAT"]', 40);
-        
-        const currentCfg = getConfiguration();
-        console.log('DEBUG: Config deleteAfterBuild is:', currentCfg.generator.deleteAfterBuild);
+
         await runGeneration();
 
-        await sleep(2000)
         const rows = await prep(getDb(), `SELECT ip_address FROM banned WHERE ip_address = ?`).all(deleteIp) as any[];
         expect(rows).toHaveLength(0);
     });
@@ -167,11 +168,8 @@ describe('Generator deleteAfterBuild', () => {
         const deleteCookie = 'gen-del-hr-' + Date.now();
         await seedVisitorWithReputation(deleteCookie, 0, 80, deleteIp);
 
-        const currentCfg = getConfiguration();
-        console.log('DEBUG: Config deleteAfterBuild is:', currentCfg.generator.deleteAfterBuild);
         await runGeneration();
 
-        await sleep(2000)
         const rows = await prep(getDb(), `SELECT ip_address FROM visitors WHERE ip_address = ?`).all(deleteIp) as any[];
         expect(rows).toHaveLength(0);
     });
