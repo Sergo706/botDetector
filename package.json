@@ -50,7 +50,7 @@
     "build:tables": "node ./dist/botDetector/db/schema.js",
     "test:exs": "SKIP_STRESS=1 vitest run",
     "test": "vitest run --coverage",
-    "postinstall": "node ./dist/index.mjs init",
+    "postinstall": "node -e \"const{existsSync}=require('fs');if(existsSync('./dist/index.mjs')){require('child_process').execSync('node ./dist/index.mjs init',{stdio:'inherit'})}\"",
     "prepublishOnly": "npm run build",
     "docs:markdown": "typedoc --options ./typedoc.json"
   },
