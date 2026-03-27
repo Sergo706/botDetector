@@ -53,7 +53,7 @@ jobs:
         run: npm run lint
 
       - name: Test
-        run: npm test
+        run: ci=1 npm test
 
       - name: Verify Build
         run: npm run build
