@@ -26,7 +26,7 @@ export default defineConfig({
   test: {
     coverage: {
       enabled: true,
-      reporter: ['html'],
+      reporter: ['html', 'json-summary'],
       cleanOnRerun: true,
       exclude: ['src/types/*.ts', 'src/botDetector/cli/*.ts'],
       include: ['src/**/*.ts', 'src/types/configSchema.ts'],

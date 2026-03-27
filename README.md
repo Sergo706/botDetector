@@ -1,5 +1,7 @@
 # bot-detector
 
+![Coverage](./badges/coverage.svg)
+
 `@riavzon/bot-detector` is an express middleware that checks incoming requests through a two phase pipeline of 17 checkers across ip reputation, geolocation, tls fingerprinting, behavioral rate limiting, Tor analysis and more.
 
 Each checker contributes a penalty score toward a configurable ban threshold. Requests that cross the threshold receive a `403` response, or are banned at the firewall level if configured.
