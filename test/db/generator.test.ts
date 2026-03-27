@@ -131,14 +131,14 @@ describe('Generator buildHighRiskMmdb', () => {
 describe('Generator deleteAfterBuild', () => {
 
     it('banned rows are removed after generation when deleteAfterBuild=true', async () => {
-        const deleteIp = '192.0.2.50';
+        const deleteIp = '192.0.2.123';
         await seedBannedRow(deleteIp, 'testland', 'Bot/1.0', '["FIREHOL_L1_THREAT"]', 40);
 
         const cfg = getConfiguration();
         (cfg.generator as any).deleteAfterBuild = true;
         await runGeneration();
         (cfg.generator as any).deleteAfterBuild = false;
-
+        new Promise(resolve => setTimeout(resolve, 200))
         const rows = await prep(getDb(), `SELECT ip_address FROM banned WHERE ip_address = ?`).all(deleteIp) as any[];
         expect(rows).toHaveLength(0);
     });
