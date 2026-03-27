@@ -1,7 +1,8 @@
 export { validator as detectBots } from "./botDetector/middlewares/canaryCookieChecker.js";
+export { configuration as defineConfiguration } from "./botDetector/config/config.js";
 export { default as ApiResponse } from './botDetector/routes/visitorLog.js';
 export { getDataSources, getStorage, getBatchQueue } from "./botDetector/config/config.js";
-export { configuration as defineConfiguration } from "./botDetector/config/config.js";
+
 export { runGeneration } from './botDetector/db/generator.js';
 export { banIp } from "./botDetector/penalties/banIP.js";
 export { parseUA } from './botDetector/helpers/UAparser.js';
@@ -11,6 +12,7 @@ export { updateBannedIP } from './botDetector/db/updateBanned.js';
 export { warmUp } from './botDetector/db/warmUp.js';
 export { updateVisitors } from "./botDetector/db/customUpdate.js";
 export { CheckerRegistry } from './botDetector/checkers/CheckerRegistry.js';
+
 export * from './botDetector/helpers/exceptions.js';
 export type * from  './botDetector/types/dbTypes.js';
 export type * from  './botDetector/types/storageTypes.js';
