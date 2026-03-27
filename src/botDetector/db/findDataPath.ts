@@ -14,7 +14,7 @@ export function getLibraryRoot(currentDir: string = __moduleDir): string {
   return getLibraryRoot(parentDir);
 }
 
-export function resolveDataPath(fileName: string): string {
+export function resolveDataPath(fileName: string): string | never {
   const root = getLibraryRoot();
   
   const possiblePaths = [
@@ -26,8 +26,12 @@ export function resolveDataPath(fileName: string): string {
     if (fs.existsSync(path)) return path;
   }
 
-  throw new Error(
-    `[Bot Detector] Data file "${fileName}" not found. ` +
-    `Run 'bot-detector init' to download required data files.`
-  );
+  if (fileName !== 'banned.mmdb' && fileName !== 'highRisk.mmdb') {
+    throw new Error(
+      `[Bot Detector] Data file "${fileName}" not found. ` +
+      `Run 'bot-detector init' to download required data files.`
+    );
+  }
+
+  return '';
 }

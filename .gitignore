@@ -6,3 +6,4 @@ docs/
 *.mmdb
 coverage/
 _data-sources/*-db
+bot-detector-logs/
