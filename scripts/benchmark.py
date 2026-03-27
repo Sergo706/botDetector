@@ -172,19 +172,6 @@ def checker_table(checker_times: dict[str, list[float]]) -> str:
             fmt(s["max"]),
             fmt(s["avg"]),
         ))
-    # any checkers in the log not in our known list
-    for name, data in checker_times.items():
-        if name not in CHECKER_ORDER:
-            s = stats(data)
-            lines.append(row(
-                f"_{name}_", "?",
-                f"{s['n']:,}",
-                fmt(s["p50"]),
-                fmt(s["p95"]),
-                fmt(s["p99"]),
-                fmt(s["max"]),
-                fmt(s["avg"]),
-            ))
     return "\n".join(lines) + "\n"
 
 
@@ -239,7 +226,7 @@ def main():
 
     total_cheap  = cheap_s.get("n", 0)
     total_heavy  = heavy_s.get("n", 0)
-    total_events = sum(len(v) for v in checker_times.values())
+    total_events = sum(len(v) for name, v in checker_times.items() if name in CHECKER_ORDER)
 
     md = []
     md.append("# Bot Detector — Benchmark Report\n")
@@ -253,7 +240,7 @@ def main():
     md.append(row("cheapPhase requests", f"{total_cheap:,}"))
     md.append(row("heavyPhase requests", f"{total_heavy:,}"))
     md.append(row("total checker events", f"{total_events:,}"))
-    md.append(row("unique checkers seen", str(len(checker_times))))
+    md.append(row("unique checkers seen", str(sum(1 for n in checker_times if n in CHECKER_ORDER))))
     md.append("")
 
     md.append("\n## cheapPhase\n")
