@@ -16,7 +16,6 @@ services:
 
   mysql-test:
     image: mysql:8
-    command: --local-infile=1 --default-time-zone='+00:00'
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
       MYSQL_DATABASE: testdb

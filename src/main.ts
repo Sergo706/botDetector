@@ -1,7 +1,7 @@
 export { validator as detectBots } from "./botDetector/middlewares/canaryCookieChecker.js";
 export { default as ApiResponse } from './botDetector/routes/visitorLog.js';
 export { getDataSources, getStorage, getBatchQueue } from "./botDetector/config/config.js";
-export { configuration as initBotDetector } from "./botDetector/config/config.js";
+export { configuration as defineConfiguration } from "./botDetector/config/config.js";
 export { runGeneration } from './botDetector/db/generator.js';
 export { banIp } from "./botDetector/penalties/banIP.js";
 export { parseUA } from './botDetector/helpers/UAparser.js';
