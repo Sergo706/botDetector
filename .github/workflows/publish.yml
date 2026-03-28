@@ -33,3 +33,11 @@ jobs:
           
       - name: Publish to NPM
         run: npm publish --access public
+
+      - name: Dependencies (create)
+        run: npm ci
+        working-directory: create
+
+      - name: Publish create to NPM
+        run: npm publish --access public
+        working-directory: create

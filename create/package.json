@@ -1,0 +1,42 @@
+{
+    "name": "@riavzon/bot-detector-create",
+    "version": "1.0.0",
+    "type": "module",
+    "author": "Sergio contact@riavzon.com",
+    "license": "Apache-2.0",
+    "description": "Setup package for @riavzon/bot-detector",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Sergo706/botDetector"
+    },
+    "homepage": "https://github.com/Sergo706/botDetector#readme",
+    "bugs": {
+        "url": "https://github.com/Sergo706/botDetector/issues"
+    },
+    "keywords": [
+        "bot-detection",
+        "express-middleware",
+        "security",
+        "geoip",
+        "geolocation",
+        "threat-intelligence",
+        "mmdb",
+        "bot detector",
+        "detect bots"
+    ],
+    "bin": {
+        "create-bot-detector": "./dist/create.mjs"
+    },
+    "scripts": {
+        "build": "tsdown",
+        "prepublishOnly": "npm run build"
+    },
+    "dependencies": {
+        "citty": "0.2.1",
+        "consola": "3.4.2"
+    },
+    "devDependencies": {
+        "tsdown": "latest",
+        "typescript": "latest"
+    }
+}

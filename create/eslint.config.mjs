@@ -2,5 +2,5 @@ import { defineStrictTSConfig } from '@riavzon/utils/eslint/strict';
 
 export default defineStrictTSConfig({
     rootDir: import.meta.dirname,
-    extraIgnores: ['coverage/**', 'create/*', 'tsdown.config.ts', 'vitest.config.ts', 'test/**', 'src/botDetector/utils/logger.ts']
+    extraIgnores: ['tsdown.config.ts'],
 });
