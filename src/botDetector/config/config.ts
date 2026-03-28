@@ -37,8 +37,8 @@ export async function configuration(config: BotDetectorConfigInput): Promise<voi
   const initBatchQueueTask = () => {
     if (!globalBatchQueue) {
       globalBatchQueue = new BatchQueue();
-      process.on('SIGTERM', () => { void globalBatchQueue?.shutdown(); });
-      process.on('SIGINT', () => { void globalBatchQueue?.shutdown(); });
+      process.on('SIGTERM', () => { void globalBatchQueue?.shutdown().then(() => process.exit(0)); });
+      process.on('SIGINT', () => { void globalBatchQueue?.shutdown().then(() => process.exit(0)); });
     }
   };
 
