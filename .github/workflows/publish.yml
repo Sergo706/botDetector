@@ -38,6 +38,9 @@ jobs:
         run: npm ci
         working-directory: create
 
+      - name: Lint & Types
+        run: npx tsc --noEmit && npm run lint
+        
       - name: Publish create to NPM
         run: npm publish --access public
         working-directory: create

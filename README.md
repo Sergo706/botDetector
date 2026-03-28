@@ -19,17 +19,42 @@ Each checker contributes a penalty score toward a configurable ban threshold. Re
 - Supports cjs and fully typed
 
 ## Requirements
+
 - Node.js 18 or later
 - Express 5
 - A supported database for visitor persistence
 
-## Installation
+## Quick setup
+
+The fastest way to get started is with the create package. Run this in the root
+of your Express project:
+
+```bash
+npx @riavzon/bot-detector-create
+```
+
+This single command installs all dependencies, downloads and compiles every
+threat intelligence feed, writes a fully annotated `botDetectorConfig.ts` at
+your project root, and creates the database tables, all without any manual
+steps. See the
+[@riavzon/bot-detector-create](https://www.npmjs.com/package/@riavzon/bot-detector-create)
+package for details.
+
+## Manual installation
+
+If you prefer to wire things up yourself:
 
 ```bash
 npm install @riavzon/bot-detector
 ```
 
-After installation, the package runs `bot-detector init` automatically to download its data sources and validate that [mmdbctl](https://github.com/ipinfo/mmdbctl) is installed, if not it prompts you about it, and installs it automatically, it also ask you to provide an user agent that will be used to fetch [bgp](https://en.wikipedia.org/wiki/Border_Gateway_Protocol) data from bgp.tools as they requires it before they allow you to use their data, more info at [BGP.tools](https://bgp.tools/kb/api).
+After installation, the package runs `bot-detector init` automatically to
+download its data sources and validate that
+[mmdbctl](https://github.com/ipinfo/mmdbctl) is installed. If it's not, the
+installer prompts you and installs it automatically. It also asks for a contact
+string used to fetch [BGP](https://en.wikipedia.org/wiki/Border_Gateway_Protocol)
+data from bgp.tools, which requires it before granting API access. See
+[BGP.tools](https://bgp.tools/kb/api) for details.
 
 The compiled databases are written to `_data-sources/` inside the package directory, which include the following files:
 
