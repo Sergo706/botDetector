@@ -1,12 +1,12 @@
 {
   "name": "@riavzon/bot-detector",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "type": "module",
   "main": "./dist/main.cjs",
   "types": "./dist/main.d.cts",
   "author": "Sergio contact@riavzon.com",
   "license": "MIT",
-  "description": "Express middleware for multi layered bot detection. Runs a two-phase pipeline of 17 pluggable checkers (IP reputation, UA analysis, geo, TLS fingerprint, behavioral rate, Tor, ASN, Firehol threat feeds, and more) with a cumulative scoring system, pluggable cache, and multi DB/storage support.",
+  "description": "Express middleware for multi layered bot detection. Runs a two-phase pipeline of 17 pluggable checkers with a cumulative scoring system, pluggable cache, and multi DB/storage support.",
   "repository": {
     "type": "git",
     "url": "https://github.com/Sergo706/botDetector"
@@ -50,7 +50,7 @@
     "build:tables": "node ./dist/botDetector/db/schema.js",
     "test:exs": "SKIP_STRESS=1 vitest run",
     "test": "vitest run --coverage",
-    "postinstall": "node -e \"const{existsSync}=require('fs');if(existsSync('./dist/index.mjs')){require('child_process').execSync('node ./dist/index.mjs init',{stdio:'inherit'})}\"",
+    "postinstall": "node scripts/postinstall.mjs",
     "prepublishOnly": "npm run build",
     "docs:markdown": "typedoc --options ./typedoc.json"
   },
