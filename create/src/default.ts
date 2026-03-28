@@ -1,4 +1,4 @@
-export const defaultStore = { main: { driver: 'sqlite' as const, name: './bot_detector.sqlite' } };
+export const defaultStore = { main: { driver: 'sqlite' as const, name: './bot_detector' } };
 
 export const mainContent = `import './botDetectorConfig.js';
 import express from 'express';
@@ -34,7 +34,7 @@ await defineConfiguration({
     store: {
         main: {
             driver: 'sqlite',
-            name: './bot_detector.sqlite',
+            name: './bot_detector',
         },
     },
 
