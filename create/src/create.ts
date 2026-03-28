@@ -29,9 +29,11 @@ export const start = defineCommand({
         consola.start('Installing dependencies...');
         await run('npm', ['install', 'express', 'cookie-parser', 'better-sqlite3']);
 
-        consola.start('Installing @riavzon/bot-detector and data sources...');
+        consola.start('Installing @riavzon/bot-detector...');
         await run('npm', ['install', '@riavzon/bot-detector']);
 
+        consola.start('Fetching data sources...');
+        await run('npx', ['@riavzon/bot-detector', 'init']);
         
         consola.start('Writing botDetectorConfig.ts...');
         await fs.writeFile(output, content, 'utf-8');
