@@ -3,7 +3,7 @@ import { getDb } from '../config/config.js';
 import { prep } from './dialectUtils.js';
 
 export async function updateIsBot(isBot: boolean, cookie: string) {
-    const params = [isBot, cookie] satisfies (string | boolean)[];
+    const params = [isBot ? 1 : 0, cookie];
     const db = getDb();
     const log = getLogger().child({ service: 'BOT DETECTOR', branch: 'db', type: 'updateIsBot' });
 

@@ -69,7 +69,7 @@ export async function updateVisitor(u: userValidation) {
     browserVersion,
     os,
     Number(activity_score) || 0,
-  ].map(value => value === undefined ? null : value);
+  ].map(value => value === undefined ? null : typeof value === 'boolean' ? (value ? 1 : 0) : value);
   const ex = (col: string) => excluded(db, col);
   const upsert = onUpsert(db, 'canary_id');
   try {

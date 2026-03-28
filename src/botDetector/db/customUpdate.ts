@@ -54,14 +54,14 @@ export async function updateVisitors(
         data.as,
         data.device_type,
         data.browser,
-        data.proxy,
-        data.hosting,
+        data.proxy ? 1 : 0,
+        data.hosting ? 1 : 0,
         data.deviceVendor,
         data.deviceModel,
         data.browserType,
         data.browserVersion,
         data.os,
-    ] satisfies (string | boolean)[];
+    ];
 
     try {
         const result = await prep(db, `
