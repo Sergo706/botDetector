@@ -5,3 +5,7 @@ dist/
 docs/
 coverage/
 bot-detector-logs/
+_data-sources/useragent-db/useragent.mdb-lock
+_data-sources/ja4-db/ja4.mdb-lock
+_data-sources/banned.mmdb
+_data-sources/highRisk.mmdb
