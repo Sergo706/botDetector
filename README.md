@@ -509,4 +509,4 @@ A dedicated documentation site is coming soon.
 
 ## License
 
-MIT
+Apache-2.0
