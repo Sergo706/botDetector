@@ -1,6 +1,6 @@
 {
   "name": "@riavzon/bot-detector",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "type": "module",
   "main": "./dist/main.cjs",
   "types": "./dist/main.d.cts",
@@ -30,8 +30,7 @@
     "bot-detector": "./dist/index.mjs"
   },
   "files": [
-    "dist",
-    "scripts/postinstall.mjs"
+    "dist"
   ],
   "exports": {
     ".": {
@@ -51,7 +50,7 @@
     "build:tables": "node ./dist/botDetector/db/schema.js",
     "test:exs": "SKIP_STRESS=1 vitest run",
     "test": "vitest run --coverage",
-    "postinstall": "node scripts/postinstall.mjs",
+    "postinstall": "node ./dist/index.mjs init",
     "prepublishOnly": "npm run build",
     "docs:markdown": "typedoc --options ./typedoc.json"
   },

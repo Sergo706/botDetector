@@ -1,11 +1,12 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import consola from 'consola';
 import { defineCommand, runMain } from 'citty';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import { content } from './default.js';
+import { content, defaultStore } from './default.js';
 
 function run(cmd: string, args: string[]): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -37,7 +38,13 @@ export const start = defineCommand({
         consola.success('botDetectorConfig.ts created');
 
         consola.start('Creating database tables...');
-        await run('npx', ['@riavzon/bot-detector', 'load-schema']);
+        const pkgMain = path.resolve(process.cwd(), 'node_modules/@riavzon/bot-detector/dist/main.mjs');
+        const { defineConfiguration, createTables, getDb } = await import(pkgMain);
+        
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        await defineConfiguration({ store: defaultStore });
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        await createTables(getDb());
 
         consola.success('Setup complete. Import botDetectorConfig.ts at the top of your app entry point and mount the middleware.');
         consola.log('');

@@ -4,6 +4,8 @@ export { default as ApiResponse } from './botDetector/routes/visitorLog.js';
 export { getDataSources, getStorage, getBatchQueue } from "./botDetector/config/config.js";
 
 export { runGeneration } from './botDetector/db/generator.js';
+export { createTables } from './botDetector/db/schema.js';
+export { getDb } from './botDetector/config/config.js';
 export { banIp } from "./botDetector/penalties/banIP.js";
 export { parseUA } from './botDetector/helpers/UAparser.js';
 export { getData as getGeoData} from './botDetector/helpers/getIPInformation.js';

@@ -1,3 +1,5 @@
+export const defaultStore = { main: { driver: 'sqlite' as const, name: './bot_detector.sqlite' } };
+
 export const content = `import { defineConfiguration } from '@riavzon/bot-detector';
 
 /**
