@@ -25,7 +25,7 @@
         "detect bots"
     ],
     "bin": {
-        "create-bot-detector": "./dist/create.mjs"
+        "create-bot-detector": "./dist/create.cjs"
     },
     "scripts": {
         "build": "tsdown",
