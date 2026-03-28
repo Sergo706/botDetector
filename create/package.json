@@ -1,6 +1,6 @@
 {
     "name": "@riavzon/bot-detector-create",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "type": "module",
     "author": "Sergio contact@riavzon.com",
     "license": "Apache-2.0",
@@ -25,15 +25,18 @@
         "detect bots"
     ],
     "bin": {
-        "create-bot-detector": "./dist/create.cjs"
+        "create-bot-detector": "./dist/create.js"
     },
     "scripts": {
-        "build": "tsdown",
+        "build": "tsdown && mv dist/create.mjs dist/create.js",
         "prepublishOnly": "npm run build"
     },
     "dependencies": {
+        "better-sqlite3": "^12.8.0",
         "citty": "0.2.1",
-        "consola": "3.4.2"
+        "consola": "3.4.2",
+        "cookie-parser": "^1.4.7",
+        "express": "^5.2.1"
     },
     "devDependencies": {
         "tsdown": "latest",
