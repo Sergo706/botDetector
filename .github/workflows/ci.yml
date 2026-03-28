@@ -59,7 +59,7 @@ jobs:
 
       - name: Verify Build
         run: npm run build
-
+ 
       - name: Coverage badge
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
