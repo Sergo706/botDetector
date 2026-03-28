@@ -5,7 +5,7 @@
   "main": "./dist/main.cjs",
   "types": "./dist/main.d.cts",
   "author": "Sergio contact@riavzon.com",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "description": "Express middleware for multi layered bot detection. Runs a two-phase pipeline of 17 pluggable checkers with a cumulative scoring system, pluggable cache, and multi DB/storage support.",
   "repository": {
     "type": "git",
