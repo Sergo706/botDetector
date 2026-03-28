@@ -34,11 +34,13 @@ npx @riavzon/bot-detector-create
 ```
 
 This single command installs all dependencies, downloads and compiles every
-threat intelligence feed, writes a fully annotated `botDetectorConfig.ts` at
-your project root, and creates the database tables, all without any manual
-steps. See the
+threat intelligence feed, writes a fully annotated `botDetectorConfig.ts` with
+all 17 checkers at their defaults, a `mainBotDetector.ts` ready-to-run Express
+entry point, and creates the database tables, all without any manual steps. See the
 [@riavzon/bot-detector-create](https://www.npmjs.com/package/@riavzon/bot-detector-create)
 package for details.
+
+It defaults to [better-sqlite3](http://github.com/WiseLibs/better-sqlite3) as the database driver.
 
 ## Manual installation
 

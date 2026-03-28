@@ -6,7 +6,7 @@ import { defineCommand, runMain } from 'citty';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import { content, defaultStore } from './default.js';
+import { content, mainContent, defaultStore } from './default.js';
 
 function run(cmd: string, args: string[]): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -37,6 +37,7 @@ export const start = defineCommand({
         
         consola.start('Writing botDetectorConfig.ts...');
         await fs.writeFile(output, content, 'utf-8');
+        await fs.writeFile(path.resolve(process.cwd(), 'mainBotDetector.ts'), mainContent, 'utf-8');
         consola.success('botDetectorConfig.ts created');
 
         consola.start('Creating database tables...');
@@ -52,6 +53,7 @@ export const start = defineCommand({
         consola.log('');
         consola.log('Keep data sources fresh (run daily or via cron):');
         consola.log('  npx @riavzon/bot-detector refresh');
+        process.exit(0);
     }
 });
 await runMain(start);

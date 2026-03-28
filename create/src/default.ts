@@ -1,5 +1,21 @@
 export const defaultStore = { main: { driver: 'sqlite' as const, name: './bot_detector.sqlite' } };
 
+export const mainContent = `import './botDetectorConfig.js';
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import { detectBots } from '@riavzon/bot-detector';
+
+const app = express();
+app.use(cookieParser());
+app.use(detectBots());
+
+app.get('/', (req, res) => {
+    res.json({ banned: req.botDetection?.banned });
+});
+
+app.listen(3000);
+`;
+
 export const content = `import { defineConfiguration } from '@riavzon/bot-detector';
 
 /**
