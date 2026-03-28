@@ -16,21 +16,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          lfs: true
+          lfs: false
+
+      - name: Cache LFS objects
+        uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.gitattributes') }}
+
+      - name: Fetch LFS objects
+        run: git lfs pull
 
       - name: node
         uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: 'npm'
-        
-      - name: Cache LFS objects
-        uses: actions/cache@v4
-        with:
-          path: .git/lfs
-          key: lfs-${{ hashFiles('.gitattributes') }}-${{ github.sha }}
-          restore-keys: |
-            lfs-${{ hashFiles('.gitattributes') }}-
 
       - name: Cache mmdbctl
         id: mmdbctl-cache
