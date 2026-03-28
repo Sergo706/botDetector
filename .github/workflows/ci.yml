@@ -1,6 +1,7 @@
 name: CI
 permissions:
   contents: write
+  pull-requests: write
 on:
   push:
     branches: [ "main" ]
@@ -63,15 +64,25 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           npx coverage-badges-cli --source coverage/coverage-summary.json --output badges/coverage.svg
-          git add badges/coverage.svg
 
       - name: Statistics
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        id: cpr
         run: |
           rm -rf bot-detector-logs
           npx vitest run test/e2e/http.stress.test.ts
           python3 scripts/benchmark.py bot-detector-logs/info.log benchmarks.md
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add benchmarks.md
-          git diff --staged --quiet || (git commit -m "chore: update coverage badge and benchmarks" && git push)
+
+      - name: Create Pull Request for Benchmarks
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update coverage badge and benchmarks"
+          committer: GitHub <noreply@github.com>
+          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          branch: automation/update-benchmarks
+          title: "Chore: Update Benchmarks and Coverage"
+          body: "Automated benchmark results from stress tests."
+          base: main
+          delete-branch: true
