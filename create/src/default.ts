@@ -10,7 +10,7 @@ app.use(cookieParser());
 app.use(detectBots());
 
 app.get('/', (req, res) => {
-    res.json({ banned: req.botDetection?.banned });
+    res.json({ banned: req.botDetection });
 });
 
 app.listen(3000);
