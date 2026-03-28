@@ -350,7 +350,7 @@ export const configSchema = z.object({
                     highRiskPenalty: z.number().default(30),
                 }),
             ]).prefault({ enable: true }),
-        }),
+        }).prefault({}),
 
         generator: z.object({
             scoreThreshold: z.number().default(70),

@@ -45,16 +45,14 @@ package for details.
 If you prefer to wire things up yourself:
 
 ```bash
-npm install @riavzon/bot-detector
+npm install @riavzon/bot-detector express cookie-parser <data-base-driver>
 ```
 
-After installation, the package runs `bot-detector init` automatically to
-download its data sources and validate that
-[mmdbctl](https://github.com/ipinfo/mmdbctl) is installed. If it's not, the
-installer prompts you and installs it automatically. It also asks for a contact
-string used to fetch [BGP](https://en.wikipedia.org/wiki/Border_Gateway_Protocol)
-data from bgp.tools, which requires it before granting API access. See
-[BGP.tools](https://bgp.tools/kb/api) for details.
+After installation, run `bot-detector init` in an interactive terminal to download its data sources and validate that [mmdbctl](https://github.com/ipinfo/mmdbctl) is installed, if not it prompts you about it, and installs it automatically, it also ask you to provide an user agent that will be used to fetch [BGP](https://en.wikipedia.org/wiki/Border_Gateway_Protocol) data from bgp.tools as they requires it before they allow you to use their data, more info at [BGP.tools](https://bgp.tools/kb/api).
+
+```bash
+npx @riavzon/bot-detector init
+```
 
 The compiled databases are written to `_data-sources/` inside the package directory, which include the following files:
 
@@ -134,6 +132,13 @@ app.get('/', (req, res) => {
   res.json({ banned: req.botDetection?.banned });
 });
 ```
+
+Once your app has a `defineConfiguration` call wired up, run `load-schema` to create the database tables:
+
+```bash
+npx @riavzon/bot-detector load-schema
+```
+
 
 ## Configuration
 
@@ -216,7 +221,6 @@ await defineConfiguration({
 });
 
 ```
-After you configured the database run `bot-detector load-schema` to load the database schema before usage.
 
 ### Score modes
 
