@@ -50,7 +50,7 @@ await defineConfiguration({
     setNewComputedScore: false,
 
     // ─── Whitelist (IPv4, IPv6, or CIDR) ───────────────────────────────────────
-    whiteList: [],
+    whiteList: ['127.0.0.1', '::1'],
 
     // ─── Re-check interval for returning visitors ──────────────────────────────
     checksTimeRateControl: {

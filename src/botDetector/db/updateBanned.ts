@@ -30,7 +30,7 @@ export async function updateBannedIP(
     ).run(...params);
     log.info(`Updated Database TABLE - banned. A user has been banned for IP ${ipAddress} (score ${String(info.score)})`);
   } catch (err: unknown) {
-    log.error({ error: err }, 'ERROR UPDATING "banned" TABLE');
+    log.error({ err }, 'ERROR UPDATING "banned" TABLE');
     throw err;
   }
 }

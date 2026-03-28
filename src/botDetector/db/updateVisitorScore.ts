@@ -10,7 +10,7 @@ export async function updateScore(score: number, cookie: string) {
   try {
     await prep(db, `UPDATE visitors SET suspicious_activity_score = ? WHERE canary_id = ?`).run(...params);
   } catch (err: unknown) {
-    log.error({ error: err }, 'ERROR UPDATING SCORE');
+    log.error({ err }, 'ERROR UPDATING SCORE');
     throw err;
   }
 }

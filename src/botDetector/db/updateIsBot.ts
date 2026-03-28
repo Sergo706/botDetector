@@ -10,7 +10,7 @@ export async function updateIsBot(isBot: boolean, cookie: string) {
     try { 
         await prep(db, `UPDATE visitors SET is_bot = ? WHERE canary_id = ?`).run(...params);
     } catch (err: unknown) {
-        log.error({ error: err }, 'ERROR UPDATING IS_BOT');
+        log.error({ err }, 'ERROR UPDATING IS_BOT');
         throw err;
     }
 }

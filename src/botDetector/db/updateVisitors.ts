@@ -139,6 +139,6 @@ export async function updateVisitor(u: userValidation) {
     log.info(`Updated visitors table, Visitor row for canary_id=${cookie ?? ''} inserted/updated successfully.`);
     return;
   } catch (err: unknown) {
-    log.error({error: err},`ERROR UPDATING visitors TABLE`);
+    log.error({ err },`ERROR UPDATING visitors TABLE`);
   }
 }
