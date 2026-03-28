@@ -15,7 +15,6 @@ npm version "$BUMP_TYPE" --no-git-tag-version --prefix create
 
 NEW_VERSION=$(node -p "require('./package.json').version")
 
-# 5. Git operations.
 git add package.json package-lock.json create/package.json create/package-lock.json
 git commit -m "v$NEW_VERSION"
 git tag -a "v$NEW_VERSION" -m "v$NEW_VERSION"
