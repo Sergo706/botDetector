@@ -1,6 +1,6 @@
 {
   "name": "@riavzon/bot-detector",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "type": "module",
   "main": "./dist/main.cjs",
   "types": "./dist/main.d.cts",
