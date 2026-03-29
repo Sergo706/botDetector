@@ -50,10 +50,17 @@ If you prefer to wire things up yourself:
 npm install @riavzon/bot-detector express cookie-parser <data-base-driver>
 ```
 
-After installation, run `bot-detector init` in an interactive terminal to download its data sources and validate that [mmdbctl](https://github.com/ipinfo/mmdbctl) is installed, if not it prompts you about it, and installs it automatically, it also ask you to provide an user agent that will be used to fetch [BGP](https://en.wikipedia.org/wiki/Border_Gateway_Protocol) data from bgp.tools as they requires it before they allow you to use their data, more info at [BGP.tools](https://bgp.tools/kb/api).
+After installation, run `bot-detector init` to download its data sources and validate that [mmdbctl](https://github.com/ipinfo/mmdbctl) is installed, if not it prompts you about it, and installs it automatically, it also ask you to provide an user agent that will be used to fetch [BGP](https://en.wikipedia.org/wiki/Border_Gateway_Protocol) data from bgp.tools as they requires it before they allow you to use their data, more info at [BGP.tools](https://bgp.tools/kb/api).
+
+To skip the interactive setup you can download the [mmdbctl](https://github.com/ipinfo/mmdbctl) dependency directly and provide the contact user agent with a flag: 
 
 ```bash
 npx @riavzon/bot-detector init
+
+# OR
+
+npx @riavzon/bot-detector init --contact=App - contact@example.com
+
 ```
 
 The compiled databases are written to `_data-sources/` inside the package directory, which include the following files:
