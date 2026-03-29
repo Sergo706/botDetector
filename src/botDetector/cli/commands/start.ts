@@ -22,16 +22,13 @@ export const startCommand = defineCommand({
         name: 'Bot Detector',
         description: 'Get started with the installation wizard'
     },
+    args: {
+        contact: { type: 'string', description: 'Contact useragent for bgp', required: false }
+    },
 
-    async run() {
+    async run({args}) {
         const output = path.resolve(getLibraryRoot(), '_data-sources');
         const sentinel = path.resolve(output, 'asn.mmdb');
-
-        if (!process.stdout.isTTY) {
-            if (fs.existsSync(sentinel)) return;
-            consola.warn('bot-detector: data sources not found. Run `npx bot-detector init` in an interactive terminal to set up.');
-            return;
-        }
 
         const cache: Partial<InputCache> = await __cache()._getCache() ?? {};
 
@@ -47,8 +44,8 @@ export const startCommand = defineCommand({
         }
 
         let contactInfo: string | undefined = '';
-        if (cache.useragent) {
-            contactInfo = cache.useragent;
+        if (cache.useragent || args.contact) {
+            contactInfo = cache.useragent ?? String(args.contact);
         } else {
             contactInfo = await __askForUserAgent();
             cache.useragent = contactInfo;
