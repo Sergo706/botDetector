@@ -54,7 +54,7 @@
     "docs:markdown": "typedoc --options ./typedoc.json"
   },
   "dependencies": {
-    "@riavzon/shield-base": "^2.0.3",
+    "@riavzon/shield-base": "^2.0.4",
     "@riavzon/utils": "^1.0.5",
     "citty": "0.2.1",
     "consola": "3.4.2",
