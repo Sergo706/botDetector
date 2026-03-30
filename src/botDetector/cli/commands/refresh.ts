@@ -20,7 +20,7 @@ export const refreshData = defineCommand({
             throw new Error();
         }
 
-        const output = path.resolve(getLibraryRoot(), '_data-sources');
+        const output = path.resolve(getLibraryRoot(), 'dist/_data-sources');
         consola.start('Restarting data sources...');
 
         await __restartData(output, true);

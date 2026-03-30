@@ -27,7 +27,7 @@ export const startCommand = defineCommand({
     },
 
     async run({args}) {
-        const output = path.resolve(getLibraryRoot(), '_data-sources');
+        const output = path.resolve(getLibraryRoot(), 'dist/_data-sources');
         const sentinel = path.resolve(output, 'asn.mmdb');
 
         const cache: Partial<InputCache> = await __cache()._getCache() ?? {};
