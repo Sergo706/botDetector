@@ -60,7 +60,7 @@
     "consola": "3.4.2",
     "db0": "0.3.4",
     "magic-regexp": "0.11.0",
-    "maxmind": "5.0.5",
+    "maxmind": "5.0.6",
     "pino": "9.7.0",
     "ua-parser-js": "2.0.3",
     "unstorage": "1.17.4",
