@@ -1,18 +1,18 @@
 # Bot Detector — Benchmark Report
 
-Generated on: 2026-04-01 17:55:51  
+Generated on: 2026-04-14 08:54:20  
 By: [benchmark.py](scripts/benchmark.py)  
 Based on: [http.stress.test.ts](test/e2e/http.stress.test.ts)  
 Log file: `bot-detector-logs/info.log`  
-Log span: 2026-04-01 17:55:03 UTC → 2026-04-01 17:55:45 UTC (42s)  
+Log span: 2026-04-14 08:53:31 UTC → 2026-04-14 08:54:14 UTC (43s)  
 
 ## Summary
 
 | Metric | Value |
 |---|---|
-| cheapPhase requests | 9,234 |
-| heavyPhase requests | 7,380 |
-| total checker events | 125,122 |
+| cheapPhase requests | 9,225 |
+| heavyPhase requests | 7,371 |
+| total checker events | 124,969 |
 | unique checkers seen | 17 |
 
 
@@ -22,14 +22,14 @@ Log span: 2026-04-01 17:55:03 UTC → 2026-04-01 17:55:45 UTC (42s)
 
 | Metric | Value |
 |---|---|
-| count | 9,234 |
+| count | 9,225 |
 | min | 0.071ms |
-| p50 | 0.246ms |
-| p75 | 0.307ms |
-| p95 | 0.379ms |
-| p99 | 0.442ms |
-| max | 2.412ms |
-| avg | 0.250ms |
+| p50 | 0.241ms |
+| p75 | 0.310ms |
+| p95 | 0.392ms |
+| p99 | 0.455ms |
+| max | 2.467ms |
+| avg | 0.249ms |
 
 
 ## heavyPhase
@@ -38,14 +38,14 @@ Log span: 2026-04-01 17:55:03 UTC → 2026-04-01 17:55:45 UTC (42s)
 
 | Metric | Value |
 |---|---|
-| count | 7,380 |
-| min | 0.989ms |
-| p50 | 1.364ms |
-| p75 | 1.542ms |
-| p95 | 1.848ms |
-| p99 | 2.271ms |
-| max | 21.9ms |
-| avg | 1.436ms |
+| count | 7,371 |
+| min | 1.035ms |
+| p50 | 1.350ms |
+| p75 | 1.485ms |
+| p95 | 1.787ms |
+| p99 | 2.278ms |
+| max | 23.1ms |
+| avg | 1.410ms |
 
 
 ## Behavior Rate Verification (BRV)
@@ -56,16 +56,16 @@ Log span: 2026-04-01 17:55:03 UTC → 2026-04-01 17:55:45 UTC (42s)
 
 | Metric | Value |
 |---|---|
-| total calls | 7,380 |
+| total calls | 7,371 |
 | min | 0.022ms |
-| p50 | 0.026ms |
+| p50 | 0.027ms |
 | p75 | 0.029ms |
-| p95 | 0.042ms |
-| p99 | 0.059ms |
-| max | 0.604ms |
+| p95 | 0.044ms |
+| p99 | 0.060ms |
+| max | 0.650ms |
 | avg | 0.029ms |
 |  |  |
-| cache hits (<1ms) | 7,380 (100.0%) |
+| cache hits (<1ms) | 7,371 (100.0%) |
 | DB queries (≥1ms) | 0 (0.0%) |
 
 
@@ -73,23 +73,23 @@ Log span: 2026-04-01 17:55:03 UTC → 2026-04-01 17:55:45 UTC (42s)
 
 | Checker | Phase | n | p50 | p95 | p99 | max | avg |
 |---|---|---|---|---|---|---|---|
-| IP Validation | cheap | 9,234 | 0.011ms | 0.020ms | 0.040ms | 0.403ms | 0.013ms |
-| Good/Bad Bot Verification | cheap | 9,234 | 0.009ms | 0.018ms | 0.036ms | 0.217ms | 0.011ms |
-| Browser and Device Verification | cheap | 9,234 | 0.009ms | 0.018ms | 0.036ms | 0.163ms | 0.011ms |
-| Locale and Country Verification | cheap | 8,944 | 0.018ms | 0.034ms | 0.052ms | 0.573ms | 0.021ms |
-| Known ThreatLevels | cheap | 8,944 | 0.007ms | 0.016ms | 0.033ms | 0.134ms | 0.009ms |
-| ASN Classification | cheap | 7,380 | 0.007ms | 0.015ms | 0.033ms | 0.095ms | 0.009ms |
-| Tor Node Analysis | cheap | 7,380 | 0.006ms | 0.015ms | 0.028ms | 0.151ms | 0.009ms |
-| Timezone Consistency | cheap | 7,380 | 0.008ms | 0.016ms | 0.032ms | 0.077ms | 0.010ms |
-| Honeypot Path | cheap | 7,380 | 0.006ms | 0.014ms | 0.030ms | 0.073ms | 0.009ms |
-| KnownBadIps | cheap | 7,380 | 0.010ms | 0.021ms | 0.036ms | 0.145ms | 0.013ms |
-| Behavior Rate Verification | heavy | 7,380 | 0.026ms | 0.042ms | 0.059ms | 0.604ms | 0.029ms |
-| Proxy, ISP and Cookie Verification | heavy | 7,375 | 0.007ms | 0.014ms | 0.020ms | 0.149ms | 0.008ms |
-| User agent and Header Verification | heavy | 7,375 | 0.125ms | 0.179ms | 0.214ms | 2.777ms | 0.133ms |
-| Geo-Location Verification | heavy | 4,374 | 0.008ms | 0.016ms | 0.030ms | 0.209ms | 0.010ms |
-| Session Coherence | heavy | 4,374 | 0.025ms | 0.042ms | 0.057ms | 0.309ms | 0.027ms |
-| Velocity Fingerprinting | heavy | 4,374 | 0.017ms | 0.031ms | 0.047ms | 0.227ms | 0.019ms |
-| Bad User Agent list | heavy | 7,380 | 1.058ms | 1.508ms | 1.859ms | 17.4ms | 1.127ms |
+| IP Validation | cheap | 9,225 | 0.011ms | 0.022ms | 0.041ms | 0.133ms | 0.013ms |
+| Good/Bad Bot Verification | cheap | 9,225 | 0.009ms | 0.018ms | 0.037ms | 0.159ms | 0.011ms |
+| Browser and Device Verification | cheap | 9,225 | 0.008ms | 0.019ms | 0.038ms | 0.156ms | 0.011ms |
+| Locale and Country Verification | cheap | 8,935 | 0.019ms | 0.037ms | 0.054ms | 0.577ms | 0.021ms |
+| Known ThreatLevels | cheap | 8,935 | 0.007ms | 0.016ms | 0.035ms | 0.546ms | 0.010ms |
+| ASN Classification | cheap | 7,371 | 0.007ms | 0.016ms | 0.034ms | 0.105ms | 0.009ms |
+| Tor Node Analysis | cheap | 7,371 | 0.006ms | 0.015ms | 0.032ms | 0.156ms | 0.009ms |
+| Timezone Consistency | cheap | 7,371 | 0.008ms | 0.017ms | 0.032ms | 0.762ms | 0.010ms |
+| Honeypot Path | cheap | 7,371 | 0.006ms | 0.015ms | 0.032ms | 0.069ms | 0.009ms |
+| KnownBadIps | cheap | 7,371 | 0.010ms | 0.023ms | 0.043ms | 0.822ms | 0.013ms |
+| Behavior Rate Verification | heavy | 7,371 | 0.027ms | 0.044ms | 0.060ms | 0.650ms | 0.029ms |
+| Proxy, ISP and Cookie Verification | heavy | 7,366 | 0.007ms | 0.015ms | 0.024ms | 0.119ms | 0.008ms |
+| User agent and Header Verification | heavy | 7,366 | 0.127ms | 0.185ms | 0.222ms | 3.000ms | 0.135ms |
+| Geo-Location Verification | heavy | 4,365 | 0.009ms | 0.017ms | 0.027ms | 0.268ms | 0.010ms |
+| Session Coherence | heavy | 4,365 | 0.025ms | 0.043ms | 0.062ms | 0.331ms | 0.028ms |
+| Velocity Fingerprinting | heavy | 4,365 | 0.018ms | 0.033ms | 0.048ms | 0.294ms | 0.020ms |
+| Bad User Agent list | heavy | 7,371 | 1.040ms | 1.432ms | 1.837ms | 18.4ms | 1.100ms |
 
 
 ## End-to-End Pipeline Estimate
@@ -98,8 +98,8 @@ Log span: 2026-04-01 17:55:03 UTC → 2026-04-01 17:55:45 UTC (42s)
 
 | Percentile | cheapPhase | heavyPhase | combined |
 |---|---|---|---|
-| p50 | 0.246ms | 1.364ms | 1.610ms |
-| p95 | 0.379ms | 1.848ms | 2.227ms |
-| p99 | 0.442ms | 2.271ms | 2.713ms |
-| max | 2.412ms | 21.9ms | 24.4ms |
-| avg | 0.250ms | 1.436ms | 1.686ms |
+| p50 | 0.241ms | 1.350ms | 1.591ms |
+| p95 | 0.392ms | 1.787ms | 2.179ms |
+| p99 | 0.455ms | 2.278ms | 2.733ms |
+| max | 2.467ms | 23.1ms | 25.6ms |
+| avg | 0.249ms | 1.410ms | 1.660ms |
