@@ -8,6 +8,7 @@ Each checker contributes a penalty score toward a configurable ban threshold. Re
 
 `@riavzon/bot-detector` uses [Shield-Base](https://github.com/Sergo706/shield-base-cli) to fetch and compile its data sources into fast in memory databases. Checkers query these compiled databases synchronously, which allows the whole pipeline to make a decisions in milliseconds.
 
+>Docs: https://docs.riavzon.com/docs/bot-detection
 
 ## Features
 - Comes with 17 fully configurable server checkers
