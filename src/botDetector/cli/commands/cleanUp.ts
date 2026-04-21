@@ -9,7 +9,7 @@ import { DbConfig, defineConfiguration } from "~~/src/main.js";
 export const cleanUp = defineCommand({
     meta: {
         name: 'generate',
-        description: 'Run the generator: reads banned and high-risk visitors from your database and compiles them into an optimized binary (based on your generator configuration)'
+        description: 'Run the generator: reads banned and high-risk visitors from your database and compiles them into an optimized binary'
     },
   args: {
         db: { 
