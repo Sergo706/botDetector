@@ -70,7 +70,7 @@ export async function uaAndGeoBotDetector(
     bgp: asn ?? {},
     tor: tor ?? {},
     threatLevel,
-    custom: buildCustomContext ? buildCustomContext(req) : ({} as unknown),
+    custom: buildCustomContext ? buildCustomContext(req) : {},
   };
 
   const cheapChecks = CheckerRegistry.getEnabled('cheap', getConfiguration());

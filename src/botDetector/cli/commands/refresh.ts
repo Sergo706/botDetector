@@ -30,7 +30,6 @@ export const refreshData = defineCommand({
         
         consola.start('Restarting data sources...');
         await __restartData(tmp, true);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         await replaceDirContent(output, tmp);
      } catch (err) {
         consola.error(err);

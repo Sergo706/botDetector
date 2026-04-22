@@ -48,7 +48,6 @@ async function buildBannedMmdb(generateTypes: boolean, mmdbctlPath: string): Pro
             }
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         await replaceDirContent(MMDB_DIR, TEMP_DIR);
         log.info(`banned.mmdb compiled — ${String(data.length)} entries`);
 
@@ -130,7 +129,6 @@ async function buildHighRiskMmdb(scoreThreshold: number, generateTypes: boolean,
                 generateTypes 
             } 
         });
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         await replaceDirContent(MMDB_DIR, TEMP_DIR);
         log.info(`highRisk.mmdb compiled — ${String(data.length)} entries`);
 
