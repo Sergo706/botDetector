@@ -55,7 +55,7 @@
   },
   "dependencies": {
     "@riavzon/shield-base": "^2.0.5",
-    "@riavzon/utils": "^1.0.5",
+    "@riavzon/utils": "^1.1.6",
     "citty": "0.2.1",
     "consola": "3.4.2",
     "db0": "0.3.4",

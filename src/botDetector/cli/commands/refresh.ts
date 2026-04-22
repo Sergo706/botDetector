@@ -4,7 +4,8 @@ import { InputCache } from '@riavzon/shield-base';
 import consola from 'consola';
 import { getLibraryRoot } from '@db/findDataPath.js';
 import path from 'path';
-
+import fs from 'node:fs/promises';
+import { replaceDirContent } from '@riavzon/utils/server';
 
 export const refreshData = defineCommand({
     meta: {
@@ -21,10 +22,20 @@ export const refreshData = defineCommand({
         }
 
         const output = path.resolve(getLibraryRoot(), 'dist/_data-sources');
+        const tmp = path.resolve(getLibraryRoot(), 'dist', `_tmp_${Date.now().toString()}`);
+        await fs.mkdir(tmp, { recursive: true });
+        
+        
+    try {
+        
         consola.start('Restarting data sources...');
-
-        await __restartData(output, true);
-
-        consola.success(`✨ All data successfully restarted!`);
-    }
+        await __restartData(tmp, true);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        await replaceDirContent(output, tmp);
+     } catch (err) {
+        consola.error(err);
+     } finally {
+        await fs.rm(tmp, { recursive: true, force: true });
+     }
+  }
 });
