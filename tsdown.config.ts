@@ -21,7 +21,6 @@ export default defineConfig([
     clean: true,
     publint: {
       level: 'error',
-      enabled: 'ci-only',
       strict: true,
     },
     copy: [
