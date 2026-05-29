@@ -1,6 +1,6 @@
 import maxmind, { Reader } from 'maxmind';
 import { open, type RootDatabase } from 'lmdb';
-import type { BgpRecord, CityGeoRecord, GeoRecord, TorRecord, ThreatRecord, CrawlersRecord, ProxyRecord, UserAgentRecord, JA4 } from '@riavzon/shield-base';
+import type { BgpRecord, CityGeoRecord, GeoRecord, TorRecord, ThreatRecord, CrawlersRecord, ProxyRecord, UserAgentRecord } from '@riavzon/shield-base';
 import type { BannedRecord, HighRiskRecord } from '../types/generator.js';
 import { existsSync } from "node:fs";
 import { resolveDataPath } from '@db/findDataPath.js';
@@ -22,7 +22,6 @@ export interface DataReaders {
     bannedDataBase(ip: string): BannedRecord | null;
     highRiskDataBase(ip: string): HighRiskRecord | null;
     getUserAgentLmdb(): RootDatabase<UserAgentRecord, string>;
-    getJa4Lmdb(): RootDatabase<JA4, string>;
 }
 
 export interface AppReaders {
@@ -40,7 +39,6 @@ export interface AppReaders {
     banned?: Reader<BannedRecord & maxmind.Response>;
     highRisk?: Reader<HighRiskRecord & maxmind.Response>;
     userAgentLmdb: RootDatabase<UserAgentRecord, string>;
-    ja4Lmdb: RootDatabase<JA4, string>;
 }
 
 
@@ -90,21 +88,6 @@ export class DataSources implements DataReaders {
       maxReaders: 2024,
     });
 
-    const ja4Lmdb = open<JA4, string>({
-      path: resolveDataPath('ja4-db/ja4.mdb'),
-      name: 'ja4',
-      compression: true,
-      readOnly: true,
-      useVersions: true,
-      sharedStructuresKey: Symbol.for('structures'),
-      pageSize: 4096,
-      cache: {
-          validated: true
-      },
-      noReadAhead: true,
-      maxReaders: 2024,
-    });
-
     return new DataSources({
        asn,
        city,
@@ -120,7 +103,6 @@ export class DataSources implements DataReaders {
        banned,
        highRisk,
        userAgentLmdb,
-       ja4Lmdb,
     });
   }
     
@@ -189,10 +171,6 @@ export class DataSources implements DataReaders {
 
   public getUserAgentLmdb(): RootDatabase<UserAgentRecord, string> {
     return this.readers.userAgentLmdb;
-  }
-
-  public getJa4Lmdb(): RootDatabase<JA4, string> {
-    return this.readers.ja4Lmdb;
   }
 
 }
