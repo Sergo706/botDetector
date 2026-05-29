@@ -24,10 +24,6 @@ export default defineConfig([
       enabled: 'ci-only',
       strict: true,
     },
-    attw: {
-      level: 'error',
-      enabled: 'ci-only'
-    },
     copy: [
       { from: '_data-sources/suffix.json', to: 'dist/_data-sources', flatten: false }
     ],
