@@ -152,32 +152,6 @@ describe('mmdbDataReaders, DataSources', () => {
         });
     });
 
-    describe('lmdbJa4DataBase', () => {
-        it('returns undefined for an unknown fingerprint', () => {
-            const record = getDataSources().getJa4Lmdb().get('nonexistent_fp_zzz');
-            expect(record).toBeUndefined();
-        });
-
-        it('returns a record for a known JA4T fingerprint', () => {
-            const record = getDataSources().getJa4Lmdb().get('1024_2_1460_00');
-            expect(record).not.toBeUndefined();
-        });
-
-        it('returned record identifies Nmap with expected fields', () => {
-            const record = getDataSources().getJa4Lmdb().get('1024_2_1460_00');
-            expect(record!.application).toBe('Nmap');
-            expect(record!.verified).toBe(true);
-            expect(record!.ja4t_fingerprint).toBe('1024_2_1460_00');
-        });
-
-        it('does not throw for arbitrary input strings', () => {
-            const inputs = ['', 'not_a_fp', ';;;', 'a_b_c_d'];
-            for (const input of inputs) {
-                expect(() => getDataSources().getJa4Lmdb().get(input)).not.toThrow();
-            }
-        });
-    });
-
     describe('optional generated MMDBs (bannedDataBase / highRiskDataBase)', () => {
         it('bannedDataBase does not throw even when mmdb may not exist', () => {
             expect(() => getDataSources().bannedDataBase('8.8.8.8')).not.toThrow();

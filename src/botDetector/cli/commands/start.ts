@@ -9,7 +9,6 @@ import {
     getTorLists,
     getCrawlersIps,
     getUserAgentLmdbList,
-    getJaDatabaseLmdb,
     type InputCache
 } from '@riavzon/shield-base';
 import consola from 'consola';
@@ -56,7 +55,7 @@ export const startCommand = defineCommand({
             return;
         }
 
-        cache.selectedDataTypes = ["BGP", "City", "Geography", "Proxy", "Tor", "SEO", "firehol_l1", "firehol_l2", "firehol_l3", "firehol_l4", "firehol_anonymous", "JA4", "UserAgent"];
+        cache.selectedDataTypes = ["BGP", "City", "Geography", "Proxy", "Tor", "SEO", "firehol_l1", "firehol_l2", "firehol_l3", "firehol_l4", "firehol_anonymous", "UserAgent"];
         cache.outPutPath = output;
         await __cache()._setCache(cache);
 
@@ -70,8 +69,7 @@ export const startCommand = defineCommand({
             getListOfProxies(output, mmdbPath),
             getThreatLists(output, mmdbPath, true),
             getCrawlersIps(output, mmdbPath),
-            getUserAgentLmdbList(output),
-            getJaDatabaseLmdb(output)
+            getUserAgentLmdbList(output)
         ]);
 
         consola.success('All data successfully compiled. You can now start using bot-detector.');

@@ -51,13 +51,6 @@ describe('resolveDataPath', () => {
     expect(fs.existsSync(paths)).toBe(true);
   })
 
-  it('finds the ja4 lmdb directory', () => {
-    const p = resolveDataPath('ja4-db/ja4.mdb');
-    expect(path.isAbsolute(p)).toBe(true);
-    expect(p).toContain('_data-sources');
-    expect(fs.existsSync(p)).toBe(true);
-  })
-
   it('throws with an informative message when the file does not exist', () => {
     expect(() => resolveDataPath('nonexistent.mmdb')).toThrow(
       '[Bot Detector] Data file "nonexistent.mmdb" not found'
