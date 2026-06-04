@@ -1,6 +1,6 @@
 {
   "name": "@riavzon/bot-detector",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "type": "module",
   "main": "./dist/main.cjs",
   "types": "./dist/main.d.cts",
@@ -54,7 +54,7 @@
     "docs:markdown": "typedoc --options ./typedoc.json"
   },
   "dependencies": {
-    "@riavzon/shield-base": "^3.0.1",
+    "@riavzon/shield-base": "^3.0.2",
     "@riavzon/utils": "^1.1.6",
     "citty": "0.2.1",
     "consola": "3.4.2",
