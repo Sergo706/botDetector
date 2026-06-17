@@ -222,7 +222,7 @@ describe('HeaderAnalysis', () => {
 
         it('penalises inconsistent sec-fetch-mode', async () => {
             const s = await score({
-                headers: { 'sec-fetch-mode': 'cors' },
+                headers: { 'sec-fetch-mode': 'cors', 'x-client-id': '' },
             });
             expect(s).toBeGreaterThanOrEqual(cfg().inconsistentSecFetchMode);
         });
