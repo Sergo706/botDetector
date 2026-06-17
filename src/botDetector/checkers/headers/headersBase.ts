@@ -87,7 +87,7 @@ export class HeadersBase {
             }
         }
         const mode = req.get('sec-fetch-mode');
-        if (mode !== 'same-origin' && mode !== 'navigate') score += this.config.inconsistentSecFetchMode;
+        if (isBrowserRequest && mode !== 'same-origin' && mode !== 'navigate') score += this.config.inconsistentSecFetchMode;
 
         return score;   
     } 
