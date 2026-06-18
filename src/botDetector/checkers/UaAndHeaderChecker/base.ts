@@ -107,10 +107,10 @@ export class UaAndHeaderCheckerBase {
       if (!browserCiphers.has(cipher)) score += penalties.tlsCheckFailed;;
                                               
       const tlsVersion = (req.get('x-client-tls-version') ?? '').toLowerCase();
+      const vars = ["tlsv1.3", "tlsv1.2", "tls1.3", "tls1.2"];
       if (
         tlsVersion &&
-        !tlsVersion.startsWith('tls1.3') &&
-        !tlsVersion.startsWith('tls1.2')
+        !vars.includes(tlsVersion)
       ) {
         score += penalties.tlsCheckFailed; 
       }
